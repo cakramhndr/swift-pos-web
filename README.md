@@ -4,15 +4,18 @@ Modern Point of Sale (POS) web application built with React + Vite.
 
 ## ✨ Features
 
-- Product management
-- Transaction system
-- Real-time stock updates
-- Checkout modal
-- Payment methods
-- Change calculation
-- Invoice search
-- Low stock indicator
-- Responsive modern UI
+- **Inventory Management**: Complete stock tracking with restock & adjustment modals
+- **Product Management**: Add, view, and manage products with categories
+- **Transaction System**: Full checkout flow with multiple payment methods
+- **Real-time Stock Updates**: Automatic stock deduction and status tracking
+- **Stock Visualization**: Color-coded progress bars and status badges
+- **Payment Methods**: Cash, QRIS, and Transfer support
+- **Change Calculation**: Automatic change calculation at checkout
+- **Invoice Search & Filter**: Search transactions by invoice ID, filter by status
+- **Low Stock Indicator**: Real-time alerts for items running low
+- **Rupiah Currency Formatting**: Indonesian Rupiah currency display
+- **localStorage Integration**: Data persistence across sessions
+- **Responsive Modern UI**: Mobile-friendly design with Tailwind CSS
 
 ---
 
@@ -30,11 +33,14 @@ Modern Point of Sale (POS) web application built with React + Vite.
 
 ## ⚙️ Tech Stack
 
-- React
-- Vite
-- TailwindCSS
-- LocalStorage
-- React Hot Toast
+- **React** 19.2.6 - UI Framework
+- **Vite** 8.0.13 - Build tool
+- **TailwindCSS** 4.3.0 - Utility-first CSS
+- **shadcn UI** - Component library
+- **Lucide React** 1.16.0 - Icon library
+- **Sonner** 2.0.7 - Toast notifications
+- **React Router** 7.15.1 - Routing
+- **localStorage** - Data persistence
 
 ---
 
