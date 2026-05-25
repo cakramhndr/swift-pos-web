@@ -20,16 +20,22 @@ Modern Point of Sale (POS) web application built with React + Vite.
 ---
 
 ## 🖼️ Preview
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/90e39ac4-067b-4f16-b5ed-92dd50d171cb" />
-
+<img width="1920" height="957" alt="image" src="https://github.com/user-attachments/assets/bf30e96d-8d18-42db-a5b0-6eeeeb39cab5" />
 
 ### Products Page
 
-<img width="100%" src="https://github.com/cakramhndr/swift-pos-web/assets/preview-products.png" />
+<img width="1920" height="957" alt="image" src="https://github.com/user-attachments/assets/32d39b78-9a16-460b-b7c0-4f4867563c51" />
+
 
 ### Transactions Page
 
-<img width="100%" src="https://github.com/cakramhndr/swift-pos-web/assets/preview-transactions.png" />
+<img width="1920" height="957" alt="image" src="https://github.com/user-attachments/assets/11042021-bff0-4f74-9e43-66f7d2e100f9" />
+
+
+### Inventory Page
+
+<img width="1920" height="957" alt="image" src="https://github.com/user-attachments/assets/a81c8d58-4551-461f-a64b-4d991c38267b" />
+
 
 ---
 
