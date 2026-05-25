@@ -20,6 +20,8 @@ Modern Point of Sale (POS) web application built with React + Vite.
 ---
 
 ## 🖼️ Preview
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/90e39ac4-067b-4f16-b5ed-92dd50d171cb" />
+
 
 ### Products Page
 
