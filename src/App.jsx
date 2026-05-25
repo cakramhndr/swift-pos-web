@@ -7,58 +7,23 @@ import Transactions from "./pages/Transactions";
 import Customers from "./pages/Customers";
 import Inventory from "./pages/Inventory";
 
-import { SidebarProvider } from "@/components/ui/sidebar";
-
 import { Toaster } from "sonner";
-
-const salesData = [
-  {
-    name: "Mon",
-    sales: 4000,
-  },
-  {
-    name: "Tue",
-    sales: 3000,
-  },
-  {
-    name: "Wed",
-    sales: 5000,
-  },
-  {
-    name: "Thu",
-    sales: 2780,
-  },
-  {
-    name: "Fri",
-    sales: 1890,
-  },
-  {
-    name: "Sat",
-    sales: 6390,
-  },
-  {
-    name: "Sun",
-    sales: 4490,
-  },
-];
 
 export default function App() {
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-[#f5f7fb]">
-        <AppSidebar />
-        <main className="flex-1 p-8">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="/inventory" element={<Inventory />} />
-          </Routes>
+    <div className="flex min-h-screen w-full bg-[#f7f8fa]">
+      <AppSidebar />
+      <main className="flex-1 ml-[240px] p-7 lg:p-10 max-w-[1600px]">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/transactions" element={<Transactions />} />
+          <Route path="/customers" element={<Customers />} />
+          <Route path="/inventory" element={<Inventory />} />
+        </Routes>
 
-          <Toaster richColors position="top-center" />
-        </main>
-      </div>
-    </SidebarProvider>
+        <Toaster richColors position="top-center" />
+      </main>
+    </div>
   );
 }

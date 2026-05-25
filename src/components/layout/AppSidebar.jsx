@@ -1,145 +1,91 @@
-import { Link, useLocation } from "react-router-dom"
-
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
-
+import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   ShoppingCart,
   Package,
   Users,
   Warehouse,
-  BarChart3,
-PieChart,
-Settings,
-} from "lucide-react"
+  BarChart2,
+  TrendingUp,
+  Settings,
+} from "lucide-react";
 
-const items = [
-  {
-    title: "Dashboard",
-    icon: LayoutDashboard,
-    path: "/",
-  },
-  {
-    title: "Products",
-    icon: Package,
-    path: "/products",
-  },
-  {
-    title: "Transactions",
-    icon: ShoppingCart,
-    path: "/transactions",
-  },
-  {
-    title: "Customers",
-    icon: Users,
-    path: "/customers",
-  },
-  {
-    title: "Inventory",
-    icon: Warehouse,
-    path: "/inventory",
-  },
-  {
-    type: "divider",
-    label: "Analytics",
-  },
-  {
-    title: "Reports",
-    icon: BarChart3,
-    path: "/reports",
-  },
-  {
-    title: "Analytics",
-    icon: PieChart,
-    path: "/analytics",
-  },
-  {
-    type: "divider",
-    label: "System",
-  },
-  {
-    title: "Settings",
-    icon: Settings,
-    path: "/settings",
-  },
-]
+const mainNav = [
+  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/products", icon: Package, label: "Products" },
+  { to: "/transactions", icon: ShoppingCart, label: "Transactions" },
+  { to: "/customers", icon: Users, label: "Customers" },
+  { to: "/inventory", icon: Warehouse, label: "Inventory" },
+];
 
-export default function AppSidebar() {
+const analyticsNav = [
+  { to: "/reports", icon: BarChart2, label: "Reports" },
+  { to: "/analytics", icon: TrendingUp, label: "Analytics" },
+];
 
-  const location = useLocation()
+const systemNav = [{ to: "/settings", icon: Settings, label: "Settings" }];
 
+function NavGroup({ items }) {
   return (
-<Sidebar className="w-[260px] border-r border-[#ececf2] bg-white">
-  <SidebarContent>
-
-    <div className="p-6">
-      <h1 className="text-2xl font-bold tracking-tight">
-        Swift POS
-      </h1>
+    <div className="space-y-0.5">
+      {items.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm transition-all ${
+              isActive
+                ? "bg-purple-600 text-white"
+                : "text-gray-400 hover:bg-white/10 hover:text-white"
+            }`
+          }
+        >
+          <item.icon size={16} />
+          {item.label}
+        </NavLink>
+      ))}
     </div>
-
-    <SidebarGroup>
-      <SidebarGroupContent>
-        <p className="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-400">
-        Main Menu
-        </p>
-        <SidebarMenu>
-          {items.map((item) => {
-            if (item.type === "divider") {
-              return (
-               <p
-                    key={item.label}
-                    className="px-4 pt-6 pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400"
-                    >
-                    {item.label}
-                </p>
-              )
-            }
-            return (
-            <SidebarMenuItem
-              key={item.title}
-  
-            >
-              <SidebarMenuButton
-               data-active={location.pathname === item.path}
-                asChild
-                className="
-                  h-11 rounded-xl px-4
-                  hover:bg-gray-100
-                  hover:translate-x-0.5
-                  hover:text-violet-600
-                  transition-all duration-200
-                  data-[active=true]:bg-violet-100
-                  data-[active=true]:text-violet-700
-                " 
-                 
-              >
-                <Link
-                to={item.path}
-                  className="flex items-center gap-3 text-sm font-medium">
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            )
-          })}
-        </SidebarMenu>
-
-      </SidebarGroupContent>
-    </SidebarGroup>
-
-  </SidebarContent>
-</Sidebar>
-  )
+  );
 }
 
+export default function AppSidebar() {
+  return (
+    <div className="flex flex-col h-screen w-[240px] bg-[#1a1035] text-white fixed left-0 top-0">
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-4 py-5">
+        <div className="w-9 h-9 bg-purple-600 rounded-xl flex items-center justify-center">
+          <ShoppingCart size={18} className="text-white" />
+        </div>
+        <div>
+          <p className="text-white font-semibold text-sm leading-tight">
+            SwiftPOS
+          </p>
+          <p className="text-purple-300 text-xs">Management System</p>
+        </div>
+      </div>
 
+      {/* Main Nav */}
+      <NavGroup items={mainNav} />
+
+      {/* Analytics */}
+      <p className="text-[10px] text-gray-500 uppercase tracking-widest px-5 py-2 mt-3">
+        Analytics
+      </p>
+      <NavGroup items={analyticsNav} />
+
+      {/* System */}
+      <p className="text-[10px] text-gray-500 uppercase tracking-widest px-5 py-2 mt-3">
+        System
+      </p>
+      <NavGroup items={systemNav} />
+
+      {/* User */}
+      <div className="mt-auto px-4 py-4 border-t border-white/10 flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-medium">
+          A
+        </div>
+        <span className="text-sm text-white">Admin</span>
+      </div>
+    </div>
+  );
+}
