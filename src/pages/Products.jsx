@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import {
@@ -54,7 +53,7 @@ function generateSku(name) {
 // ─── CSV Parser ──────────────────────────────────────────────────────────
 function parseCSV(text) {
   const lines = text.trim().split("\n");
-  if (lines.length < 2) return { headers: [], rows: [], errors: [] };
+  if (lines.length < 2) return { rows: [], errors: [] };
 
   const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
   const rows = [];
@@ -68,37 +67,22 @@ function parseCSV(text) {
     });
     rows.push(row);
 
-    // Validate required fields
     if (!row.name || row.name.length < 2) {
-      errors.push({
-        row: i,
-        field: "name",
-        message: "Missing or invalid name",
-      });
+      errors.push({ row: i, message: `Row ${i}: Missing or invalid name` });
     }
     if (row.stock === "" || isNaN(Number(row.stock)) || Number(row.stock) < 0) {
-      errors.push({ row: i, field: "stock", message: "Invalid stock" });
+      errors.push({ row: i, message: `Row ${i}: Invalid stock value` });
     }
     if (
       row.unitPrice === "" ||
       isNaN(Number(row.unitPrice)) ||
       Number(row.unitPrice) <= 0
     ) {
-      errors.push({
-        row: i,
-        field: "unitPrice",
-        message: "Invalid unit price",
-      });
+      errors.push({ row: i, message: `Row ${i}: Invalid unit price` });
     }
   }
 
-  return { headers, rows, errors };
-}
-
-function generateCSVTemplate() {
-  const headers = "name,sku,category,stock,unitCost,unitPrice,minStock";
-  const sample = "Logitech G Pro X,LGC-GPX,Headset,15,1500000,1899000,5";
-  return `${headers}\n${sample}`;
+  return { rows, errors };
 }
 
 export default function Products() {
@@ -143,7 +127,7 @@ export default function Products() {
         }
         return parsed;
       }
-    } catch {
+    } catch (error) {
       localStorage.removeItem("products");
       localStorage.removeItem("transactions");
     }
@@ -159,7 +143,6 @@ export default function Products() {
     minStock: 5,
     unitCost: "",
     unitPrice: "",
-    image: null,
   });
 
   const [errors, setErrors] = useState({});
@@ -175,23 +158,18 @@ export default function Products() {
     try {
       const saved = localStorage.getItem("swiftpos_categories");
       return saved ? JSON.parse(saved) : [...DEFAULT_CATEGORIES];
-    } catch {
+    } catch (error) {
       return [...DEFAULT_CATEGORIES];
     }
   });
   const [newCategoryName, setNewCategoryName] = useState("");
-
-  const navigate = useNavigate();
-
-  // ─── Bulk Actions State ────────────────────────────────────────────────
-  const [selectedIds, setSelectedIds] = useState(new Set());
-  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
   // ─── Import CSV State ──────────────────────────────────────────────────
   const [importModalOpen, setImportModalOpen] = useState(false);
-  const [csvRows, setCsvRows] = useState([]);
+  const [csvData, setCsvData] = useState([]);
   const [csvErrors, setCsvErrors] = useState([]);
-  const [csvFileName, setCsvFileName] = useState("");
 
   // ─── Persist categories ──────────────────────────────────────────────
   useEffect(() => {
@@ -332,7 +310,6 @@ export default function Products() {
         minStock: minStock,
         unitCost: Number(payload.unitCost),
         unitPrice: Number(payload.unitPrice),
-        image: payload.image,
         status: stockStatus(stock, minStock).label,
       },
     ]);
@@ -345,7 +322,6 @@ export default function Products() {
       minStock: 5,
       unitCost: "",
       unitPrice: "",
-      image: null,
     });
     setErrors({});
 
@@ -399,7 +375,7 @@ export default function Products() {
           if (updated) {
             setProducts(updated);
           }
-        } catch {
+        } catch (error) {
           console.error("Failed to parse products from storage");
         }
       }
@@ -408,6 +384,35 @@ export default function Products() {
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
+
+  // ─── Bulk Actions ────────────────────────────────────────────────────
+  const handleSelectAll = () => {
+    if (selectedIds.length === filteredProducts.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredProducts.map((p) => p.id));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((sid) => sid !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const handleBulkDelete = () => {
+    const updatedProducts = products.filter(
+      (product) => !selectedIds.includes(product.id),
+    );
+    setProducts(updatedProducts);
+    localStorage.setItem("products", JSON.stringify(updatedProducts));
+    const count = selectedIds.length;
+    setSelectedIds([]);
+    setBulkDeleteOpen(false);
+    toast.success(`${count} products deleted successfully 🗑️`);
+  };
 
   // ─── Category Management ─────────────────────────────────────────────
   const handleAddCategory = () => {
@@ -437,58 +442,28 @@ export default function Products() {
     toast.success(`Category "${catToDelete}" deleted 🗑️`);
   };
 
-  // ─── Bulk Actions ────────────────────────────────────────────────────
-  const toggleSelectAll = () => {
-    if (selectedIds.size === filteredProducts.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filteredProducts.map((p) => p.id)));
-    }
-  };
-
-  const toggleSelect = (id) => {
-    const newSet = new Set(selectedIds);
-    if (newSet.has(id)) {
-      newSet.delete(id);
-    } else {
-      newSet.add(id);
-    }
-    setSelectedIds(newSet);
-  };
-
-  const handleBulkDelete = () => {
-    const updatedProducts = products.filter(
-      (product) => !selectedIds.has(product.id),
-    );
-    const count = selectedIds.size;
-    setProducts(updatedProducts);
-    localStorage.setItem("products", JSON.stringify(updatedProducts));
-    setSelectedIds(new Set());
-    setBulkDeleteConfirm(false);
-    toast.success(`${count} products deleted successfully 🗑️`);
-  };
-
   // ─── Import CSV ──────────────────────────────────────────────────────
-  const handleCSVFile = (file) => {
+  const handleCSVFile = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
     if (!file.name.endsWith(".csv")) {
       toast.error("Please upload a CSV file");
       return;
     }
 
-    setCsvFileName(file.name);
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target.result;
+    reader.onload = (ev) => {
+      const text = ev.target.result;
       const { rows, errors } = parseCSV(text);
-      setCsvRows(rows);
+      setCsvData(rows);
       setCsvErrors(errors);
     };
     reader.readAsText(file);
   };
 
   const handleDownloadTemplate = () => {
-    const csv = generateCSVTemplate();
+    const csv =
+      "name,sku,category,stock,unitCost,unitPrice,minStock\nLogitech G Pro X,LGC-GPX,Headset,15,1500000,1899000,5";
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -499,9 +474,8 @@ export default function Products() {
   };
 
   const handleImportCSV = () => {
-    const errorRowSet = new Set(csvErrors.map((e) => e.row));
-    const validRows = csvRows.filter((_, idx) => !errorRowSet.has(idx + 1));
-    const invalidCount = csvErrors.length;
+    const errorRowNums = new Set(csvErrors.map((e) => e.row));
+    const validRows = csvData.filter((_, idx) => !errorRowNums.has(idx + 1));
 
     const newProducts = validRows.map((row) => {
       const minStock = Number(row.minStock) || 5;
@@ -515,7 +489,6 @@ export default function Products() {
         minStock: minStock,
         unitCost: Number(row.unitCost) || 0,
         unitPrice: Number(row.unitPrice),
-        image: null,
         status: stockStatus(stock, minStock).label,
       };
     });
@@ -525,18 +498,13 @@ export default function Products() {
     localStorage.setItem("products", JSON.stringify(updated));
 
     setImportModalOpen(false);
-    setCsvRows([]);
+    setCsvData([]);
     setCsvErrors([]);
-    setCsvFileName("");
 
-    if (invalidCount > 0) {
-      toast.success(
-        `Successfully imported ${validRows.length} products, skipped ${invalidCount} invalid rows`,
-      );
-    } else {
-      toast.success(`Successfully imported ${validRows.length} products ✅`);
-    }
+    toast.success(`Imported ${validRows.length} products successfully ✅`);
   };
+
+  const validRowCount = csvData.length - csvErrors.length;
 
   return (
     <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm">
@@ -586,51 +554,6 @@ export default function Products() {
                 </DialogHeader>
 
                 <div className="px-6 pb-6 pt-4 space-y-4">
-                  {/* Image Upload */}
-                  <div>
-                    <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
-                      Product Image
-                    </label>
-                    <label className="block border-2 border-dashed border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-colors">
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        onChange={(e) =>
-                          handleImageUpload(e.target.files?.[0], false)
-                        }
-                        className="hidden"
-                      />
-                      {newProduct.image ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <img
-                            src={newProduct.image}
-                            alt="Preview"
-                            className="h-[120px] max-h-[120px] object-contain"
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setNewProduct({ ...newProduct, image: null })
-                            }
-                            className="text-xs text-red-500 hover:text-red-700"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center gap-2 text-gray-500">
-                          <Upload size={20} />
-                          <span className="text-sm font-medium">
-                            Click to upload product image
-                          </span>
-                          <span className="text-xs text-gray-400">
-                            PNG, JPG up to 2MB
-                          </span>
-                        </div>
-                      )}
-                    </label>
-                  </div>
-
                   {/* Row 1: SKU + Generate | Category */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -860,7 +783,6 @@ export default function Products() {
       {/* ══════════════ Table Card ════════════════════════════════════════ */}
       <div className="overflow-hidden rounded-3xl border border-[#ececf2] bg-white shadow-sm">
         <div className="p-6 pb-0">
-          {/* Search and Filter Row */}
           <div className="flex items-center justify-between gap-4">
             <div className="relative flex-1">
               <Search
@@ -939,28 +861,23 @@ export default function Products() {
           </div>
 
           {/* Bulk Action Bar */}
-          {selectedIds.size > 0 && (
-            <div className="mt-4 flex items-center justify-between bg-purple-50 border border-purple-200 rounded-lg px-4 py-2">
-              <span className="text-sm font-medium text-purple-700">
-                {selectedIds.size} product{selectedIds.size !== 1 ? "s" : ""}{" "}
-                selected
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-3 px-4 py-2 bg-purple-50 border border-purple-200 rounded-lg mb-3 mt-4">
+              <span className="text-sm text-purple-700">
+                {selectedIds.length} products selected
               </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setBulkDeleteConfirm(true)}
-                  className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-all hover:bg-red-50"
-                >
-                  <Trash2 className="h-3 w-3" />
-                  Delete Selected
-                </button>
-                <button
-                  onClick={() => setSelectedIds(new Set())}
-                  className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-all hover:bg-gray-50"
-                >
-                  <X className="h-3 w-3" />
-                  Deselect All
-                </button>
-              </div>
+              <button
+                onClick={() => setBulkDeleteOpen(true)}
+                className="text-sm text-red-600 border border-red-200 px-3 py-1 rounded-lg hover:bg-red-50 cursor-pointer"
+              >
+                Delete Selected
+              </button>
+              <button
+                onClick={() => setSelectedIds([])}
+                className="text-sm text-gray-600 border border-gray-200 px-3 py-1 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                Deselect All
+              </button>
             </div>
           )}
         </div>
@@ -988,11 +905,11 @@ export default function Products() {
                     <th className="px-4 py-4 w-10">
                       <input
                         type="checkbox"
+                        onChange={handleSelectAll}
                         checked={
-                          filteredProducts.length > 0 &&
-                          selectedIds.size === filteredProducts.length
+                          selectedIds.length === filteredProducts.length &&
+                          filteredProducts.length > 0
                         }
-                        onChange={toggleSelectAll}
                         className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
                       />
                     </th>
@@ -1013,42 +930,26 @@ export default function Products() {
                       Number(product.stock),
                       Number(product.minStock) || 5,
                     );
-                    const isSelected = selectedIds.has(product.id);
                     return (
                       <tr
                         key={product.id}
-                        className={`border-t border-[#ececf2] transition-colors hover:bg-violet-50/30 ${
-                          isSelected ? "bg-purple-50 border-purple-200" : ""
-                        }`}
+                        className={`border-t border-[#ececf2] transition-colors hover:bg-violet-50/30 ${selectedIds.includes(product.id) ? "bg-purple-50" : ""}`}
                       >
                         <td className="px-4 py-4">
                           <input
                             type="checkbox"
-                            checked={isSelected}
                             onChange={() => toggleSelect(product.id)}
+                            checked={selectedIds.includes(product.id)}
                             className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
                           />
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            {product.image ? (
-                              <img
-                                src={product.image}
-                                alt={product.name}
-                                className="w-8 h-8 rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200 text-xs font-bold text-violet-600">
-                                {product.name.charAt(0)}
-                              </div>
-                            )}
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200 text-xs font-bold text-violet-600">
+                              {product.name.charAt(0)}
+                            </div>
                             <div>
-                              <span
-                                onClick={() =>
-                                  navigate(`/products/${product.id}`)
-                                }
-                                className="font-medium text-purple-600 hover:underline cursor-pointer"
-                              >
+                              <span className="font-semibold text-gray-900">
                                 {product.name}
                               </span>
                               <p className="text-xs text-gray-400">
@@ -1128,57 +1029,6 @@ export default function Products() {
                                   </DialogHeader>
                                   {editingProduct && (
                                     <div className="px-6 pb-6 pt-4 space-y-4">
-                                      {/* Image Upload */}
-                                      <div>
-                                        <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
-                                          Product Image
-                                        </label>
-                                        <label className="block border-2 border-dashed border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-colors">
-                                          <input
-                                            type="file"
-                                            accept="image/png,image/jpeg,image/webp"
-                                            onChange={(e) =>
-                                              handleImageUpload(
-                                                e.target.files?.[0],
-                                                true,
-                                              )
-                                            }
-                                            className="hidden"
-                                          />
-                                          {editingProduct.image ? (
-                                            <div className="flex flex-col items-center gap-2">
-                                              <img
-                                                src={editingProduct.image}
-                                                alt="Preview"
-                                                className="h-[120px] max-h-[120px] object-contain"
-                                              />
-                                              <button
-                                                type="button"
-                                                onClick={() =>
-                                                  setEditingProduct({
-                                                    ...editingProduct,
-                                                    image: null,
-                                                  })
-                                                }
-                                                className="text-xs text-red-500 hover:text-red-700"
-                                              >
-                                                Remove
-                                              </button>
-                                            </div>
-                                          ) : (
-                                            <div className="flex flex-col items-center gap-2 text-gray-500">
-                                              <Upload size={20} />
-                                              <span className="text-sm font-medium">
-                                                Click to upload product image
-                                              </span>
-                                              <span className="text-xs text-gray-400">
-                                                PNG, JPG up to 2MB
-                                              </span>
-                                            </div>
-                                          )}
-                                        </label>
-                                      </div>
-
                                       {/* Row 1: SKU | Category */}
                                       <div className="grid grid-cols-2 gap-4">
                                         <div>
@@ -1461,7 +1311,7 @@ export default function Products() {
         </div>
       </div>
 
-      {/* ══════════════ Delete Confirm Modal (Single) ═══════════════════ */}
+      {/* ══════════════ Delete Confirm Modal ════════════════════════════ */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
@@ -1499,7 +1349,7 @@ export default function Products() {
       )}
 
       {/* ══════════════ Bulk Delete Confirm Modal ═══════════════════════ */}
-      {bulkDeleteConfirm && (
+      {bulkDeleteOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex flex-col items-center text-center">
@@ -1507,19 +1357,15 @@ export default function Products() {
                 <AlertTriangle className="h-6 w-6 text-red-500" />
               </div>
               <h3 className="mt-4 text-lg font-bold text-gray-900">
-                Delete {selectedIds.size} Product
-                {selectedIds.size !== 1 ? "s" : ""}
+                Delete {selectedIds.length} Products
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                Are you sure you want to delete {selectedIds.size} selected
-                product
-                {selectedIds.size !== 1 ? "s" : ""}? This action cannot be
-                undone.
+                This action cannot be undone.
               </p>
             </div>
             <div className="mt-6 flex gap-3">
               <button
-                onClick={() => setBulkDeleteConfirm(false)}
+                onClick={() => setBulkDeleteOpen(false)}
                 className="flex-1 rounded-2xl border border-[#ececf2] py-3 font-medium text-gray-700 transition-all hover:bg-gray-50"
               >
                 Cancel
@@ -1529,6 +1375,203 @@ export default function Products() {
                 className="flex-1 rounded-2xl bg-gradient-to-r from-red-500 to-rose-500 py-3 font-medium text-white shadow-sm transition-all hover:shadow-md"
               >
                 Delete All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════ Import CSV Modal ════════════════════════════════ */}
+      {importModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+                  <Upload className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Import Products from CSV
+                  </h2>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Upload a CSV file with your product data
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setImportModalOpen(false);
+                  setCsvData([]);
+                  setCsvErrors([]);
+                }}
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-gray-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Download Template */}
+            <button
+              onClick={handleDownloadTemplate}
+              className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700 mb-4"
+            >
+              <FileDown className="h-4 w-4" />
+              Download CSV Template
+            </button>
+
+            {/* Format Info */}
+            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] to-white p-4 mb-4 text-sm text-gray-600">
+              <p className="font-semibold text-gray-700 mb-1">
+                Required: name, sku, category, stock, unitPrice
+              </p>
+              <p className="text-xs text-gray-400">
+                Optional: unitCost, minStock (default: 5)
+              </p>
+            </div>
+
+            {/* Upload Area */}
+            <label className="block border-2 border-dashed border-gray-200 rounded-lg p-6 text-center cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-colors mb-4">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleCSVFile}
+                className="hidden"
+              />
+              {csvData.length > 0 ? (
+                <div className="flex flex-col items-center gap-1">
+                  <Upload className="h-5 w-5 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-600">
+                    {csvData.length} rows found
+                  </span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-gray-500">
+                  <Upload size={24} />
+                  <span className="text-sm font-medium">
+                    Click to upload CSV file
+                  </span>
+                  <span className="text-xs text-gray-400">.csv files only</span>
+                </div>
+              )}
+            </label>
+
+            {/* Preview Table */}
+            {csvData.length > 0 && (
+              <div className="overflow-hidden rounded-2xl border border-[#ececf2] mb-4">
+                <div className="overflow-x-auto max-h-64 overflow-y-auto">
+                  <table className="w-full border-collapse text-sm">
+                    <thead>
+                      <tr className="bg-gradient-to-r from-[#f8f8fc] to-white text-left text-gray-500 sticky top-0">
+                        <th className="px-4 py-3 font-semibold">Name</th>
+                        <th className="px-4 py-3 font-semibold">SKU</th>
+                        <th className="px-4 py-3 font-semibold">Category</th>
+                        <th className="px-4 py-3 font-semibold">Stock</th>
+                        <th className="px-4 py-3 font-semibold">Unit Price</th>
+                        <th className="px-4 py-3 font-semibold">Valid?</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {csvData.slice(0, 5).map((row, idx) => {
+                        const rowNum = idx + 1;
+                        const hasError = csvErrors.some(
+                          (e) => e.row === rowNum,
+                        );
+                        return (
+                          <tr
+                            key={idx}
+                            className={`border-t border-[#ececf2] ${
+                              hasError ? "bg-red-50" : ""
+                            }`}
+                          >
+                            <td className="px-4 py-3 font-medium text-gray-900">
+                              {row.name || "—"}
+                            </td>
+                            <td className="px-4 py-3 text-gray-600 font-mono">
+                              {row.sku || "—"}
+                            </td>
+                            <td className="px-4 py-3 text-gray-600">
+                              {row.category || "—"}
+                            </td>
+                            <td className="px-4 py-3 text-gray-900">
+                              {row.stock || "—"}
+                            </td>
+                            <td className="px-4 py-3 text-gray-900">
+                              {row.unitPrice || "—"}
+                            </td>
+                            <td className="px-4 py-3">
+                              {hasError ? (
+                                <span className="text-xs text-red-600 font-medium">
+                                  Invalid
+                                </span>
+                              ) : (
+                                <span className="text-xs text-green-600 font-medium">
+                                  ✓ Valid
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {csvData.length > 5 && (
+                        <tr className="border-t border-[#ececf2]">
+                          <td
+                            colSpan={6}
+                            className="px-4 py-3 text-center text-sm text-gray-400"
+                          >
+                            ...and {csvData.length - 5} more rows
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Error Summary */}
+            {csvErrors.length > 0 && (
+              <div className="rounded-2xl bg-red-50 border border-red-200 p-3 mb-4">
+                <p className="text-xs font-semibold text-red-700 mb-1">
+                  {csvErrors.length} row{csvErrors.length !== 1 ? "s" : ""} with
+                  errors
+                </p>
+                {csvErrors.slice(0, 3).map((err, idx) => (
+                  <p key={idx} className="text-xs text-red-600">
+                    {err.message}
+                  </p>
+                ))}
+                {csvErrors.length > 3 && (
+                  <p className="text-xs text-red-400">
+                    ...and {csvErrors.length - 3} more
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setImportModalOpen(false);
+                  setCsvData([]);
+                  setCsvErrors([]);
+                }}
+                className="flex-1 rounded-2xl border border-[#ececf2] py-3 font-medium text-gray-700 transition-all hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleImportCSV}
+                disabled={validRowCount === 0}
+                className={`flex-1 rounded-2xl py-3 font-semibold shadow-sm transition-all ${
+                  validRowCount > 0
+                    ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:shadow-md"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                Import {validRowCount} Product{validRowCount !== 1 ? "s" : ""}
               </button>
             </div>
           </div>
@@ -1607,225 +1650,6 @@ export default function Products() {
                 className="w-full rounded-2xl border border-[#ececf2] py-3 font-medium text-gray-700 transition-all hover:bg-gray-50"
               >
                 Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════ Import CSV Modal ════════════════════════════════ */}
-      {importModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
-                  <Upload className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Import Products from CSV
-                  </h2>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    Upload a CSV file with your product data
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setImportModalOpen(false);
-                  setCsvRows([]);
-                  setCsvErrors([]);
-                  setCsvFileName("");
-                }}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-gray-200"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Download Template */}
-            <button
-              onClick={handleDownloadTemplate}
-              className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700 mb-4"
-            >
-              <FileDown className="h-4 w-4" />
-              Download CSV Template
-            </button>
-
-            {/* CSV Format Info */}
-            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] to-white p-4 mb-4 text-sm text-gray-600">
-              <p className="font-semibold text-gray-700 mb-1">
-                Required columns:
-              </p>
-              <p className="font-mono text-xs">
-                name, sku, category, stock, unitCost, unitPrice, minStock
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Optional: minStock (default: 5)
-              </p>
-            </div>
-
-            {/* File Upload */}
-            <label className="block border-2 border-dashed border-gray-200 rounded-lg p-6 text-center cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-colors mb-4">
-              <input
-                type="file"
-                accept=".csv"
-                onChange={(e) => handleCSVFile(e.target.files?.[0])}
-                className="hidden"
-              />
-              {csvFileName ? (
-                <div className="flex flex-col items-center gap-1">
-                  <Upload className="h-5 w-5 text-purple-600" />
-                  <span className="text-sm font-medium text-purple-600">
-                    {csvFileName}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {csvRows.length} rows found
-                  </span>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2 text-gray-500">
-                  <Upload size={24} />
-                  <span className="text-sm font-medium">
-                    Click to upload CSV file
-                  </span>
-                  <span className="text-xs text-gray-400">.csv files only</span>
-                </div>
-              )}
-            </label>
-
-            {/* Preview Table */}
-            {csvRows.length > 0 && (
-              <div className="overflow-hidden rounded-2xl border border-[#ececf2] mb-4">
-                <div className="overflow-x-auto max-h-64 overflow-y-auto">
-                  <table className="w-full border-collapse text-sm">
-                    <thead>
-                      <tr className="bg-gradient-to-r from-[#f8f8fc] to-white text-left text-gray-500 sticky top-0">
-                        <th className="px-4 py-3 font-semibold">#</th>
-                        <th className="px-4 py-3 font-semibold">Name</th>
-                        <th className="px-4 py-3 font-semibold">SKU</th>
-                        <th className="px-4 py-3 font-semibold">Category</th>
-                        <th className="px-4 py-3 font-semibold">Stock</th>
-                        <th className="px-4 py-3 font-semibold">Unit Cost</th>
-                        <th className="px-4 py-3 font-semibold">Unit Price</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {csvRows.slice(0, 5).map((row, idx) => {
-                        const rowNum = idx + 1;
-                        const hasError = csvErrors.some(
-                          (e) => e.row === rowNum,
-                        );
-                        return (
-                          <tr
-                            key={idx}
-                            className={`border-t border-[#ececf2] ${
-                              hasError ? "bg-red-50" : ""
-                            }`}
-                          >
-                            <td className="px-4 py-3 text-gray-400">
-                              {rowNum}
-                            </td>
-                            <td
-                              className={`px-4 py-3 font-medium ${!row.name ? "text-red-500" : "text-gray-900"}`}
-                            >
-                              {row.name || (
-                                <span className="italic text-red-400">
-                                  Missing
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-gray-600 font-mono">
-                              {row.sku || "-"}
-                            </td>
-                            <td className="px-4 py-3 text-gray-600">
-                              {row.category || "-"}
-                            </td>
-                            <td
-                              className={`px-4 py-3 ${row.stock === "" ? "text-red-500" : "text-gray-900"}`}
-                            >
-                              {row.stock || (
-                                <span className="italic text-red-400">
-                                  Missing
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-gray-900">
-                              {row.unitCost || "0"}
-                            </td>
-                            <td
-                              className={`px-4 py-3 ${row.unitPrice === "" ? "text-red-500" : "text-gray-900"}`}
-                            >
-                              {row.unitPrice || (
-                                <span className="italic text-red-400">
-                                  Missing
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {csvRows.length > 5 && (
-                        <tr className="border-t border-[#ececf2]">
-                          <td
-                            colSpan={7}
-                            className="px-4 py-3 text-center text-sm text-gray-400"
-                          >
-                            ...and {csvRows.length - 5} more rows
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* Error Summary */}
-            {csvErrors.length > 0 && (
-              <div className="rounded-2xl bg-red-50 border border-red-200 p-3 mb-4">
-                <p className="text-xs font-semibold text-red-700 mb-1">
-                  {csvErrors.length} row{csvErrors.length !== 1 ? "s" : ""} with
-                  errors
-                </p>
-                {csvErrors.slice(0, 3).map((err, idx) => (
-                  <p key={idx} className="text-xs text-red-600">
-                    Row {err.row}: {err.message}
-                  </p>
-                ))}
-                {csvErrors.length > 3 && (
-                  <p className="text-xs text-red-400">
-                    ...and {csvErrors.length - 3} more
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 mt-4">
-              <button
-                onClick={() => {
-                  setImportModalOpen(false);
-                  setCsvRows([]);
-                  setCsvErrors([]);
-                  setCsvFileName("");
-                }}
-                className="flex-1 rounded-2xl border border-[#ececf2] py-3 font-medium text-gray-700 transition-all hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleImportCSV}
-                disabled={csvRows.length === 0 || csvErrors.length > 0}
-                className={`flex-1 rounded-2xl py-3 font-semibold shadow-sm transition-all ${
-                  csvRows.length > 0 && csvErrors.length === 0
-                    ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:shadow-md"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                }`}
-              >
-                Import {csvRows.length} Product{csvRows.length !== 1 ? "s" : ""}
               </button>
             </div>
           </div>
