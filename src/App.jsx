@@ -3,6 +3,7 @@ import AppSidebar from "./components/layout/AppSidebar";
 
 import Dashboard from "./pages/Dashboard.jsx";
 import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
 import Transactions from "./pages/Transactions";
 import Customers from "./pages/Customers";
 import Inventory from "./pages/Inventory";
@@ -19,6 +20,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/inventory" element={<Inventory />} />

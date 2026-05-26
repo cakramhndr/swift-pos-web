@@ -343,8 +343,16 @@ export default function Transactions() {
                       onClick={() => addToCart(product)}
                       className="group cursor-pointer rounded-2xl border border-[#ececf2] p-4 text-left transition-all duration-200 hover:border-violet-200 hover:shadow-md hover:-translate-y-0.5"
                     >
-                      <div className="mb-3 h-28 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center">
-                        <Package className="h-10 w-10 text-violet-300 group-hover:scale-110 transition-transform duration-300" />
+                      <div className="mb-3 h-28 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center overflow-hidden">
+                        {product.image ? (
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                        ) : (
+                          <Package className="h-10 w-10 text-violet-300 group-hover:scale-110 transition-transform duration-300" />
+                        )}
                       </div>
 
                       <h3 className="font-semibold text-gray-900 text-sm truncate">
