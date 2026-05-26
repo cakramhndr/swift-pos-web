@@ -118,13 +118,16 @@ export default function Reports() {
 
     filteredTransactions.forEach((transaction) => {
       (transaction.items || []).forEach((item) => {
-        const key = item.id || item.name;
+        const key = item.cartId || item.id || item.name;
         const existing = productSales.get(key) || {
           id: item.id,
-          name: item.name,
+          name: item.variantName
+            ? `${item.name} - ${item.variantName}`
+            : item.name,
           sku: item.sku || "-",
           qty: 0,
           revenue: 0,
+          variantName: item.variantName || null,
         };
 
         existing.qty += item.qty || 0;

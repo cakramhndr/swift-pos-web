@@ -51,6 +51,14 @@ function generateSku(name) {
   return `${prefix}${prefix ? "-" : ""}${suffix}-${rand}`;
 }
 
+// ─── Variant SKU Generator ───────────────────────────────────────────────
+function generateVariantSku(parentSku, variantName) {
+  if (!parentSku || !variantName || !variantName.trim()) return "";
+  const words = variantName.trim().split(/\s+/).filter(Boolean);
+  const suffix = words.map((w) => w.slice(0, 3).toUpperCase()).join("-");
+  return `${parentSku}-${suffix}`;
+}
+
 // ─── Header Normalization Map ────────────────────────────────────────────
 const HEADER_MAP = {
   name: "name",
@@ -219,6 +227,8 @@ export default function Products() {
   // ─── Variants State ────────────────────────────────────────────────────
   const [addVariants, setAddVariants] = useState([]);
   const [editVariants, setEditVariants] = useState([]);
+  // Track which variant SKUs have been manually edited (so we don't auto-overwrite)
+  const [manualSkuIds, setManualSkuIds] = useState(() => new Set());
 
   // ─── Persist categories ──────────────────────────────────────────────
   useEffect(() => {
@@ -331,7 +341,31 @@ export default function Products() {
   const updateVariant = (id, field, value, isEdit = false) => {
     const setter = isEdit ? setEditVariants : setAddVariants;
     const list = isEdit ? editVariants : addVariants;
-    setter(list.map((v) => (v.id === id ? { ...v, [field]: value } : v)));
+
+    // When variant name changes and SKU hasn't been manually edited, auto-generate SKU
+    if (field === "name") {
+      setter(
+        list.map((v) => {
+          if (v.id === id) {
+            const updated = { ...v, name: value };
+            if (!manualSkuIds.has(id)) {
+              const parentSku = isEdit ? editingProduct?.sku : newProduct.sku;
+              if (parentSku) {
+                updated.sku = generateVariantSku(parentSku, value);
+              }
+            }
+            return updated;
+          }
+          return v;
+        }),
+      );
+    } else if (field === "sku") {
+      // Mark this variant as manually edited
+      setManualSkuIds((prev) => new Set(prev).add(id));
+      setter(list.map((v) => (v.id === id ? { ...v, sku: value } : v)));
+    } else {
+      setter(list.map((v) => (v.id === id ? { ...v, [field]: value } : v)));
+    }
   };
 
   const removeVariant = (id, isEdit = false) => {
@@ -592,69 +626,153 @@ export default function Products() {
   // ─── Variants UI helper ──────────────────────────────────────────────
   const renderVariantSection = (variants, setVariants, isEdit = false) => (
     <div className="mt-4">
-      <div className="flex items-center justify-between mb-2">
-        <label className="text-xs font-medium text-gray-500 uppercase">
-          Variants (Optional)
-        </label>
+      <div className="flex items-center justify-between mb-2.5">
+        <div>
+          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Variants{" "}
+            <span className="text-gray-300 font-normal">(Optional)</span>
+          </label>
+          {variants.length > 0 && (
+            <span className="text-xs text-gray-400 ml-2">
+              {variants.length} variant{variants.length !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => addVariant(isEdit)}
-          className="text-xs text-purple-600 border border-purple-200 px-2 py-1 rounded-md hover:bg-purple-50 cursor-pointer flex items-center gap-1"
+          className="text-xs font-semibold text-purple-600 border border-purple-200 px-3.5 py-1.5 rounded-xl hover:bg-purple-50 cursor-pointer flex items-center gap-1.5 transition-all hover:shadow-sm"
         >
-          <Plus size={12} /> Add Variant
+          <Plus size={13} /> Add Variant
         </button>
       </div>
 
-      {variants.map((variant) => (
-        <div key={variant.id} className="flex gap-2 mb-2 items-center">
-          <input
-            type="text"
-            placeholder="Name (e.g. Wired)"
-            value={variant.name}
-            onChange={(e) =>
-              updateVariant(variant.id, "name", e.target.value, isEdit)
-            }
-            className="flex-1 border border-[#ececf2] rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
-          />
-          <input
-            type="number"
-            min="0"
-            placeholder="Stock"
-            value={variant.stock}
-            onChange={(e) =>
-              updateVariant(variant.id, "stock", e.target.value, isEdit)
-            }
-            className="w-20 border border-[#ececf2] rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
-          />
-          <input
-            type="text"
-            placeholder="Price"
-            value={variant.unitPrice ? formatPrice(variant.unitPrice) : ""}
-            onChange={(e) =>
-              updateVariant(
-                variant.id,
-                "unitPrice",
-                parsePriceInput(e.target.value),
-                isEdit,
-              )
-            }
-            className="w-28 border border-[#ececf2] rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
-          />
-          <button
-            type="button"
-            onClick={() => removeVariant(variant.id, isEdit)}
-            className="text-red-400 hover:text-red-600 cursor-pointer"
+      {/* Scrollable variant list */}
+      <div
+        className={
+          variants.length > 0
+            ? "max-h-72 overflow-y-auto overflow-x-hidden space-y-4"
+            : ""
+        }
+      >
+        {variants.map((variant) => (
+          <div
+            key={variant.id}
+            className="rounded-xl border border-[#ececf2] p-4"
           >
-            <X size={16} />
-          </button>
-        </div>
-      ))}
+            {/* Row 1: Variant Name | Variant SKU */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                  Variant Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Black / M"
+                  value={variant.name}
+                  onChange={(e) =>
+                    updateVariant(variant.id, "name", e.target.value, isEdit)
+                  }
+                  className="w-full rounded-xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                  Variant SKU
+                </label>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    placeholder="Auto-generated"
+                    value={variant.sku}
+                    onChange={(e) =>
+                      updateVariant(variant.id, "sku", e.target.value, isEdit)
+                    }
+                    className="flex-1 rounded-xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeVariant(variant.id, isEdit)}
+                    className="shrink-0 flex items-center justify-center h-10 w-10 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                    title="Remove variant"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
 
-      {variants.length === 0 && (
-        <p className="text-xs text-gray-400">
-          No variants — product uses single stock & price above
-        </p>
-      )}
+            {/* Row 2: Stock | Price | Cost */}
+            <div className="grid grid-cols-3 gap-4 mt-4">
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                  Stock
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={variant.stock}
+                  onChange={(e) =>
+                    updateVariant(variant.id, "stock", e.target.value, isEdit)
+                  }
+                  className="w-full rounded-xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                  Unit Price
+                </label>
+                <input
+                  type="text"
+                  placeholder="0"
+                  value={
+                    variant.unitPrice ? formatPrice(variant.unitPrice) : ""
+                  }
+                  onChange={(e) =>
+                    updateVariant(
+                      variant.id,
+                      "unitPrice",
+                      parsePriceInput(e.target.value),
+                      isEdit,
+                    )
+                  }
+                  className="w-full rounded-xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                  Unit Cost
+                </label>
+                <input
+                  type="text"
+                  placeholder="0"
+                  value={variant.unitCost ? formatPrice(variant.unitCost) : ""}
+                  onChange={(e) =>
+                    updateVariant(
+                      variant.id,
+                      "unitCost",
+                      parsePriceInput(e.target.value),
+                      isEdit,
+                    )
+                  }
+                  className="w-full rounded-xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {variants.length === 0 && (
+          <div className="rounded-xl border-2 border-dashed border-gray-200 py-7 text-center">
+            <p className="text-sm text-gray-400">
+              No variants yet. Click{" "}
+              <span className="text-purple-500 font-semibold">Add Variant</span>{" "}
+              to create product options like size or color.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -696,7 +814,7 @@ export default function Products() {
               </button>
             </DialogTrigger>
 
-            <DialogContent className="rounded-3xl sm:max-w-md p-0 overflow-hidden">
+            <DialogContent className="rounded-3xl sm:max-w-4xl p-0 overflow-hidden">
               <div className="relative">
                 <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
                 <DialogHeader className="px-6 pt-5 pb-0">
@@ -1222,7 +1340,7 @@ export default function Products() {
                                   <Edit3 className="h-3.5 w-3.5" /> Edit
                                 </button>
                               </DialogTrigger>
-                              <DialogContent className="rounded-3xl sm:max-w-md p-0 overflow-hidden">
+                              <DialogContent className="rounded-3xl sm:max-w-4xl p-0 overflow-hidden">
                                 <div className="relative">
                                   <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
                                   <DialogHeader className="px-6 pt-5 pb-0">

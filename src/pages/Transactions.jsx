@@ -18,17 +18,23 @@ import {
   User,
 } from "lucide-react";
 
+// ─── Helpers ─────────────────────────────────────────────────────────────
+function getEffectiveStock(product) {
+  if (product.variants && product.variants.length > 0) {
+    return product.variants.reduce((sum, v) => sum + Number(v.stock || 0), 0);
+  }
+  return Number(product.stock);
+}
+
 export default function Transactions() {
   // ─── State ──────────────────────────────────────────────────────────────
   const [products, setProducts] = useState(() => {
     const savedProducts = localStorage.getItem("products");
-
     return savedProducts ? JSON.parse(savedProducts) : [];
   });
   const [cart, setCart] = useState([]);
   const [transactions, setTransactions] = useState(() => {
     const savedTransactions = localStorage.getItem("transactions");
-
     return savedTransactions ? JSON.parse(savedTransactions) : [];
   });
   const [selectedTransaction, setSelectedTransaction] = useState(null);
@@ -41,19 +47,22 @@ export default function Transactions() {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
+  // ─── Variant Picker State ─────────────────────────────────────────────
+  const [variantPicker, setVariantPicker] = useState(null);
+
   // Customer selection state
   const [customers, setCustomers] = useState(() => {
     const savedCustomers = localStorage.getItem("swiftpos_customers");
     return savedCustomers ? JSON.parse(savedCustomers) : [];
   });
   const [customerSearch, setCustomerSearch] = useState("");
-  const [selectedCustomer, setSelectedCustomer] = useState(null); // null = walk-in
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [newCustomerData, setNewCustomerData] = useState({
     name: "",
     phone: "",
   });
-  const [selectedCustomerType, setSelectedCustomerType] = useState(null); // 'existing', 'new', 'walkin'
+  const [selectedCustomerType, setSelectedCustomerType] = useState(null);
 
   useEffect(() => {
     localStorage.setItem("transactions", JSON.stringify(transactions));
@@ -83,49 +92,93 @@ export default function Transactions() {
 
   // ─── Cart Handlers ──────────────────────────────────────────────────────
   const addToCart = (product) => {
+    // If product has variants, open variant picker
+    if (product.variants && product.variants.length > 0) {
+      setVariantPicker(product);
+      return;
+    }
+
+    // No variants - add directly
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
+      const existingItem = prevCart.find(
+        (item) => item.id === product.id && !item.variantId,
+      );
       if (existingItem) {
         return prevCart.map((item) =>
-          item.id === product.id ? { ...item, qty: item.qty + 1 } : item,
+          item.id === product.id && !item.variantId
+            ? { ...item, qty: item.qty + 1 }
+            : item,
         );
       }
       return [...prevCart, { ...product, qty: 1 }];
     });
   };
 
-  const increaseQty = (id) => {
+  // ─── Add variant to cart ────────────────────────────────────────────────
+  const addVariantToCart = (product, variant) => {
+    const cartId = `${product.id}-${variant.id}`;
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((item) => item.cartId === cartId);
+      if (existingItem) {
+        return prevCart.map((item) =>
+          item.cartId === cartId ? { ...item, qty: item.qty + 1 } : item,
+        );
+      }
+      return [
+        ...prevCart,
+        {
+          cartId: cartId,
+          id: product.id,
+          variantId: variant.id,
+          name: product.name,
+          variantName: variant.name,
+          sku: variant.sku || product.sku,
+          unitPrice: Number(variant.unitPrice),
+          unitCost: Number(variant.unitCost || product.unitCost),
+          stock: Number(variant.stock),
+          qty: 1,
+          image: product.image,
+          category: product.category,
+        },
+      ];
+    });
+    setVariantPicker(null);
+  };
+
+  const increaseQty = (cartId) => {
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.id === id ? { ...item, qty: item.qty + 1 } : item,
+        item.cartId === cartId ? { ...item, qty: item.qty + 1 } : item,
       ),
     );
   };
 
-  const decreaseQty = (id) => {
+  const decreaseQty = (cartId) => {
     setCart((prevCart) => {
-      const item = prevCart.find((item) => item.id === id);
+      const item = prevCart.find((item) => item.cartId === cartId);
+      if (!item) return prevCart;
       if (item.qty <= 1) {
-        return prevCart.filter((item) => item.id !== id);
+        return prevCart.filter((item) => item.cartId !== cartId);
       }
       return prevCart.map((item) =>
-        item.id === id ? { ...item, qty: item.qty - 1 } : item,
+        item.cartId === cartId ? { ...item, qty: item.qty - 1 } : item,
       );
     });
   };
 
-  const removeItem = (id) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+  const removeItem = (cartId) => {
+    setCart((prevCart) => prevCart.filter((item) => item.cartId !== cartId));
   };
 
-  // ─── Checkout ───────────────────────────────────────────────────────────
+  // ─── Cart totals ───────────────────────────────────────────────────────
   const totalAmount = cart.reduce(
-    (total, item) => total + item.unitPrice * item.qty,
+    (total, item) => total + Number(item.unitPrice || 0) * item.qty,
     0,
   );
   const change = Math.max(0, Number(paidAmount) - totalAmount);
 
   const getInitials = (name) => {
+    if (!name) return "";
     return name
       .split(" ")
       .map((n) => n[0])
@@ -210,30 +263,60 @@ export default function Transactions() {
     setTransactions((prev) => [newTransaction, ...prev]);
     setCurrentPage(1);
 
+    // Deduct stock for each cart item
     const updatedProducts = products.map((product) => {
-      const cartItem = cart.find((item) => item.id === product.id);
+      const cartItemsForProduct = cart.filter((item) => item.id === product.id);
+      if (cartItemsForProduct.length === 0) return product;
 
-      if (cartItem) {
-        const newStock = Math.max(0, product.stock - cartItem.qty);
+      let updatedProduct = { ...product };
 
-        const getStockStatus = (stock) => {
-          if (stock > 10) return "In Stock";
-          if (stock > 0) return "Low Stock";
-          return "Out of Stock";
-        };
-
-        return {
-          ...product,
-          stock: newStock,
-          status: getStockStatus(newStock),
-        };
+      if (product.variants && product.variants.length > 0) {
+        // Deduct variant stock
+        let updatedVariants = [...product.variants];
+        cartItemsForProduct.forEach((cartItem) => {
+          updatedVariants = updatedVariants.map((v) => {
+            if (v.id === cartItem.variantId) {
+              const newVariantStock = Math.max(
+                0,
+                Number(v.stock || 0) - cartItem.qty,
+              );
+              return { ...v, stock: newVariantStock };
+            }
+            return v;
+          });
+        });
+        updatedProduct.variants = updatedVariants;
+        updatedProduct.stock = updatedVariants.reduce(
+          (sum, v) => sum + Number(v.stock || 0),
+          0,
+        );
+      } else {
+        // Deduct single stock
+        const qty = cartItemsForProduct.reduce(
+          (sum, item) => sum + item.qty,
+          0,
+        );
+        updatedProduct.stock = Math.max(0, Number(product.stock) - qty);
       }
 
-      return product;
+      // Update status
+      const effStock = updatedProduct.variants
+        ? updatedProduct.variants.reduce(
+            (sum, v) => sum + Number(v.stock || 0),
+            0,
+          )
+        : Number(updatedProduct.stock);
+      updatedProduct.status =
+        effStock === 0
+          ? "Out of Stock"
+          : effStock <= (product.minStock || 5)
+            ? "Low Stock"
+            : "In Stock";
+
+      return updatedProduct;
     });
 
     setProducts(updatedProducts);
-
     localStorage.setItem("products", JSON.stringify(updatedProducts));
     setCart([]);
     setShowCheckout(false);
@@ -261,6 +344,14 @@ export default function Transactions() {
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(search.toLowerCase()),
   );
+
+  // ─── Get display name for cart item ────────────────────────────────────
+  const getItemDisplayName = (item) => {
+    if (item.variantName) {
+      return `${item.name} - ${item.variantName}`;
+    }
+    return item.name;
+  };
 
   return (
     <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm">
@@ -337,58 +428,72 @@ export default function Transactions() {
                     </p>
                   </div>
                 ) : (
-                  filteredProducts.map((product) => (
-                    <button
-                      key={product.id}
-                      onClick={() => addToCart(product)}
-                      className="group cursor-pointer rounded-2xl border border-[#ececf2] p-4 text-left transition-all duration-200 hover:border-violet-200 hover:shadow-md hover:-translate-y-0.5"
-                    >
-                      <div className="mb-3 h-28 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center overflow-hidden">
-                        {product.image ? (
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
-                          />
-                        ) : (
-                          <Package className="h-10 w-10 text-violet-300 group-hover:scale-110 transition-transform duration-300" />
+                  filteredProducts.map((product) => {
+                    const effStock = getEffectiveStock(product);
+                    const hasVariants =
+                      product.variants && product.variants.length > 0;
+                    return (
+                      <button
+                        key={product.id}
+                        onClick={() => addToCart(product)}
+                        disabled={effStock <= 0}
+                        className="group cursor-pointer rounded-2xl border border-[#ececf2] p-4 text-left transition-all duration-200 hover:border-violet-200 hover:shadow-md hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                      >
+                        <div className="mb-3 h-28 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center overflow-hidden">
+                          {product.image ? (
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                          ) : (
+                            <Package className="h-10 w-10 text-violet-300 group-hover:scale-110 transition-transform duration-300" />
+                          )}
+                        </div>
+
+                        <h3 className="font-semibold text-gray-900 text-sm truncate">
+                          {product.name}
+                        </h3>
+                        <p className="mt-0.5 text-xs text-gray-400">
+                          {product.category}
+                        </p>
+
+                        <div className="mt-3 flex items-center justify-between">
+                          <p className="text-base font-bold text-violet-600">
+                            {hasVariants
+                              ? `From Rp ${Number(product.variants[0]?.unitPrice || 0).toLocaleString()}`
+                              : `Rp ${Number(product.unitPrice).toLocaleString()}`}
+                          </p>
+                          <span
+                            className={`flex h-6 w-6 items-center justify-center rounded-lg transition-all duration-200 ${
+                              effStock > 0
+                                ? "bg-violet-100 text-violet-600 group-hover:bg-violet-600 group-hover:text-white"
+                                : "bg-gray-100 text-gray-400"
+                            }`}
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </span>
+                        </div>
+
+                        {hasVariants && (
+                          <p className="mt-1 text-xs text-purple-500 font-medium">
+                            {product.variants.length} variants
+                          </p>
                         )}
-                      </div>
 
-                      <h3 className="font-semibold text-gray-900 text-sm truncate">
-                        {product.name}
-                      </h3>
-                      <p className="mt-0.5 text-xs text-gray-400">
-                        {product.category}
-                      </p>
-
-                      <div className="mt-3 flex items-center justify-between">
-                        <p className="text-base font-bold text-violet-600">
-                          Rp {product.unitPrice.toLocaleString()}
-                        </p>
-                        <span
-                          className={`flex h-6 w-6 items-center justify-center rounded-lg transition-all duration-200 ${
-                            product.stock > 0
-                              ? "bg-violet-100 text-violet-600 group-hover:bg-violet-600 group-hover:text-white"
-                              : "bg-gray-100 text-gray-400"
-                          }`}
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                        </span>
-                      </div>
-
-                      {product.stock <= 5 && product.stock > 0 && (
-                        <p className="mt-1.5 text-xs text-yellow-600 font-medium">
-                          Only {product.stock} left
-                        </p>
-                      )}
-                      {product.stock <= 0 && (
-                        <p className="mt-1.5 text-xs text-red-500 font-medium">
-                          Out of stock
-                        </p>
-                      )}
-                    </button>
-                  ))
+                        {effStock <= 5 && effStock > 0 && (
+                          <p className="mt-1.5 text-xs text-yellow-600 font-medium">
+                            Only {effStock} left
+                          </p>
+                        )}
+                        {effStock <= 0 && (
+                          <p className="mt-1.5 text-xs text-red-500 font-medium">
+                            Out of stock
+                          </p>
+                        )}
+                      </button>
+                    );
+                  })
                 )}
               </div>
             </div>
@@ -453,21 +558,26 @@ export default function Transactions() {
                 <div className="overflow-y-auto p-4 space-y-3 cart-items min-h-0">
                   {cart.map((item) => (
                     <div
-                      key={item.id}
+                      key={item.cartId || item.id}
                       className="rounded-2xl border border-[#ececf2] p-3 transition-all hover:border-violet-200"
                     >
                       {/* Item Header */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           <p className="truncate font-semibold text-sm text-gray-900">
-                            {item.name}
+                            {getItemDisplayName(item)}
                           </p>
                           <p className="mt-0.5 text-xs text-gray-400">
-                            Rp {item.unitPrice.toLocaleString()}
+                            Rp {Number(item.unitPrice).toLocaleString()}
                           </p>
+                          {item.variantName && (
+                            <p className="text-xs text-purple-500 mt-0.5">
+                              SKU: {item.sku}
+                            </p>
+                          )}
                         </div>
                         <button
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeItem(item.cartId || item.id)}
                           className="shrink-0 rounded-lg p-1.5 text-gray-400 transition-all hover:bg-red-50 hover:text-red-500"
                         >
                           <X className="h-3.5 w-3.5" />
@@ -478,7 +588,7 @@ export default function Transactions() {
                       <div className="mt-3 flex items-center justify-between">
                         <div className="flex items-center gap-1">
                           <button
-                            onClick={() => decreaseQty(item.id)}
+                            onClick={() => decreaseQty(item.cartId || item.id)}
                             className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#ececf2] transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600"
                           >
                             <Minus className="h-3 w-3 text-gray-500" />
@@ -487,14 +597,17 @@ export default function Transactions() {
                             {item.qty}
                           </span>
                           <button
-                            onClick={() => increaseQty(item.id)}
+                            onClick={() => increaseQty(item.cartId || item.id)}
                             className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#ececf2] transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600"
                           >
                             <Plus className="h-3 w-3 text-gray-500" />
                           </button>
                         </div>
                         <p className="text-sm font-bold text-violet-600">
-                          Rp {(item.unitPrice * item.qty).toLocaleString()}
+                          Rp{" "}
+                          {(
+                            Number(item.unitPrice || 0) * item.qty
+                          ).toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -502,18 +615,12 @@ export default function Transactions() {
                 </div>
               </div>
 
-              {/* ─── Bottom Section: Footer (always at bottom) ─────── */}
+              {/* ─── Bottom Section: Footer ─────────────────────── */}
               <div className="border-t border-[#ececf2] p-4 flex-shrink-0 mt-auto">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm text-gray-500">Subtotal</span>
                   <span className="font-semibold text-gray-900">
-                    Rp{" "}
-                    {cart
-                      .reduce(
-                        (total, item) => total + item.unitPrice * item.qty,
-                        0,
-                      )
-                      .toLocaleString()}
+                    Rp {totalAmount.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center justify-between mb-2">
@@ -528,13 +635,7 @@ export default function Transactions() {
                     Total
                   </span>
                   <span className="text-xl font-bold text-violet-600">
-                    Rp{" "}
-                    {cart
-                      .reduce(
-                        (total, item) => total + item.unitPrice * item.qty,
-                        0,
-                      )
-                      .toLocaleString()}
+                    Rp {totalAmount.toLocaleString()}
                   </span>
                 </div>
 
@@ -549,6 +650,84 @@ export default function Transactions() {
           )}
         </div>
       </div>
+
+      {/* ══════════════ Variant Picker Modal ═════════════════════════════ */}
+      {variantPicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200">
+                  <Package className="h-5 w-5 text-violet-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">
+                    {variantPicker.name}
+                  </h2>
+                  <p className="text-xs text-gray-400">
+                    Select a variant to add to cart
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setVariantPicker(null)}
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-gray-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {variantPicker.variants && variantPicker.variants.length > 0 ? (
+                variantPicker.variants.map((variant) => (
+                  <button
+                    key={variant.id}
+                    onClick={() => addVariantToCart(variantPicker, variant)}
+                    disabled={Number(variant.stock || 0) <= 0}
+                    className={`w-full flex items-center justify-between rounded-2xl border p-4 transition-all ${
+                      Number(variant.stock || 0) > 0
+                        ? "border-[#ececf2] hover:border-violet-300 hover:bg-violet-50 cursor-pointer"
+                        : "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <p className="font-semibold text-sm text-gray-900">
+                        {variant.name || "Unnamed Variant"}
+                      </p>
+                      {variant.sku && (
+                        <p className="text-xs text-gray-400 mt-0.5 font-mono">
+                          SKU: {variant.sku}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-violet-600">
+                        Rp {(Number(variant.unitPrice) || 0).toLocaleString()}
+                      </p>
+                      <p
+                        className={`text-xs mt-0.5 ${
+                          Number(variant.stock || 0) > 0
+                            ? "text-gray-400"
+                            : "text-red-500"
+                        }`}
+                      >
+                        {Number(variant.stock || 0) > 0
+                          ? `Stock: ${variant.stock}`
+                          : "Out of stock"}
+                      </p>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <p className="text-sm text-gray-400 text-center py-4">
+                  No variants available
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ══════════════ Transaction History ════════════════════════════════ */}
       <div className="overflow-hidden rounded-3xl border border-[#ececf2] bg-white shadow-sm transition-all duration-300 hover:shadow-md">
@@ -658,10 +837,13 @@ export default function Transactions() {
                               <div className="flex flex-wrap items-center gap-1.5">
                                 {transaction.items.slice(0, 2).map((item) => (
                                   <span
-                                    key={item.id}
+                                    key={item.cartId || item.id}
                                     className="inline-block rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600"
                                   >
-                                    {item.name} x{item.qty}
+                                    {item.variantName
+                                      ? `${item.name} (${item.variantName})`
+                                      : item.name}{" "}
+                                    x{item.qty}
                                   </span>
                                 ))}
                                 {transaction.items.length > 2 && (
@@ -1009,17 +1191,25 @@ export default function Transactions() {
               <div className="space-y-3 mb-6">
                 {cart.map((item) => (
                   <div
-                    key={item.id}
+                    key={item.cartId || item.id}
                     className="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3"
                   >
                     <div>
                       <p className="font-semibold text-sm text-gray-900">
-                        {item.name}
+                        {getItemDisplayName(item)}
                       </p>
                       <p className="text-xs text-gray-400">Qty: {item.qty}</p>
+                      {item.variantName && (
+                        <p className="text-xs text-purple-500">
+                          SKU: {item.sku}
+                        </p>
+                      )}
                     </div>
                     <p className="font-semibold text-violet-600">
-                      Rp {(item.unitPrice * item.qty).toLocaleString()}
+                      Rp{" "}
+                      {(
+                        Number(item.unitPrice || 0) * item.qty
+                      ).toLocaleString()}
                     </p>
                   </div>
                 ))}
@@ -1118,7 +1308,7 @@ export default function Transactions() {
         </div>
       )}
 
-      {/* ══════════════ Transaction Detail Modal ═══════════════════════════ */}
+      {/* ══════════════ Transaction Detail Modal / Receipt ═══════════════════ */}
       {selectedTransaction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
@@ -1171,18 +1361,27 @@ export default function Transactions() {
               </p>
               {selectedTransaction.items.map((item) => (
                 <div
-                  key={item.id}
+                  key={item.cartId || item.id}
                   className="flex items-center justify-between rounded-2xl border border-[#ececf2] p-4 transition-all hover:border-violet-200"
                 >
                   <div>
-                    <p className="font-semibold text-gray-900">{item.name}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      Rp {item.unitPrice.toLocaleString()} x {item.qty}
+                    <p className="font-semibold text-gray-900">
+                      {getItemDisplayName(item)}
                     </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      Rp {Number(item.unitPrice || 0).toLocaleString()} x{" "}
+                      {item.qty}
+                    </p>
+                    {item.sku && (
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        SKU: {item.sku}
+                      </p>
+                    )}
                   </div>
 
                   <p className="font-bold text-violet-600">
-                    Rp {(item.unitPrice * item.qty).toLocaleString()}
+                    Rp{" "}
+                    {(Number(item.unitPrice || 0) * item.qty).toLocaleString()}
                   </p>
                 </div>
               ))}
