@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -7,10 +7,8 @@ import {
   DollarSign,
   AlertTriangle,
   XCircle,
-  Plus,
   Search,
   ArrowUpDown,
-  Trash2,
 } from "lucide-react";
 
 // ─── Format Rupiah ───────────────────────────────────────────────────────
@@ -69,20 +67,20 @@ export default function Inventory() {
   const [adjustNotes, setAdjustNotes] = useState("");
 
   // ─── Helper Functions ───────────────────────────────────────────────────
-  const getStockStatus = (s) => {
-    if (s > 5)
+  const getStockStatus = (s, minStock = 5) => {
+    if (s === 0)
       return {
-        label: "In Stock",
-        color: "bg-green-100 text-green-700",
+        label: "Out of Stock",
+        color: "bg-red-100 text-red-700",
       };
-    if (s > 0)
+    if (s <= minStock)
       return {
         label: "Low Stock",
         color: "bg-yellow-100 text-yellow-700",
       };
     return {
-      label: "Out of Stock",
-      color: "bg-red-100 text-red-700",
+      label: "In Stock",
+      color: "bg-green-100 text-green-700",
     };
   };
 
@@ -93,7 +91,7 @@ export default function Inventory() {
     0,
   );
   const lowStockItems = products.filter(
-    (p) => p.stock > 0 && p.stock <= 5,
+    (p) => p.stock > 0 && p.stock <= (p.minStock || 5),
   ).length;
   const outOfStock = products.filter((p) => p.stock === 0).length;
 
@@ -113,7 +111,7 @@ export default function Inventory() {
         return {
           ...p,
           stock: newStock,
-          status: getStockStatus(newStock).label,
+          status: getStockStatus(newStock, p.minStock || 5).label,
         };
       }
       return p;
@@ -140,7 +138,7 @@ export default function Inventory() {
         return {
           ...p,
           stock: newStockAmount,
-          status: getStockStatus(newStockAmount).label,
+          status: getStockStatus(newStockAmount, p.minStock || 5).label,
         };
       }
       return p;
@@ -163,7 +161,8 @@ export default function Inventory() {
 
     const matchStatus =
       statusFilter === "All" ||
-      getStockStatus(Number(product.stock)).label === statusFilter;
+      getStockStatus(Number(product.stock), product.minStock || 5).label ===
+        statusFilter;
 
     const matchCategory =
       categoryFilter === "All" || product.category === categoryFilter;
@@ -302,7 +301,10 @@ export default function Inventory() {
             </thead>
             <tbody>
               {filteredProducts.map((product) => {
-                const status = getStockStatus(Number(product.stock));
+                const status = getStockStatus(
+                  Number(product.stock),
+                  product.minStock || 5,
+                );
                 const stockValue =
                   Number(product.stock) * Number(product.unitCost);
                 const barWidth = Math.min(
@@ -310,11 +312,11 @@ export default function Inventory() {
                   100,
                 );
                 const barColor =
-                  Number(product.stock) > 5
-                    ? "bg-green-400"
-                    : Number(product.stock) > 0
+                  Number(product.stock) === 0
+                    ? "bg-red-400"
+                    : Number(product.stock) <= (product.minStock || 5)
                       ? "bg-yellow-400"
-                      : "bg-red-400";
+                      : "bg-green-400";
 
                 return (
                   <tr

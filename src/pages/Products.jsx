@@ -16,7 +16,39 @@ import {
   Trash2,
   Package,
   AlertTriangle,
+  Settings2,
 } from "lucide-react";
+
+const DEFAULT_CATEGORIES = [
+  "Headset",
+  "Mouse",
+  "Keyboard",
+  "Gamepad",
+  "Microphone",
+  "Monitor",
+  "Other",
+];
+
+// ─── SKU Generator ───────────────────────────────────────────────────────
+function generateSku(name) {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "";
+
+  // First letter of each word except last
+  const prefix = words
+    .slice(0, -1)
+    .map((w) => w.charAt(0).toUpperCase())
+    .join("");
+
+  // Last word: first 3 letters (or fewer if shorter)
+  const last = words[words.length - 1];
+  const suffix = last.slice(0, 3).toUpperCase();
+
+  // Random 3-digit number
+  const rand = String(Math.floor(Math.random() * 900) + 100);
+
+  return `${prefix}${prefix ? "-" : ""}${suffix}-${rand}`;
+}
 
 export default function Products() {
   const DEFAULT_PRODUCTS = [
@@ -26,6 +58,7 @@ export default function Products() {
       name: "Logitech G Pro X",
       category: "Headset",
       stock: 24,
+      minStock: 5,
       unitCost: 1500000,
       unitPrice: 1899000,
       status: "In Stock",
@@ -36,6 +69,7 @@ export default function Products() {
       name: "Razer Viper Mini",
       category: "Mouse",
       stock: 5,
+      minStock: 5,
       unitCost: 450000,
       unitPrice: 599000,
       status: "Low Stock",
@@ -72,15 +106,34 @@ export default function Products() {
     name: "",
     category: "",
     stock: "",
+    minStock: 5,
     unitCost: "",
     unitPrice: "",
   });
+
+  const [errors, setErrors] = useState({});
+  const [editErrors, setEditErrors] = useState({});
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All Categories");
   const [editingProduct, setEditingProduct] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [manageCatOpen, setManageCatOpen] = useState(false);
+  const [categories, setCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem("swiftpos_categories");
+      return saved ? JSON.parse(saved) : [...DEFAULT_CATEGORIES];
+    } catch {
+      return [...DEFAULT_CATEGORIES];
+    }
+  });
+  const [newCategoryName, setNewCategoryName] = useState("");
+
+  // ─── Persist categories ──────────────────────────────────────────────
+  useEffect(() => {
+    localStorage.setItem("swiftpos_categories", JSON.stringify(categories));
+  }, [categories]);
 
   const formatPrice = (value) => {
     const num = Number(value);
@@ -92,18 +145,105 @@ export default function Products() {
     return value.replace(/[^0-9]/g, "");
   };
 
+  // ─── Stock status helpers ─────────────────────────────────────────────
+  const stockStatus = (stock, minStock = 5) => {
+    if (stock === 0)
+      return {
+        label: "Out of Stock",
+        color: "bg-red-100 text-red-700 border-red-200",
+      };
+    if (stock <= minStock)
+      return {
+        label: "Low Stock",
+        color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+      };
+    return {
+      label: "In Stock",
+      color: "bg-green-100 text-green-700 border-green-200",
+    };
+  };
+
+  // ─── Validation ──────────────────────────────────────────────────────
+  const validateAddForm = () => {
+    const newErrors = {};
+
+    if (!newProduct.name || newProduct.name.trim().length < 2) {
+      newErrors.name = "This field is required";
+    }
+    if (
+      newProduct.stock === "" ||
+      Number(newProduct.stock) < 0 ||
+      isNaN(Number(newProduct.stock))
+    ) {
+      newErrors.stock = "This field is required";
+    }
+    if (
+      newProduct.unitPrice === "" ||
+      Number(newProduct.unitPrice) <= 0 ||
+      isNaN(Number(newProduct.unitPrice))
+    ) {
+      newErrors.unitPrice = "This field is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateEditForm = () => {
+    const newErrors = {};
+
+    if (!editingProduct.name || editingProduct.name.trim().length < 2) {
+      newErrors.name = "This field is required";
+    }
+    if (
+      editingProduct.stock === "" ||
+      editingProduct.stock === undefined ||
+      Number(editingProduct.stock) < 0 ||
+      isNaN(Number(editingProduct.stock))
+    ) {
+      newErrors.stock = "This field is required";
+    }
+    if (
+      editingProduct.unitPrice === "" ||
+      editingProduct.unitPrice === undefined ||
+      Number(editingProduct.unitPrice) <= 0 ||
+      isNaN(Number(editingProduct.unitPrice))
+    ) {
+      newErrors.unitPrice = "This field is required";
+    }
+
+    setEditErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleAddProduct = () => {
+    // Auto-generate SKU if empty
+    let sku = newProduct.sku;
+    if (!sku.trim() && newProduct.name.trim()) {
+      sku = generateSku(newProduct.name);
+    }
+
+    const payload = { ...newProduct, sku };
+
+    if (!validateAddForm()) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const minStock = Number(payload.minStock) || 5;
+    const stock = Number(payload.stock);
     setProducts([
       ...products,
       {
         id: Date.now(),
-        sku: newProduct.sku,
-        name: newProduct.name,
-        category: newProduct.category,
-        stock: Number(newProduct.stock),
-        unitCost: Number(newProduct.unitCost),
-        unitPrice: Number(newProduct.unitPrice),
-        status: Number(newProduct.stock) > 10 ? "In Stock" : "Low Stock",
+        sku: payload.sku,
+        name: payload.name,
+        category: payload.category,
+        stock: stock,
+        minStock: minStock,
+        unitCost: Number(payload.unitCost),
+        unitPrice: Number(payload.unitPrice),
+        status: stockStatus(stock, minStock).label,
       },
     ]);
 
@@ -112,9 +252,11 @@ export default function Products() {
       name: "",
       category: "",
       stock: "",
+      minStock: 5,
       unitCost: "",
       unitPrice: "",
     });
+    setErrors({});
 
     toast.success("Product added successfully ✅");
   };
@@ -128,6 +270,11 @@ export default function Products() {
   };
 
   const handleUpdateProduct = () => {
+    if (!validateEditForm()) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     setProducts(
       products.map((product) =>
         product.id === editingProduct.id ? editingProduct : product,
@@ -135,6 +282,7 @@ export default function Products() {
     );
     setEditingProduct(null);
     setEditDialogOpen(false);
+    setEditErrors({});
     toast.success("Product updated successfully ✏️");
   };
 
@@ -170,22 +318,33 @@ export default function Products() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // ─── Stock status helpers ─────────────────────────────────────────────
-  const stockStatus = (stock) => {
-    if (stock > 10)
-      return {
-        label: "In Stock",
-        color: "bg-green-100 text-green-700 border-green-200",
-      };
-    if (stock > 0)
-      return {
-        label: "Low Stock",
-        color: "bg-yellow-100 text-yellow-700 border-yellow-200",
-      };
-    return {
-      label: "Out of Stock",
-      color: "bg-red-100 text-red-700 border-red-200",
-    };
+  // ─── Category Management ─────────────────────────────────────────────
+  const handleAddCategory = () => {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) {
+      toast.error("Please enter a category name");
+      return;
+    }
+    if (categories.includes(trimmed)) {
+      toast.error("Category already exists");
+      return;
+    }
+    setCategories([...categories, trimmed]);
+    setNewCategoryName("");
+    toast.success(`Category "${trimmed}" added ✅`);
+  };
+
+  const handleDeleteCategory = (catToDelete) => {
+    // Check if any product uses this category
+    const usedBy = products.find((p) => p.category === catToDelete);
+    if (usedBy) {
+      toast.error(
+        `Cannot delete "${catToDelete}" – it is used by product "${usedBy.name}"`,
+      );
+      return;
+    }
+    setCategories(categories.filter((c) => c !== catToDelete));
+    toast.success(`Category "${catToDelete}" deleted 🗑️`);
   };
 
   return (
@@ -226,28 +385,40 @@ export default function Products() {
               </DialogHeader>
 
               <div className="px-6 pb-6 pt-4 space-y-4">
+                {/* Row 1: SKU + Generate | Category */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
                       SKU
                     </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. LGC-GPX"
-                      value={newProduct.sku}
-                      onChange={(e) =>
-                        setNewProduct({ ...newProduct, sku: e.target.value })
-                      }
-                      className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. LGC-GPX"
+                        value={newProduct.sku}
+                        onChange={(e) =>
+                          setNewProduct({ ...newProduct, sku: e.target.value })
+                        }
+                        className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const sku = generateSku(newProduct.name);
+                          setNewProduct({ ...newProduct, sku });
+                        }}
+                        disabled={!newProduct.name.trim()}
+                        className="shrink-0 text-xs px-2 py-1 border border-purple-300 text-purple-600 rounded-md hover:bg-purple-50 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        Generate
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
                       Category
                     </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Headset"
+                    <select
                       value={newProduct.category}
                       onChange={(e) =>
                         setNewProduct({
@@ -255,41 +426,96 @@ export default function Products() {
                           category: e.target.value,
                         })
                       }
-                      className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
-                    />
+                      className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer"
+                    >
+                      <option value="">Select category</option>
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
+                {/* Row 2: Product Name (full width) */}
                 <div>
                   <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
-                    Product Name
+                    Product Name <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
                     placeholder="e.g. Logitech G Pro X"
                     value={newProduct.name}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, name: e.target.value })
-                    }
-                    className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                    onChange={(e) => {
+                      setNewProduct({ ...newProduct, name: e.target.value });
+                      if (errors.name) setErrors({ ...errors, name: "" });
+                    }}
+                    className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
+                      errors.name
+                        ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+                        : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
+                    }`}
                   />
+                  {errors.name && (
+                    <p className="text-xs text-red-500 mt-1">
+                      This field is required
+                    </p>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                {/* Row 3: Stock | Min Stock */}
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
-                      Stock
+                      Stock <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="number"
+                      min="0"
                       placeholder="0"
                       value={newProduct.stock}
+                      onChange={(e) => {
+                        setNewProduct({ ...newProduct, stock: e.target.value });
+                        if (errors.stock) setErrors({ ...errors, stock: "" });
+                      }}
+                      className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
+                        errors.stock
+                          ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+                          : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
+                      }`}
+                    />
+                    {errors.stock && (
+                      <p className="text-xs text-red-500 mt-1">
+                        This field is required
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                      Min Stock
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="5"
+                      value={newProduct.minStock}
                       onChange={(e) =>
-                        setNewProduct({ ...newProduct, stock: e.target.value })
+                        setNewProduct({
+                          ...newProduct,
+                          minStock: e.target.value,
+                        })
                       }
                       className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                     />
+                    <p className="text-xs text-gray-400 mt-1">
+                      Low stock alert threshold
+                    </p>
                   </div>
+                </div>
+
+                {/* Row 4: Unit Cost | Unit Price */}
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
                       Unit Cost
@@ -313,7 +539,7 @@ export default function Products() {
                   </div>
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
-                      Unit Price
+                      Unit Price <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="text"
@@ -323,23 +549,55 @@ export default function Products() {
                           ? formatPrice(newProduct.unitPrice)
                           : ""
                       }
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setNewProduct({
                           ...newProduct,
                           unitPrice: parsePriceInput(e.target.value),
-                        })
-                      }
-                      className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                        });
+                        if (errors.unitPrice)
+                          setErrors({ ...errors, unitPrice: "" });
+                      }}
+                      className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
+                        errors.unitPrice
+                          ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+                          : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
+                      }`}
                     />
+                    {errors.unitPrice && (
+                      <p className="text-xs text-red-500 mt-1">
+                        This field is required
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <button
-                  onClick={handleAddProduct}
-                  className="w-full rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md"
-                >
-                  Save Product
-                </button>
+                {/* Cancel + Save buttons */}
+                <div className="flex gap-3 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewProduct({
+                        sku: "",
+                        name: "",
+                        category: "",
+                        stock: "",
+                        minStock: 5,
+                        unitCost: "",
+                        unitPrice: "",
+                      });
+                      setErrors({});
+                    }}
+                    className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddProduct}
+                    className="flex-1 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md"
+                  >
+                    Save Product
+                  </button>
+                </div>
               </div>
             </div>
           </DialogContent>
@@ -371,7 +629,7 @@ export default function Products() {
                 className="appearance-none rounded-2xl border border-[#ececf2] bg-gradient-to-b from-[#f8f8fc] to-white py-3 pl-4 pr-10 text-sm font-medium text-gray-700 outline-none transition-all focus:border-violet-400 hover:border-violet-300 hover:shadow-sm cursor-pointer"
               >
                 <option>All Categories</option>
-                {[...new Set(products.map((p) => p.category))].map((cat) => (
+                {categories.map((cat) => (
                   <option key={cat}>{cat}</option>
                 ))}
               </select>
@@ -409,6 +667,15 @@ export default function Products() {
                 </svg>
               </div>
             </div>
+
+            {/* Manage Categories Button */}
+            <button
+              onClick={() => setManageCatOpen(true)}
+              className="flex items-center gap-1.5 rounded-2xl border border-purple-200 px-4 py-3 text-sm font-medium text-purple-600 transition-all hover:bg-purple-50 hover:shadow-sm"
+            >
+              <Settings2 className="h-4 w-4" />
+              Manage Categories
+            </button>
 
             <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-4 py-2 text-sm font-medium text-violet-600">
               <Package className="h-4 w-4" />
@@ -451,7 +718,10 @@ export default function Products() {
                 </thead>
                 <tbody>
                   {filteredProducts.map((product) => {
-                    const status = stockStatus(Number(product.stock));
+                    const status = stockStatus(
+                      Number(product.stock),
+                      Number(product.minStock) || 5,
+                    );
                     return (
                       <tr
                         key={product.id}
@@ -482,11 +752,12 @@ export default function Products() {
                             <div className="h-2 w-16 rounded-full bg-gray-100 overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all ${
-                                  product.stock > 10
-                                    ? "bg-green-400"
-                                    : product.stock > 0
+                                  product.stock === 0
+                                    ? "bg-red-400"
+                                    : product.stock <=
+                                        (Number(product.minStock) || 5)
                                       ? "bg-yellow-400"
-                                      : "bg-red-400"
+                                      : "bg-green-400"
                                 }`}
                                 style={{
                                   width: `${Math.min((product.stock / 30) * 100, 100)}%`,
@@ -525,6 +796,7 @@ export default function Products() {
                                   onClick={() => {
                                     setEditingProduct(product);
                                     setEditDialogOpen(true);
+                                    setEditErrors({});
                                   }}
                                   className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-50 to-purple-50 px-4 py-2 text-sm font-medium text-violet-600 transition-all hover:shadow-sm hover:-translate-y-0.5"
                                 >
@@ -541,29 +813,49 @@ export default function Products() {
                                   </DialogHeader>
                                   {editingProduct && (
                                     <div className="px-6 pb-6 pt-4 space-y-4">
+                                      {/* Row 1: SKU | Category */}
                                       <div className="grid grid-cols-2 gap-4">
                                         <div>
                                           <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
                                             SKU
                                           </label>
-                                          <input
-                                            type="text"
-                                            value={editingProduct.sku}
-                                            onChange={(e) =>
-                                              setEditingProduct({
-                                                ...editingProduct,
-                                                sku: e.target.value,
-                                              })
-                                            }
-                                            className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
-                                          />
+                                          <div className="flex gap-2">
+                                            <input
+                                              type="text"
+                                              value={editingProduct.sku}
+                                              onChange={(e) =>
+                                                setEditingProduct({
+                                                  ...editingProduct,
+                                                  sku: e.target.value,
+                                                })
+                                              }
+                                              className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const sku = generateSku(
+                                                  editingProduct.name,
+                                                );
+                                                setEditingProduct({
+                                                  ...editingProduct,
+                                                  sku,
+                                                });
+                                              }}
+                                              disabled={
+                                                !editingProduct.name.trim()
+                                              }
+                                              className="shrink-0 text-xs px-2 py-1 border border-purple-300 text-purple-600 rounded-md hover:bg-purple-50 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                            >
+                                              Generate
+                                            </button>
+                                          </div>
                                         </div>
                                         <div>
                                           <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
                                             Category
                                           </label>
-                                          <input
-                                            type="text"
+                                          <select
                                             value={editingProduct.category}
                                             onChange={(e) =>
                                               setEditingProduct({
@@ -571,47 +863,124 @@ export default function Products() {
                                                 category: e.target.value,
                                               })
                                             }
-                                            className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
-                                          />
+                                            className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer"
+                                          >
+                                            {categories.map((cat) => (
+                                              <option key={cat} value={cat}>
+                                                {cat}
+                                              </option>
+                                            ))}
+                                          </select>
                                         </div>
                                       </div>
+
+                                      {/* Row 2: Product Name (full width) */}
                                       <div>
                                         <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
-                                          Product Name
+                                          Product Name{" "}
+                                          <span className="text-red-400">
+                                            *
+                                          </span>
                                         </label>
                                         <input
                                           type="text"
                                           value={editingProduct.name}
-                                          onChange={(e) =>
+                                          onChange={(e) => {
                                             setEditingProduct({
                                               ...editingProduct,
                                               name: e.target.value,
-                                            })
-                                          }
-                                          className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                                            });
+                                            if (editErrors.name)
+                                              setEditErrors({
+                                                ...editErrors,
+                                                name: "",
+                                              });
+                                          }}
+                                          className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
+                                            editErrors.name
+                                              ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+                                              : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
+                                          }`}
                                         />
+                                        {editErrors.name && (
+                                          <p className="text-xs text-red-500 mt-1">
+                                            This field is required
+                                          </p>
+                                        )}
                                       </div>
-                                      <div className="grid grid-cols-3 gap-4">
+
+                                      {/* Row 3: Stock | Min Stock */}
+                                      <div className="grid grid-cols-2 gap-4">
                                         <div>
                                           <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
-                                            Stock
+                                            Stock{" "}
+                                            <span className="text-red-400">
+                                              *
+                                            </span>
                                           </label>
                                           <input
                                             type="number"
+                                            min="0"
                                             value={editingProduct.stock}
+                                            onChange={(e) => {
+                                              setEditingProduct({
+                                                ...editingProduct,
+                                                stock: Number(e.target.value),
+                                                status: stockStatus(
+                                                  Number(e.target.value),
+                                                  Number(
+                                                    editingProduct.minStock,
+                                                  ) || 5,
+                                                ).label,
+                                              });
+                                              if (editErrors.stock)
+                                                setEditErrors({
+                                                  ...editErrors,
+                                                  stock: "",
+                                                });
+                                            }}
+                                            className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
+                                              editErrors.stock
+                                                ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+                                                : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
+                                            }`}
+                                          />
+                                          {editErrors.stock && (
+                                            <p className="text-xs text-red-500 mt-1">
+                                              This field is required
+                                            </p>
+                                          )}
+                                        </div>
+                                        <div>
+                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                            Min Stock
+                                          </label>
+                                          <input
+                                            type="number"
+                                            min="1"
+                                            value={editingProduct.minStock ?? 5}
                                             onChange={(e) =>
                                               setEditingProduct({
                                                 ...editingProduct,
-                                                stock: e.target.value,
-                                                status:
-                                                  Number(e.target.value) > 10
-                                                    ? "In Stock"
-                                                    : "Low Stock",
+                                                minStock: Number(
+                                                  e.target.value,
+                                                ),
+                                                status: stockStatus(
+                                                  Number(editingProduct.stock),
+                                                  Number(e.target.value) || 5,
+                                                ).label,
                                               })
                                             }
                                             className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                                           />
+                                          <p className="text-xs text-gray-400 mt-1">
+                                            Low stock alert threshold
+                                          </p>
                                         </div>
+                                      </div>
+
+                                      {/* Row 4: Unit Cost | Unit Price */}
+                                      <div className="grid grid-cols-2 gap-4">
                                         <div>
                                           <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
                                             Unit Cost
@@ -640,7 +1009,10 @@ export default function Products() {
                                         </div>
                                         <div>
                                           <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
-                                            Unit Price
+                                            Unit Price{" "}
+                                            <span className="text-red-400">
+                                              *
+                                            </span>
                                           </label>
                                           <input
                                             type="text"
@@ -651,7 +1023,7 @@ export default function Products() {
                                                   )
                                                 : ""
                                             }
-                                            onChange={(e) =>
+                                            onChange={(e) => {
                                               setEditingProduct({
                                                 ...editingProduct,
                                                 unitPrice: Number(
@@ -659,24 +1031,43 @@ export default function Products() {
                                                     e.target.value,
                                                   ),
                                                 ),
-                                              })
-                                            }
-                                            className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                                              });
+                                              if (editErrors.unitPrice)
+                                                setEditErrors({
+                                                  ...editErrors,
+                                                  unitPrice: "",
+                                                });
+                                            }}
+                                            className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
+                                              editErrors.unitPrice
+                                                ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+                                                : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
+                                            }`}
                                           />
+                                          {editErrors.unitPrice && (
+                                            <p className="text-xs text-red-500 mt-1">
+                                              This field is required
+                                            </p>
+                                          )}
                                         </div>
                                       </div>
-                                      <div className="flex gap-3">
+
+                                      {/* Cancel + Update buttons */}
+                                      <div className="flex gap-3 mt-2">
                                         <button
-                                          onClick={() =>
-                                            setEditDialogOpen(false)
-                                          }
-                                          className="flex-1 rounded-2xl border border-[#ececf2] py-3.5 font-medium text-gray-700 transition-all hover:bg-gray-50"
+                                          type="button"
+                                          onClick={() => {
+                                            setEditDialogOpen(false);
+                                            setEditingProduct(null);
+                                            setEditErrors({});
+                                          }}
+                                          className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
                                         >
                                           Cancel
                                         </button>
                                         <button
                                           onClick={handleUpdateProduct}
-                                          className="flex-1 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md"
+                                          className="flex-1 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md"
                                         >
                                           Update Product
                                         </button>
@@ -735,6 +1126,84 @@ export default function Products() {
                 className="flex-1 rounded-2xl bg-gradient-to-r from-red-500 to-rose-500 py-3 font-medium text-white shadow-sm transition-all hover:shadow-md"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════ Manage Categories Modal ════════════════════════ */}
+      {manageCatOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+                <Settings2 className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Manage Categories
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Add or remove product categories
+                </p>
+              </div>
+            </div>
+
+            {/* Add Category */}
+            <div className="flex gap-2 mb-6">
+              <input
+                type="text"
+                placeholder="New category name..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddCategory();
+                }}
+                className="flex-1 rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+              />
+              <button
+                onClick={handleAddCategory}
+                className="shrink-0 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
+              >
+                Add
+              </button>
+            </div>
+
+            {/* Category List */}
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {categories.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-4">
+                  No categories yet
+                </p>
+              ) : (
+                categories.map((cat) => (
+                  <div
+                    key={cat}
+                    className="flex items-center justify-between rounded-2xl border border-[#ececf2] px-4 py-3 transition-all hover:bg-violet-50/30"
+                  >
+                    <span className="text-sm font-medium text-gray-700">
+                      {cat}
+                    </span>
+                    <button
+                      onClick={() => handleDeleteCategory(cat)}
+                      className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-red-500 transition-all hover:bg-red-50"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      Delete
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="mt-6">
+              <button
+                onClick={() => setManageCatOpen(false)}
+                className="w-full rounded-2xl border border-[#ececf2] py-3 font-medium text-gray-700 transition-all hover:bg-gray-50"
+              >
+                Close
               </button>
             </div>
           </div>
