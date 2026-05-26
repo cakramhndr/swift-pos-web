@@ -17,6 +17,7 @@ import {
   Package,
   AlertTriangle,
   TrendingUp,
+  Users,
   ArrowUpRight,
   ArrowDownRight,
   Plus,
@@ -140,6 +141,12 @@ export default function Dashboard() {
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
         >
           <TrendingUp size={16} /> View Reports
+        </button>
+        <button
+          onClick={() => navigate("/analytics")}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-pink-200 text-pink-700 rounded-lg hover:bg-pink-50 transition-colors cursor-pointer"
+        >
+          <Users size={16} /> CRM
         </button>
       </div>
 

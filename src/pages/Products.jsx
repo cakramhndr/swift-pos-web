@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import {
@@ -129,6 +130,7 @@ function getEffectivePrice(product) {
 }
 
 export default function Products() {
+  const navigate = useNavigate();
   const DEFAULT_PRODUCTS = [
     {
       id: 1,
@@ -1115,7 +1117,12 @@ export default function Products() {
                               {product.name.charAt(0)}
                             </div>
                             <div>
-                              <span className="font-semibold text-gray-900">
+                              <span
+                                onClick={() =>
+                                  navigate(`/products/${product.id}`)
+                                }
+                                className="font-semibold text-gray-900 hover:text-violet-600 cursor-pointer transition-colors"
+                              >
                                 {product.name}
                               </span>
                               {hasVariants && (
