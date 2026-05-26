@@ -6,6 +6,8 @@ import Products from "./pages/Products";
 import Transactions from "./pages/Transactions";
 import Customers from "./pages/Customers";
 import Inventory from "./pages/Inventory";
+import Reports from "./pages/Reports";
+import Analytics from "./pages/Analytics";
 
 import { Toaster } from "sonner";
 
@@ -20,6 +22,8 @@ export default function App() {
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/inventory" element={<Inventory />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/analytics" element={<Analytics />} />
         </Routes>
 
         <Toaster richColors position="top-center" />

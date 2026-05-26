@@ -188,17 +188,6 @@ export default function Inventory() {
             </p>
           </div>
         </div>
-
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 rounded-xl border border-violet-200 px-4 py-2.5 text-sm font-medium text-violet-600 transition-all hover:bg-violet-50 hover:shadow-sm hover:-translate-y-0.5">
-            <ArrowUpDown className="h-4 w-4" />
-            Adjust Stock
-          </button>
-          <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">
-            <Plus className="h-4 w-4" />
-            Add Product
-          </button>
-        </div>
       </div>
 
       {/* ══════════════ Summary Cards ═════════════════════════════════════ */}

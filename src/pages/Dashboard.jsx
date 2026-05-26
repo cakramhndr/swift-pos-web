@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -26,6 +27,7 @@ import {
 } from "lucide-react";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const transactions = JSON.parse(localStorage.getItem("transactions") || "[]");
 
   const products = JSON.parse(localStorage.getItem("products") || "[]");
@@ -102,11 +104,11 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 transition-all duration-200">
+          <button className="flex items-center gap-2 rounded-2xl border border-violet-200 px-5 py-2.5 font-semibold text-violet-600 transition-all hover:bg-violet-50">
             <Download className="h-4 w-4" />
             Export
           </button>
-          <button className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:from-violet-700 hover:to-purple-700 hover:shadow-md hover:shadow-violet-300/30 transition-all duration-200">
+          <button className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
             <Plus className="h-4 w-4" />
             New Order
           </button>
@@ -115,21 +117,29 @@ export default function Dashboard() {
 
       {/* ══════════════ Quick Actions ════════════════════════════════════ */}
       <div className="flex items-center gap-3 overflow-x-auto pb-1">
-        <button className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-violet-50 px-4 py-2.5 text-sm font-medium text-violet-700 hover:bg-violet-100 transition-all duration-200 border border-violet-200 shadow-sm">
-          <ShoppingCart className="h-4 w-4" />
-          New Sale
+        <button
+          onClick={() => navigate("/transactions")}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer"
+        >
+          <ShoppingCart size={16} /> New Sale
         </button>
-        <button className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-all duration-200 border border-emerald-200 shadow-sm">
-          <Package className="h-4 w-4" />
-          Add Product
+        <button
+          onClick={() => navigate("/products")}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-green-200 text-green-700 rounded-lg hover:bg-green-50 transition-colors cursor-pointer"
+        >
+          <Plus size={16} /> Add Product
         </button>
-        <button className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-700 hover:bg-amber-100 transition-all duration-200 border border-amber-200 shadow-sm">
-          <AlertTriangle className="h-4 w-4" />
-          Check Stock
+        <button
+          onClick={() => navigate("/inventory")}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-orange-200 text-orange-700 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
+        >
+          <AlertTriangle size={16} /> Check Stock
         </button>
-        <button className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-700 hover:bg-blue-100 transition-all duration-200 border border-blue-200 shadow-sm">
-          <TrendingUp className="h-4 w-4" />
-          View Reports
+        <button
+          onClick={() => navigate("/reports")}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+        >
+          <TrendingUp size={16} /> View Reports
         </button>
       </div>
 

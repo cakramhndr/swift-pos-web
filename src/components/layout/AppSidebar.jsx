@@ -6,7 +6,7 @@ import {
   Users,
   Warehouse,
   BarChart2,
-  TrendingUp,
+  Users2,
   Settings,
 } from "lucide-react";
 
@@ -20,7 +20,7 @@ const mainNav = [
 
 const analyticsNav = [
   { to: "/reports", icon: BarChart2, label: "Reports" },
-  { to: "/analytics", icon: TrendingUp, label: "Analytics" },
+  { to: "/analytics", icon: Users2, label: "CRM" },
 ];
 
 const systemNav = [{ to: "/settings", icon: Settings, label: "Settings" }];

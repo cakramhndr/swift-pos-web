@@ -16,26 +16,31 @@ Modern Point of Sale (POS) web application built with React + Vite.
 - **Rupiah Currency Formatting**: Indonesian Rupiah currency display
 - **localStorage Integration**: Data persistence across sessions
 - **Responsive Modern UI**: Mobile-friendly design with Tailwind CSS
+- **Dashboard Analytics**: Revenue charts, top products, recent orders, stock alerts
+- **Customer Management**: Customer tracking with transaction history and CRM segments
+- **CRM Module**: Customer segments (VIP/Regular/New/Inactive), leaderboard, lifetime value
+- **Reports & Export**: Period-based reports, Export PDF & CSV
+- **Customer Selection at Checkout**: Link transactions to customers
+- **Invoice System**: Detailed receipts with customer info and print support
+- **Week-over-week Comparison**: Revenue trend comparison bars on dashboard
 
 ---
 
 ## 🖼️ Preview
+
 <img width="1920" height="957" alt="image" src="https://github.com/user-attachments/assets/bf30e96d-8d18-42db-a5b0-6eeeeb39cab5" />
 
 ### Products Page
 
 <img width="1920" height="957" alt="image" src="https://github.com/user-attachments/assets/32d39b78-9a16-460b-b7c0-4f4867563c51" />
 
-
 ### Transactions Page
 
 <img width="1920" height="957" alt="image" src="https://github.com/user-attachments/assets/11042021-bff0-4f74-9e43-66f7d2e100f9" />
 
-
 ### Inventory Page
 
 <img width="1920" height="957" alt="image" src="https://github.com/user-attachments/assets/a81c8d58-4551-461f-a64b-4d991c38267b" />
-
 
 ---
 
@@ -48,6 +53,7 @@ Modern Point of Sale (POS) web application built with React + Vite.
 - **Lucide React** 1.16.0 - Icon library
 - **Sonner** 2.0.7 - Toast notifications
 - **React Router** 7.15.1 - Routing
+- **Recharts** - Charts & data visualization
 - **localStorage** - Data persistence
 
 ---
@@ -80,10 +86,15 @@ npm run dev
 - [x] Checkout modal
 - [x] Payment system
 - [x] Inventory sync
-- [ ] Receipt printing
-- [ ] Dashboard analytics
-- [ ] Export PDF
+- [x] Receipt printing
+- [x] Dashboard analytics
+- [x] Export PDF
+- [x] Customer management
+- [x] CRM module
+- [x] Reports page
 - [ ] Database integration
+- [ ] Authentication & multi-user
+- [ ] Mobile app
 
 ---
 

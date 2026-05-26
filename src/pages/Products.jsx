@@ -210,7 +210,7 @@ export default function Products() {
 
         <Dialog>
           <DialogTrigger asChild>
-            <button className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-3 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+            <button className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
               <Plus className="h-4 w-4" />
               Add Product
             </button>
@@ -665,12 +665,22 @@ export default function Products() {
                                           />
                                         </div>
                                       </div>
-                                      <button
-                                        onClick={handleUpdateProduct}
-                                        className="w-full rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md"
-                                      >
-                                        Update Product
-                                      </button>
+                                      <div className="flex gap-3">
+                                        <button
+                                          onClick={() =>
+                                            setEditDialogOpen(false)
+                                          }
+                                          className="flex-1 rounded-2xl border border-[#ececf2] py-3.5 font-medium text-gray-700 transition-all hover:bg-gray-50"
+                                        >
+                                          Cancel
+                                        </button>
+                                        <button
+                                          onClick={handleUpdateProduct}
+                                          className="flex-1 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md"
+                                        >
+                                          Update Product
+                                        </button>
+                                      </div>
                                     </div>
                                   )}
                                 </div>

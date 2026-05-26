@@ -15,6 +15,7 @@ import {
   CheckCircle,
   ArrowLeft,
   ArrowRight,
+  User,
 } from "lucide-react";
 
 export default function Transactions() {
@@ -33,11 +34,26 @@ export default function Transactions() {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [search, setSearch] = useState("");
   const [invoiceSearch, setInvoiceSearch] = useState("");
+  const [showCustomerSelect, setShowCustomerSelect] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [paidAmount, setPaidAmount] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
+
+  // Customer selection state
+  const [customers, setCustomers] = useState(() => {
+    const savedCustomers = localStorage.getItem("swiftpos_customers");
+    return savedCustomers ? JSON.parse(savedCustomers) : [];
+  });
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState(null); // null = walk-in
+  const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
+  const [newCustomerData, setNewCustomerData] = useState({
+    name: "",
+    phone: "",
+  });
+  const [selectedCustomerType, setSelectedCustomerType] = useState(null); // 'existing', 'new', 'walkin'
 
   useEffect(() => {
     localStorage.setItem("transactions", JSON.stringify(transactions));
@@ -109,6 +125,72 @@ export default function Transactions() {
   );
   const change = Math.max(0, Number(paidAmount) - totalAmount);
 
+  const getInitials = (name) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const filteredCustomers = customers.filter(
+    (customer) =>
+      customer.fullName.toLowerCase().includes(customerSearch.toLowerCase()) ||
+      customer.email.toLowerCase().includes(customerSearch.toLowerCase()),
+  );
+
+  const handleProceedToCheckout = () => {
+    setShowCustomerSelect(true);
+  };
+
+  const handleSelectCustomer = (customer) => {
+    setSelectedCustomer(customer);
+    setSelectedCustomerType("existing");
+  };
+
+  const handleSelectWalkIn = () => {
+    setSelectedCustomer(null);
+    setSelectedCustomerType("walkin");
+  };
+
+  const handleCreateNewCustomer = () => {
+    if (!newCustomerData.name.trim()) {
+      toast.error("Please enter customer name");
+      return;
+    }
+
+    const newCustomer = {
+      id: `cust_${Date.now()}`,
+      fullName: newCustomerData.name.trim(),
+      email: "",
+      phone: newCustomerData.phone.trim() || "",
+      address: "",
+      createdAt: new Date().toISOString(),
+    };
+
+    const updatedCustomers = [...customers, newCustomer];
+    setCustomers(updatedCustomers);
+    localStorage.setItem(
+      "swiftpos_customers",
+      JSON.stringify(updatedCustomers),
+    );
+
+    setSelectedCustomer(newCustomer);
+    setSelectedCustomerType("new");
+    setShowNewCustomerForm(false);
+    setNewCustomerData({ name: "", phone: "" });
+  };
+
+  const handleContinueToPayment = () => {
+    if (selectedCustomerType === "new" && !selectedCustomer) {
+      toast.error("Please create a new customer first");
+      return;
+    }
+    setShowCustomerSelect(false);
+    setShowCheckout(true);
+  };
+
   const handleCheckout = () => {
     const transactionId = Date.now();
     const newTransaction = {
@@ -119,6 +201,10 @@ export default function Transactions() {
       paymentMethod: paymentMethod,
       paidAmount: Number(paidAmount),
       change: change,
+      customerName: selectedCustomer
+        ? selectedCustomer.fullName
+        : "Walk-in Customer",
+      customerId: selectedCustomer ? selectedCustomer.id : null,
     };
 
     setTransactions((prev) => [newTransaction, ...prev]);
@@ -160,6 +246,15 @@ export default function Transactions() {
   // ─── Print Receipt ──────────────────────────────────────────────────────
   const handlePrintReceipt = () => {
     globalThis.print();
+  };
+
+  const handleCloseCustomerSelect = () => {
+    setShowCustomerSelect(false);
+    setSelectedCustomer(null);
+    setSelectedCustomerType(null);
+    setCustomerSearch("");
+    setShowNewCustomerForm(false);
+    setNewCustomerData({ name: "", phone: "" });
   };
 
   // ─── Search / Filter ────────────────────────────────────────────────────
@@ -436,7 +531,7 @@ export default function Transactions() {
                 </div>
 
                 <button
-                  onClick={() => setShowCheckout(true)}
+                  onClick={handleProceedToCheckout}
                   className="w-full rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
                 >
                   Proceed to Checkout
@@ -656,6 +751,200 @@ export default function Transactions() {
         </div>
       </div>
 
+      {/* ══════════════ Customer Selection Modal ═══════════════════════════ */}
+      {showCustomerSelect && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+                  <User className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Select Customer
+                  </h2>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Choose a customer for this transaction
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleCloseCustomerSelect}
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-gray-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {!showNewCustomerForm ? (
+              <>
+                {/* Search Input */}
+                <div className="relative mb-4">
+                  <Search
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={16}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search customers..."
+                    value={customerSearch}
+                    onChange={(e) => setCustomerSearch(e.target.value)}
+                    className="w-full rounded-2xl border border-[#ececf2] py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  />
+                </div>
+
+                {/* Customer List */}
+                <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
+                  {filteredCustomers.length > 0 ? (
+                    filteredCustomers.map((customer) => (
+                      <button
+                        key={customer.id}
+                        onClick={() => handleSelectCustomer(customer)}
+                        className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all ${
+                          selectedCustomer?.id === customer.id
+                            ? "border-violet-400 bg-violet-50"
+                            : "border-[#ececf2] hover:border-violet-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-sm font-bold flex-shrink-0">
+                          {getInitials(customer.fullName)}
+                        </div>
+                        <div className="flex-1 text-left min-w-0">
+                          <p className="font-semibold text-sm text-gray-900 truncate">
+                            {customer.fullName}
+                          </p>
+                          <p className="text-xs text-gray-400 truncate">
+                            {customer.email ||
+                              customer.phone ||
+                              "No contact info"}
+                          </p>
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 mx-auto mb-3">
+                        <User className="h-6 w-6 text-gray-400" />
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        No customers found
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Walk-in Customer Option */}
+                <button
+                  onClick={handleSelectWalkIn}
+                  className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 border-dashed transition-all mb-3 ${
+                    selectedCustomerType === "walkin"
+                      ? "border-violet-400 bg-violet-50"
+                      : "border-gray-300 hover:border-violet-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-500 text-sm font-bold flex-shrink-0">
+                    <User className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-semibold text-sm text-gray-900">
+                      Walk-in Customer
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      No customer linked to this transaction
+                    </p>
+                  </div>
+                </button>
+
+                {/* Add New Customer Button */}
+                <button
+                  onClick={() => setShowNewCustomerForm(true)}
+                  className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl border border-violet-200 text-violet-600 font-medium text-sm transition-all hover:bg-violet-50"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New Customer
+                </button>
+              </>
+            ) : (
+              <>
+                {/* New Customer Form */}
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
+                      Customer Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newCustomerData.name}
+                      onChange={(e) =>
+                        setNewCustomerData({
+                          ...newCustomerData,
+                          name: e.target.value,
+                        })
+                      }
+                      placeholder="Enter customer name"
+                      className="w-full rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={newCustomerData.phone}
+                      onChange={(e) =>
+                        setNewCustomerData({
+                          ...newCustomerData,
+                          phone: e.target.value,
+                        })
+                      }
+                      placeholder="Enter phone number"
+                      className="w-full rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowNewCustomerForm(false);
+                      setNewCustomerData({ name: "", phone: "" });
+                    }}
+                    className="flex-1 rounded-2xl border border-[#ececf2] py-3.5 font-medium text-gray-700 transition-all hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateNewCustomer}
+                    className="flex-1 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                  >
+                    Create Customer
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Continue Button */}
+            {!showNewCustomerForm && (
+              <button
+                onClick={handleContinueToPayment}
+                disabled={!selectedCustomerType}
+                className={`w-full rounded-2xl py-3.5 font-semibold shadow-sm transition-all mt-4 ${
+                  selectedCustomerType
+                    ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:shadow-md hover:-translate-y-0.5"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                Continue to Payment
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ══════════════ Checkout Confirmation Modal ════════════════════════ */}
       {showCheckout && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -665,7 +954,7 @@ export default function Transactions() {
               style={{ position: "relative", marginBottom: 0 }}
             />
             <div className="-mt-1">
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
                   <CreditCard className="h-5 w-5 text-white" />
                 </div>
@@ -677,6 +966,36 @@ export default function Transactions() {
                     Review your order before confirming
                   </p>
                 </div>
+              </div>
+
+              {/* Customer Info Display */}
+              <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] to-white p-4 mb-6 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-sm font-bold flex-shrink-0">
+                  {selectedCustomer ? (
+                    getInitials(selectedCustomer.fullName)
+                  ) : (
+                    <User className="h-5 w-5" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">Customer</p>
+                  <p className="font-semibold text-sm text-gray-900">
+                    {selectedCustomer
+                      ? selectedCustomer.fullName
+                      : "Walk-in Customer"}
+                  </p>
+                </div>
+                {selectedCustomer && (
+                  <button
+                    onClick={() => {
+                      setShowCheckout(false);
+                      setShowCustomerSelect(true);
+                    }}
+                    className="text-xs text-violet-600 font-medium hover:underline"
+                  >
+                    Change
+                  </button>
+                )}
               </div>
 
               <div className="space-y-3 mb-6">
@@ -764,7 +1083,11 @@ export default function Transactions() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => setShowCheckout(false)}
+                  onClick={() => {
+                    setShowCheckout(false);
+                    setPaymentMethod("Cash");
+                    setPaidAmount("");
+                  }}
                   className="flex-1 rounded-2xl border border-[#ececf2] py-3.5 font-medium text-gray-700 transition-all hover:bg-gray-50"
                 >
                   Cancel
@@ -823,6 +1146,15 @@ export default function Transactions() {
                 <CheckCircle className="h-3 w-3" />
                 Completed
               </span>
+            </div>
+
+            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] to-white p-4 mb-4">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400">Customer</span>
+                <span className="text-sm font-medium">
+                  {selectedTransaction.customerName || "Walk-in Customer"}
+                </span>
+              </div>
             </div>
 
             <div className="space-y-2.5 mb-5">
