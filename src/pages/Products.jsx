@@ -50,17 +50,44 @@ function generateSku(name) {
   return `${prefix}${prefix ? "-" : ""}${suffix}-${rand}`;
 }
 
-// ─── CSV Parser ──────────────────────────────────────────────────────────
+// ─── Header Normalization Map ────────────────────────────────────────────
+const HEADER_MAP = {
+  name: "name",
+  sku: "sku",
+  category: "category",
+  stock: "stock",
+  "min stock": "minStock",
+  minstock: "minStock",
+  "unit cost": "unitCost",
+  unitcost: "unitCost",
+  "unit price": "unitPrice",
+  unitprice: "unitPrice",
+  price: "unitPrice",
+};
+
+// ─── CSV Parser ──────────────────────────────────────────────────────────────
 function parseCSV(text) {
-  const lines = text.trim().split("\n");
+  // Remove BOM character and normalize line endings
+  const clean = text
+    .replace(/^\uFEFF/, "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .trim();
+  const lines = clean.split("\n");
   if (lines.length < 2) return { rows: [], errors: [] };
 
-  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+  const delimiter = lines[0].includes(";") ? ";" : ",";
+  const rawHeaders = lines[0]
+    .split(delimiter)
+    .map((h) => h.trim().toLowerCase());
+  const headers = rawHeaders.map((h) => HEADER_MAP[h] || h);
   const rows = [];
   const errors = [];
 
+  const cleanValue = (val) => val.trim().replace(/^["']|["']$/g, "");
+
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(",").map((v) => v.trim());
+    const values = lines[i].split(delimiter).map((v) => cleanValue(v));
     const row = {};
     headers.forEach((h, idx) => {
       row[h] = values[idx] || "";
@@ -83,6 +110,22 @@ function parseCSV(text) {
   }
 
   return { rows, errors };
+}
+
+// ─── Helper: get effective stock (sum variants or single stock) ──────────
+function getEffectiveStock(product) {
+  if (product.variants && product.variants.length > 0) {
+    return product.variants.reduce((sum, v) => sum + Number(v.stock || 0), 0);
+  }
+  return Number(product.stock);
+}
+
+// ─── Helper: get effective price (from first variant or single price) ────
+function getEffectivePrice(product) {
+  if (product.variants && product.variants.length > 0) {
+    return product.variants[0].unitPrice;
+  }
+  return product.unitPrice;
 }
 
 export default function Products() {
@@ -171,6 +214,10 @@ export default function Products() {
   const [csvData, setCsvData] = useState([]);
   const [csvErrors, setCsvErrors] = useState([]);
 
+  // ─── Variants State ────────────────────────────────────────────────────
+  const [addVariants, setAddVariants] = useState([]);
+  const [editVariants, setEditVariants] = useState([]);
+
   // ─── Persist categories ──────────────────────────────────────────────
   useEffect(() => {
     localStorage.setItem("swiftpos_categories", JSON.stringify(categories));
@@ -184,33 +231,6 @@ export default function Products() {
 
   const parsePriceInput = (value) => {
     return value.replace(/[^0-9]/g, "");
-  };
-
-  // ─── Image upload handler ────────────────────────────────────────────
-  const handleImageUpload = (file, isEdit = false) => {
-    if (!file) return;
-
-    const validTypes = ["image/png", "image/jpeg", "image/webp"];
-    if (!validTypes.includes(file.type)) {
-      toast.error("Please upload PNG, JPG, or WebP image");
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Image size must be less than 2MB");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64String = e.target.result;
-      if (isEdit) {
-        setEditingProduct({ ...editingProduct, image: base64String });
-      } else {
-        setNewProduct({ ...newProduct, image: base64String });
-      }
-    };
-    reader.readAsDataURL(file);
   };
 
   // ─── Stock status helpers ─────────────────────────────────────────────
@@ -238,19 +258,21 @@ export default function Products() {
     if (!newProduct.name || newProduct.name.trim().length < 2) {
       newErrors.name = "This field is required";
     }
-    if (
-      newProduct.stock === "" ||
-      Number(newProduct.stock) < 0 ||
-      isNaN(Number(newProduct.stock))
-    ) {
-      newErrors.stock = "This field is required";
-    }
-    if (
-      newProduct.unitPrice === "" ||
-      Number(newProduct.unitPrice) <= 0 ||
-      isNaN(Number(newProduct.unitPrice))
-    ) {
-      newErrors.unitPrice = "This field is required";
+    if (addVariants.length === 0) {
+      if (
+        newProduct.stock === "" ||
+        Number(newProduct.stock) < 0 ||
+        isNaN(Number(newProduct.stock))
+      ) {
+        newErrors.stock = "This field is required";
+      }
+      if (
+        newProduct.unitPrice === "" ||
+        Number(newProduct.unitPrice) <= 0 ||
+        isNaN(Number(newProduct.unitPrice))
+      ) {
+        newErrors.unitPrice = "This field is required";
+      }
     }
 
     setErrors(newErrors);
@@ -259,29 +281,61 @@ export default function Products() {
 
   const validateEditForm = () => {
     const newErrors = {};
+    const hasVariants = editVariants.length > 0;
 
     if (!editingProduct.name || editingProduct.name.trim().length < 2) {
       newErrors.name = "This field is required";
     }
-    if (
-      editingProduct.stock === "" ||
-      editingProduct.stock === undefined ||
-      Number(editingProduct.stock) < 0 ||
-      isNaN(Number(editingProduct.stock))
-    ) {
-      newErrors.stock = "This field is required";
-    }
-    if (
-      editingProduct.unitPrice === "" ||
-      editingProduct.unitPrice === undefined ||
-      Number(editingProduct.unitPrice) <= 0 ||
-      isNaN(Number(editingProduct.unitPrice))
-    ) {
-      newErrors.unitPrice = "This field is required";
+    if (!hasVariants) {
+      if (
+        editingProduct.stock === "" ||
+        editingProduct.stock === undefined ||
+        Number(editingProduct.stock) < 0 ||
+        isNaN(Number(editingProduct.stock))
+      ) {
+        newErrors.stock = "This field is required";
+      }
+      if (
+        editingProduct.unitPrice === "" ||
+        editingProduct.unitPrice === undefined ||
+        Number(editingProduct.unitPrice) <= 0 ||
+        isNaN(Number(editingProduct.unitPrice))
+      ) {
+        newErrors.unitPrice = "This field is required";
+      }
     }
 
     setEditErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // ─── Variant Handlers ────────────────────────────────────────────────
+  const addVariant = (isEdit = false) => {
+    const newV = {
+      id: Date.now(),
+      name: "",
+      sku: "",
+      stock: 0,
+      unitPrice: 0,
+      unitCost: 0,
+    };
+    if (isEdit) {
+      setEditVariants([...editVariants, newV]);
+    } else {
+      setAddVariants([...addVariants, newV]);
+    }
+  };
+
+  const updateVariant = (id, field, value, isEdit = false) => {
+    const setter = isEdit ? setEditVariants : setAddVariants;
+    const list = isEdit ? editVariants : addVariants;
+    setter(list.map((v) => (v.id === id ? { ...v, [field]: value } : v)));
+  };
+
+  const removeVariant = (id, isEdit = false) => {
+    const setter = isEdit ? setEditVariants : setAddVariants;
+    const list = isEdit ? editVariants : addVariants;
+    setter(list.filter((v) => v.id !== id));
   };
 
   const handleAddProduct = () => {
@@ -298,7 +352,17 @@ export default function Products() {
     }
 
     const minStock = Number(payload.minStock) || 5;
-    const stock = Number(payload.stock);
+    const hasVariants = addVariants.length > 0;
+    let stock, unitPrice;
+
+    if (hasVariants) {
+      stock = addVariants.reduce((sum, v) => sum + Number(v.stock || 0), 0);
+      unitPrice = null;
+    } else {
+      stock = Number(payload.stock);
+      unitPrice = Number(payload.unitPrice);
+    }
+
     setProducts([
       ...products,
       {
@@ -309,8 +373,9 @@ export default function Products() {
         stock: stock,
         minStock: minStock,
         unitCost: Number(payload.unitCost),
-        unitPrice: Number(payload.unitPrice),
+        unitPrice: unitPrice,
         status: stockStatus(stock, minStock).label,
+        variants: hasVariants ? addVariants : [],
       },
     ]);
 
@@ -323,6 +388,7 @@ export default function Products() {
       unitCost: "",
       unitPrice: "",
     });
+    setAddVariants([]);
     setErrors({});
 
     toast.success("Product added successfully ✅");
@@ -342,13 +408,28 @@ export default function Products() {
       return;
     }
 
+    const hasVariants = editVariants.length > 0;
+    const updated = { ...editingProduct };
+
+    if (hasVariants) {
+      updated.stock = editVariants.reduce(
+        (sum, v) => sum + Number(v.stock || 0),
+        0,
+      );
+      updated.unitPrice = null;
+      updated.variants = editVariants;
+    } else {
+      delete updated.variants;
+    }
+
     setProducts(
       products.map((product) =>
-        product.id === editingProduct.id ? editingProduct : product,
+        product.id === updated.id ? updated : product,
       ),
     );
     setEditingProduct(null);
     setEditDialogOpen(false);
+    setEditVariants([]);
     setEditErrors({});
     toast.success("Product updated successfully ✏️");
   };
@@ -506,6 +587,75 @@ export default function Products() {
 
   const validRowCount = csvData.length - csvErrors.length;
 
+  // ─── Variants UI helper ──────────────────────────────────────────────
+  const renderVariantSection = (variants, setVariants, isEdit = false) => (
+    <div className="mt-4">
+      <div className="flex items-center justify-between mb-2">
+        <label className="text-xs font-medium text-gray-500 uppercase">
+          Variants (Optional)
+        </label>
+        <button
+          type="button"
+          onClick={() => addVariant(isEdit)}
+          className="text-xs text-purple-600 border border-purple-200 px-2 py-1 rounded-md hover:bg-purple-50 cursor-pointer flex items-center gap-1"
+        >
+          <Plus size={12} /> Add Variant
+        </button>
+      </div>
+
+      {variants.map((variant) => (
+        <div key={variant.id} className="flex gap-2 mb-2 items-center">
+          <input
+            type="text"
+            placeholder="Name (e.g. Wired)"
+            value={variant.name}
+            onChange={(e) =>
+              updateVariant(variant.id, "name", e.target.value, isEdit)
+            }
+            className="flex-1 border border-[#ececf2] rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+          />
+          <input
+            type="number"
+            min="0"
+            placeholder="Stock"
+            value={variant.stock}
+            onChange={(e) =>
+              updateVariant(variant.id, "stock", e.target.value, isEdit)
+            }
+            className="w-20 border border-[#ececf2] rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+          />
+          <input
+            type="text"
+            placeholder="Price"
+            value={variant.unitPrice ? formatPrice(variant.unitPrice) : ""}
+            onChange={(e) =>
+              updateVariant(
+                variant.id,
+                "unitPrice",
+                parsePriceInput(e.target.value),
+                isEdit,
+              )
+            }
+            className="w-28 border border-[#ececf2] rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+          />
+          <button
+            type="button"
+            onClick={() => removeVariant(variant.id, isEdit)}
+            className="text-red-400 hover:text-red-600 cursor-pointer"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      ))}
+
+      {variants.length === 0 && (
+        <p className="text-xs text-gray-400">
+          No variants — product uses single stock & price above
+        </p>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm">
       {/* ══════════════ Page Header ═══════════════════════════════════════ */}
@@ -640,13 +790,17 @@ export default function Products() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
-                        Stock <span className="text-red-400">*</span>
+                        Stock{" "}
+                        {addVariants.length === 0 && (
+                          <span className="text-red-400">*</span>
+                        )}
                       </label>
                       <input
                         type="number"
                         min="0"
                         placeholder="0"
                         value={newProduct.stock}
+                        disabled={addVariants.length > 0}
                         onChange={(e) => {
                           setNewProduct({
                             ...newProduct,
@@ -658,7 +812,7 @@ export default function Products() {
                           errors.stock
                             ? "border-red-300 focus:border-red-400 focus:ring-red-100"
                             : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
-                        }`}
+                        } ${addVariants.length > 0 ? "bg-gray-50 text-gray-400" : ""}`}
                       />
                       {errors.stock && (
                         <p className="text-xs text-red-500 mt-1">
@@ -714,7 +868,10 @@ export default function Products() {
                     </div>
                     <div>
                       <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
-                        Unit Price <span className="text-red-400">*</span>
+                        Unit Price{" "}
+                        {addVariants.length === 0 && (
+                          <span className="text-red-400">*</span>
+                        )}
                       </label>
                       <input
                         type="text"
@@ -724,6 +881,7 @@ export default function Products() {
                             ? formatPrice(newProduct.unitPrice)
                             : ""
                         }
+                        disabled={addVariants.length > 0}
                         onChange={(e) => {
                           setNewProduct({
                             ...newProduct,
@@ -736,7 +894,7 @@ export default function Products() {
                           errors.unitPrice
                             ? "border-red-300 focus:border-red-400 focus:ring-red-100"
                             : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
-                        }`}
+                        } ${addVariants.length > 0 ? "bg-gray-50 text-gray-400" : ""}`}
                       />
                       {errors.unitPrice && (
                         <p className="text-xs text-red-500 mt-1">
@@ -745,6 +903,9 @@ export default function Products() {
                       )}
                     </div>
                   </div>
+
+                  {/* Variants Section */}
+                  {renderVariantSection(addVariants, setAddVariants, false)}
 
                   {/* Cancel + Save buttons */}
                   <div className="flex gap-3 mt-2">
@@ -760,6 +921,7 @@ export default function Products() {
                           unitCost: "",
                           unitPrice: "",
                         });
+                        setAddVariants([]);
                         setErrors({});
                       }}
                       className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
@@ -926,8 +1088,12 @@ export default function Products() {
                 </thead>
                 <tbody>
                   {filteredProducts.map((product) => {
+                    const effStock = getEffectiveStock(product);
+                    const effPrice = getEffectivePrice(product);
+                    const hasVariants =
+                      product.variants && product.variants.length > 0;
                     const status = stockStatus(
-                      Number(product.stock),
+                      effStock,
                       Number(product.minStock) || 5,
                     );
                     return (
@@ -952,6 +1118,11 @@ export default function Products() {
                               <span className="font-semibold text-gray-900">
                                 {product.name}
                               </span>
+                              {hasVariants && (
+                                <span className="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full ml-2">
+                                  {product.variants.length} variants
+                                </span>
+                              )}
                               <p className="text-xs text-gray-400">
                                 {product.category}
                               </p>
@@ -968,28 +1139,42 @@ export default function Products() {
                             <div className="h-2 w-16 rounded-full bg-gray-100 overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all ${
-                                  product.stock === 0
+                                  effStock === 0
                                     ? "bg-red-400"
-                                    : product.stock <=
+                                    : effStock <=
                                         (Number(product.minStock) || 5)
                                       ? "bg-yellow-400"
                                       : "bg-green-400"
                                 }`}
                                 style={{
-                                  width: `${Math.min((product.stock / 30) * 100, 100)}%`,
+                                  width: `${Math.min((effStock / 30) * 100, 100)}%`,
                                 }}
                               />
                             </div>
                             <span className="text-sm font-medium text-gray-700">
-                              {product.stock}
+                              {effStock}
                             </span>
                           </div>
                         </td>
                         <td className="px-6 py-4 font-semibold text-gray-900">
-                          Rp {product.unitCost.toLocaleString("id-ID")}
+                          Rp{" "}
+                          {(Number(product.unitCost) || 0).toLocaleString(
+                            "id-ID",
+                          )}
                         </td>
                         <td className="px-6 py-4 font-semibold text-gray-900">
-                          Rp {product.unitPrice.toLocaleString("id-ID")}
+                          {hasVariants ? (
+                            <span className="text-xs text-purple-600 font-medium">
+                              From{" "}
+                              {effPrice
+                                ? "Rp " +
+                                  Number(effPrice).toLocaleString("id-ID")
+                                : "—"}
+                            </span>
+                          ) : (
+                            "Rp " +
+                            Number(product.unitPrice).toLocaleString("id-ID")
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <span
@@ -1005,7 +1190,13 @@ export default function Products() {
                           <div className="flex justify-end gap-2">
                             <Dialog
                               open={editDialogOpen}
-                              onOpenChange={setEditDialogOpen}
+                              onOpenChange={(open) => {
+                                setEditDialogOpen(open);
+                                if (!open) {
+                                  setEditingProduct(null);
+                                  setEditVariants([]);
+                                }
+                              }}
                             >
                               <DialogTrigger asChild>
                                 <button
@@ -1013,6 +1204,11 @@ export default function Products() {
                                     setEditingProduct(product);
                                     setEditDialogOpen(true);
                                     setEditErrors({});
+                                    setEditVariants(
+                                      product.variants
+                                        ? [...product.variants]
+                                        : [],
+                                    );
                                   }}
                                   className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-50 to-purple-50 px-4 py-2 text-sm font-medium text-violet-600 transition-all hover:shadow-sm hover:-translate-y-0.5"
                                 >
@@ -1130,14 +1326,17 @@ export default function Products() {
                                         <div>
                                           <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
                                             Stock{" "}
-                                            <span className="text-red-400">
-                                              *
-                                            </span>
+                                            {editVariants.length === 0 && (
+                                              <span className="text-red-400">
+                                                *
+                                              </span>
+                                            )}
                                           </label>
                                           <input
                                             type="number"
                                             min="0"
                                             value={editingProduct.stock}
+                                            disabled={editVariants.length > 0}
                                             onChange={(e) => {
                                               setEditingProduct({
                                                 ...editingProduct,
@@ -1159,7 +1358,7 @@ export default function Products() {
                                               editErrors.stock
                                                 ? "border-red-300 focus:border-red-400 focus:ring-red-100"
                                                 : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
-                                            }`}
+                                            } ${editVariants.length > 0 ? "bg-gray-50 text-gray-400" : ""}`}
                                           />
                                           {editErrors.stock && (
                                             <p className="text-xs text-red-500 mt-1">
@@ -1226,9 +1425,11 @@ export default function Products() {
                                         <div>
                                           <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
                                             Unit Price{" "}
-                                            <span className="text-red-400">
-                                              *
-                                            </span>
+                                            {editVariants.length === 0 && (
+                                              <span className="text-red-400">
+                                                *
+                                              </span>
+                                            )}
                                           </label>
                                           <input
                                             type="text"
@@ -1239,6 +1440,7 @@ export default function Products() {
                                                   )
                                                 : ""
                                             }
+                                            disabled={editVariants.length > 0}
                                             onChange={(e) => {
                                               setEditingProduct({
                                                 ...editingProduct,
@@ -1258,7 +1460,7 @@ export default function Products() {
                                               editErrors.unitPrice
                                                 ? "border-red-300 focus:border-red-400 focus:ring-red-100"
                                                 : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
-                                            }`}
+                                            } ${editVariants.length > 0 ? "bg-gray-50 text-gray-400" : ""}`}
                                           />
                                           {editErrors.unitPrice && (
                                             <p className="text-xs text-red-500 mt-1">
@@ -1268,6 +1470,13 @@ export default function Products() {
                                         </div>
                                       </div>
 
+                                      {/* Variants Section */}
+                                      {renderVariantSection(
+                                        editVariants,
+                                        setEditVariants,
+                                        true,
+                                      )}
+
                                       {/* Cancel + Update buttons */}
                                       <div className="flex gap-3 mt-2">
                                         <button
@@ -1275,6 +1484,7 @@ export default function Products() {
                                           onClick={() => {
                                             setEditDialogOpen(false);
                                             setEditingProduct(null);
+                                            setEditVariants([]);
                                             setEditErrors({});
                                           }}
                                           className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"

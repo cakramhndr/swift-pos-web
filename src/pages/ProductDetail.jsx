@@ -69,32 +69,54 @@ export default function ProductDetail() {
     );
   }
 
-  const stock = Number(product.stock);
-  const minStock = Number(product.minStock) || 5;
-  const unitCost = Number(product.unitCost);
-  const unitPrice = Number(product.unitPrice);
-  const margin = unitPrice - unitCost;
-  const marginPercent =
-    unitCost > 0 ? ((margin / unitCost) * 100).toFixed(1) : 0;
+  const hasVariants = product.variants && product.variants.length > 0;
 
-  const getStatus = (s, ms) => {
-    if (s === 0)
-      return {
-        label: "Out of Stock",
-        color: "bg-red-100 text-red-700 border-red-200",
-      };
-    if (s <= ms)
-      return {
-        label: "Low Stock",
-        color: "bg-yellow-100 text-yellow-700 border-yellow-200",
-      };
-    return {
-      label: "In Stock",
-      color: "bg-green-100 text-green-700 border-green-200",
-    };
-  };
+  let stock, minStock, unitCost, unitPrice, margin, marginPercent, status;
 
-  const status = getStatus(stock, minStock);
+  if (hasVariants) {
+    stock = product.variants.reduce((sum, v) => sum + Number(v.stock), 0);
+    minStock = Number(product.minStock) || 5;
+    status = (() => {
+      if (stock === 0)
+        return {
+          label: "Out of Stock",
+          color: "bg-red-100 text-red-700 border-red-200",
+        };
+      if (stock <= minStock)
+        return {
+          label: "Low Stock",
+          color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+        };
+      return {
+        label: "In Stock",
+        color: "bg-green-100 text-green-700 border-green-200",
+      };
+    })();
+  } else {
+    stock = Number(product.stock);
+    minStock = Number(product.minStock) || 5;
+    unitCost = Number(product.unitCost);
+    unitPrice = Number(product.unitPrice);
+    margin = unitPrice - unitCost;
+    marginPercent = unitCost > 0 ? ((margin / unitCost) * 100).toFixed(1) : 0;
+
+    status = (() => {
+      if (stock === 0)
+        return {
+          label: "Out of Stock",
+          color: "bg-red-100 text-red-700 border-red-200",
+        };
+      if (stock <= minStock)
+        return {
+          label: "Low Stock",
+          color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+        };
+      return {
+        label: "In Stock",
+        color: "bg-green-100 text-green-700 border-green-200",
+      };
+    })();
+  }
 
   return (
     <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm">
@@ -141,34 +163,87 @@ export default function ProductDetail() {
 
           <div className="h-px bg-[#ececf2]" />
 
-          {/* Price Section */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Unit Cost</span>
-              <span className="text-sm text-gray-700">
-                {formatRupiah(unitCost)}
-              </span>
+          {hasVariants ? (
+            /* Variants Table */
+            <div className="mt-4">
+              <h3 className="text-sm font-medium text-gray-500 uppercase mb-3">
+                Variants
+              </h3>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 text-gray-500 font-normal">
+                      Variant
+                    </th>
+                    <th className="text-right py-2 text-gray-500 font-normal">
+                      Stock
+                    </th>
+                    <th className="text-right py-2 text-gray-500 font-normal">
+                      Price
+                    </th>
+                    <th className="text-right py-2 text-gray-500 font-normal">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {product.variants.map((variant) => (
+                    <tr key={variant.id} className="border-b last:border-0">
+                      <td className="py-2 font-medium">{variant.name}</td>
+                      <td className="py-2 text-right">{variant.stock}</td>
+                      <td className="py-2 text-right text-purple-600">
+                        Rp {variant.unitPrice?.toLocaleString("id-ID")}
+                      </td>
+                      <td className="py-2 text-right">
+                        {variant.stock === 0 ? (
+                          <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">
+                            Out
+                          </span>
+                        ) : variant.stock <= 5 ? (
+                          <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-1 rounded-full">
+                            Low
+                          </span>
+                        ) : (
+                          <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">
+                            OK
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Unit Price</span>
-              <span className="text-xl font-bold text-purple-600">
-                {formatRupiah(unitPrice)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Margin</span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-green-600">
-                  {formatRupiah(margin)}
+          ) : (
+            /* Price Section */
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">Unit Cost</span>
+                <span className="text-sm text-gray-700">
+                  {formatRupiah(unitCost)}
                 </span>
-                {unitCost > 0 && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
-                    {marginPercent}%
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">Unit Price</span>
+                <span className="text-xl font-bold text-purple-600">
+                  {formatRupiah(unitPrice)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">Margin</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-green-600">
+                    {formatRupiah(margin)}
                   </span>
-                )}
+                  {unitCost > 0 && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+                      {marginPercent}%
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="h-px bg-[#ececf2]" />
 
