@@ -4,57 +4,117 @@ Modern Point of Sale (POS) web application built with React + Vite.
 
 ## ✨ Features
 
-- **Inventory Management**: Complete stock tracking with restock & adjustment modals
-- **Product Management**: Add, view, and manage products with categories
-- **Transaction System**: Full checkout flow with multiple payment methods
-- **Real-time Stock Updates**: Automatic stock deduction and status tracking
-- **Stock Visualization**: Color-coded progress bars and status badges
-- **Payment Methods**: Cash, QRIS, and Transfer support
-- **Change Calculation**: Automatic change calculation at checkout
-- **Invoice Search & Filter**: Search transactions by invoice ID, filter by status
-- **Low Stock Indicator**: Real-time alerts for items running low
-- **Rupiah Currency Formatting**: Indonesian Rupiah currency display
-- **localStorage Integration**: Data persistence across sessions
-- **Responsive Modern UI**: Mobile-friendly design with Tailwind CSS
-- **Dashboard Analytics**: Revenue charts, top products, recent orders, stock alerts
-- **Customer Management**: Customer tracking with transaction history and CRM segments
-- **CRM Module**: Customer segments (VIP/Regular/New/Inactive), leaderboard, lifetime value
-- **Reports & Export**: Period-based reports, Export PDF & CSV
-- **Customer Selection at Checkout**: Link transactions to customers
-- **Invoice System**: Detailed receipts with customer info and print support
-- **Week-over-week Comparison**: Revenue trend comparison bars on dashboard
+### 📦 Inventory Management
+
+- Complete stock tracking system
+- Restock & stock adjustment modals
+- Real-time stock synchronization
+- Low stock & out-of-stock indicators
+- Inventory movement logs
+- Supplier management
+- Stock visualization with progress bars
+
+### 🛍️ Product Management
+
+- Add, edit, and delete products
+- Product categories
+- SKU support
+- Product variants
+- Search & filtering
+- Category management
+
+### 💳 Transaction System
+
+- Full checkout flow
+- Multiple payment methods:
+  - Cash
+  - QRIS
+  - Transfer
+- Automatic change calculation
+- Invoice generation
+- Receipt printing
+- Transaction history & filtering
+
+### 📊 Dashboard & Analytics
+
+- Revenue analytics
+- Weekly comparison metrics
+- Sales overview charts
+- Top-selling products
+- Recent orders
+- Stock alerts
+- Real-time statistics cards
+
+### 👥 CRM & Customers
+
+- Customer management
+- Customer transaction history
+- CRM segmentation:
+  - VIP
+  - Regular
+  - New
+  - Inactive
+- Customer leaderboard
+- Lifetime value tracking
+
+### 📄 Reports & Export
+
+- Daily / weekly / monthly reports
+- Export PDF
+- Export CSV
+- Revenue reporting
+- Product sales reports
+
+### 🎨 UI & Experience
+
+- Fully responsive design
+- Modern dark mode interface
+- Consistent design system
+- Interactive charts & tables
+- Smooth hover animations
+- Mobile-friendly layout
+
+### 💾 Persistence
+
+- localStorage integration
+- Persistent transaction data
+- Persistent inventory state
 
 ---
 
 ## 🖼️ Preview
 
-<img width="1920" height="957" alt="image" src="https://github.com/user-attachments/assets/bf30e96d-8d18-42db-a5b0-6eeeeb39cab5" />
+### Dashboard
+
+<img width="1920" height="957" alt="Dashboard" src="https://github.com/user-attachments/assets/bf30e96d-8d18-42db-a5b0-6eeeeb39cab5" />
 
 ### Products Page
 
-<img width="1920" height="957" alt="image" src="https://github.com/user-attachments/assets/32d39b78-9a16-460b-b7c0-4f4867563c51" />
+<img width="1920" height="957" alt="Products" src="https://github.com/user-attachments/assets/32d39b78-9a16-460b-b7c0-4f4867563c51" />
 
 ### Transactions Page
 
-<img width="1920" height="957" alt="image" src="https://github.com/user-attachments/assets/11042021-bff0-4f74-9e43-66f7d2e100f9" />
+<img width="1920" height="957" alt="Transactions" src="https://github.com/user-attachments/assets/11042021-bff0-4f74-9e43-66f7d2e100f9" />
 
 ### Inventory Page
 
-<img width="1920" height="957" alt="image" src="https://github.com/user-attachments/assets/a81c8d58-4551-461f-a64b-4d991c38267b" />
+<img width="1920" height="957" alt="Inventory" src="https://github.com/user-attachments/assets/a81c8d58-4551-461f-a64b-4d991c38267b" />
 
 ---
 
 ## ⚙️ Tech Stack
 
-- **React** 19.2.6 - UI Framework
-- **Vite** 8.0.13 - Build tool
-- **TailwindCSS** 4.3.0 - Utility-first CSS
-- **shadcn UI** - Component library
-- **Lucide React** 1.16.0 - Icon library
-- **Sonner** 2.0.7 - Toast notifications
-- **React Router** 7.15.1 - Routing
-- **Recharts** - Charts & data visualization
-- **localStorage** - Data persistence
+| Technology   | Description                 |
+| ------------ | --------------------------- |
+| React 19     | Frontend UI Framework       |
+| Vite         | Fast build tool             |
+| TailwindCSS  | Utility-first CSS framework |
+| shadcn/ui    | UI component system         |
+| Lucide React | Icon library                |
+| Sonner       | Toast notifications         |
+| React Router | Routing system              |
+| Recharts     | Charts & analytics          |
+| localStorage | Local data persistence      |
 
 ---
 
@@ -64,6 +124,12 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/cakramhndr/swift-pos-web.git
+```
+
+Go to project directory:
+
+```bash
+cd swift-pos-web
 ```
 
 Install dependencies:
@@ -78,26 +144,63 @@ Run development server:
 npm run dev
 ```
 
+Open browser:
+
+```bash
+http://localhost:5173
+```
+
+---
+
+## 📁 Project Structure
+
+```bash
+src/
+├── components/
+├── hooks/
+├── lib/
+├── pages/
+├── App.jsx
+├── main.jsx
+└── index.css
+```
+
 ---
 
 ## 📌 Roadmap
 
+### ✅ Completed
+
 - [x] Product management
 - [x] Checkout modal
 - [x] Payment system
-- [x] Inventory sync
+- [x] Inventory synchronization
 - [x] Receipt printing
 - [x] Dashboard analytics
-- [x] Export PDF
+- [x] Export PDF & CSV
 - [x] Customer management
 - [x] CRM module
 - [x] Reports page
+- [x] Supplier management
+- [x] Dark mode consistency
+- [x] Inventory logs
+- [x] Responsive dashboard UI
+
+### 🚧 Planned
+
 - [ ] Database integration
 - [ ] Authentication & multi-user
+- [ ] Backend API
+- [ ] Role permissions
+- [ ] Cloud sync
 - [ ] Mobile app
+- [ ] Barcode scanner
+- [ ] Advanced analytics
 
 ---
 
 ## 👨‍💻 Author
 
-Made with ❤️ by Cakra
+Made with ❤️ by **Cakra**
+
+GitHub: https://github.com/cakramhndr
