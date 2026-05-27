@@ -5,6 +5,7 @@ import {
   Package,
   Users,
   Warehouse,
+  ClipboardList,
   BarChart2,
   Users2,
   Settings,
@@ -16,6 +17,7 @@ const mainNav = [
   { to: "/transactions", icon: ShoppingCart, label: "Transactions" },
   { to: "/customers", icon: Users, label: "Customers" },
   { to: "/inventory", icon: Warehouse, label: "Inventory" },
+  { to: "/inventory-logs", icon: ClipboardList, label: "Inventory Logs" },
 ];
 
 const analyticsNav = [

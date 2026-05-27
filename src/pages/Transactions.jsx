@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { addStockMovement } from "@/lib/inventoryLogUtils";
 
 import {
   ShoppingCart,
@@ -274,12 +275,29 @@ export default function Transactions() {
         // Deduct variant stock
         let updatedVariants = [...product.variants];
         cartItemsForProduct.forEach((cartItem) => {
+          const stockBefore = Number(
+            updatedVariants.find((v) => v.id === cartItem.variantId)?.stock ||
+              0,
+          );
           updatedVariants = updatedVariants.map((v) => {
             if (v.id === cartItem.variantId) {
               const newVariantStock = Math.max(
                 0,
                 Number(v.stock || 0) - cartItem.qty,
               );
+              // Log variant stock movement
+              addStockMovement({
+                productId: product.id,
+                productName: product.name,
+                variantId: cartItem.variantId || null,
+                variantName: cartItem.variantName || null,
+                type: "sale",
+                qty: -cartItem.qty,
+                stockBefore,
+                stockAfter: newVariantStock,
+                refId: String(transactionId),
+                note: "Penjualan via POS",
+              });
               return { ...v, stock: newVariantStock };
             }
             return v;
@@ -296,7 +314,25 @@ export default function Transactions() {
           (sum, item) => sum + item.qty,
           0,
         );
-        updatedProduct.stock = Math.max(0, Number(product.stock) - qty);
+        const stockBefore = Number(product.stock);
+        const newStock = Math.max(0, stockBefore - qty);
+        updatedProduct.stock = newStock;
+
+        // Log single product stock movement
+        cartItemsForProduct.forEach((cartItem) => {
+          addStockMovement({
+            productId: product.id,
+            productName: product.name,
+            variantId: null,
+            variantName: null,
+            type: "sale",
+            qty: -cartItem.qty,
+            stockBefore,
+            stockAfter: newStock,
+            refId: String(transactionId),
+            note: "Penjualan via POS",
+          });
+        });
       }
 
       // Update status
@@ -345,11 +381,8 @@ export default function Transactions() {
     product.name.toLowerCase().includes(search.toLowerCase()),
   );
 
-  // ─── Get display name for cart item ────────────────────────────────────
+  // ─── Get display name for cart item (product name only, variant shown separately) ─────────────────
   const getItemDisplayName = (item) => {
-    if (item.variantName) {
-      return `${item.name} - ${item.variantName}`;
-    }
     return item.name;
   };
 
@@ -567,14 +600,14 @@ export default function Transactions() {
                           <p className="truncate font-semibold text-sm text-gray-900">
                             {getItemDisplayName(item)}
                           </p>
+                          {item.variantName && (
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              Variant: {item.variantName}
+                            </p>
+                          )}
                           <p className="mt-0.5 text-xs text-gray-400">
                             Rp {Number(item.unitPrice).toLocaleString()}
                           </p>
-                          {item.variantName && (
-                            <p className="text-xs text-purple-500 mt-0.5">
-                              SKU: {item.sku}
-                            </p>
-                          )}
                         </div>
                         <button
                           onClick={() => removeItem(item.cartId || item.id)}
@@ -653,26 +686,41 @@ export default function Transactions() {
 
       {/* ══════════════ Variant Picker Modal ═════════════════════════════ */}
       {variantPicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
-            <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200">
-                  <Package className="h-5 w-5 text-violet-600" />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={() => setVariantPicker(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-3xl bg-white p-7 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-7 -mx-7 mb-6" />
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex items-center gap-3.5">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200">
+                  {variantPicker.image ? (
+                    <img
+                      src={variantPicker.image}
+                      alt={variantPicker.name}
+                      className="h-full w-full object-cover rounded-xl"
+                    />
+                  ) : (
+                    <Package className="h-5.5 w-5.5 text-violet-600" />
+                  )}
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">
                     {variantPicker.name}
                   </h2>
                   <p className="text-xs text-gray-400">
-                    Select a variant to add to cart
+                    {variantPicker.variants?.length || 0} variant
+                    {variantPicker.variants?.length !== 1 ? "s" : ""} available
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setVariantPicker(null)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-gray-200"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all duration-200 hover:bg-gray-200 hover:scale-105"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -680,47 +728,58 @@ export default function Transactions() {
 
             <div className="space-y-3">
               {variantPicker.variants && variantPicker.variants.length > 0 ? (
-                variantPicker.variants.map((variant) => (
-                  <button
-                    key={variant.id}
-                    onClick={() => addVariantToCart(variantPicker, variant)}
-                    disabled={Number(variant.stock || 0) <= 0}
-                    className={`w-full flex items-center justify-between rounded-2xl border p-4 transition-all ${
-                      Number(variant.stock || 0) > 0
-                        ? "border-[#ececf2] hover:border-violet-300 hover:bg-violet-50 cursor-pointer"
-                        : "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
-                    }`}
-                  >
-                    <div className="text-left">
-                      <p className="font-semibold text-sm text-gray-900">
-                        {variant.name || "Unnamed Variant"}
-                      </p>
-                      {variant.sku && (
-                        <p className="text-xs text-gray-400 mt-0.5 font-mono">
-                          SKU: {variant.sku}
+                variantPicker.variants.map((variant) => {
+                  const stock = Number(variant.stock || 0);
+                  const isOutOfStock = stock <= 0;
+                  const isLowStock = stock > 0 && stock < 5;
+                  return (
+                    <div
+                      key={variant.id}
+                      onClick={() => {
+                        if (isOutOfStock) return;
+                        addVariantToCart(variantPicker, variant);
+                      }}
+                      className={`w-full flex items-center justify-between rounded-2xl border p-4 transition-all duration-200 ${
+                        isOutOfStock
+                          ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                          : "border-[#ececf2] hover:border-purple-400 hover:bg-purple-50/40 cursor-pointer hover:scale-[1.01]"
+                      }`}
+                    >
+                      <div className="text-left min-w-0 flex-1 pr-3">
+                        <p className="font-semibold text-sm text-gray-900 truncate">
+                          {variant.name || "Unnamed Variant"}
                         </p>
-                      )}
+                        {variant.sku && (
+                          <p className="text-xs text-gray-400 mt-1 font-mono truncate">
+                            SKU: {variant.sku}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
+                        <p className="font-bold text-violet-600 text-sm">
+                          Rp {(Number(variant.unitPrice) || 0).toLocaleString()}
+                        </p>
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            isOutOfStock
+                              ? "bg-red-50 text-red-600 ring-1 ring-red-200"
+                              : isLowStock
+                                ? "bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200"
+                                : "bg-green-50 text-green-700 ring-1 ring-green-200"
+                          }`}
+                        >
+                          {isOutOfStock
+                            ? "Out of Stock"
+                            : isLowStock
+                              ? `Only ${stock} left`
+                              : `Stock: ${stock}`}
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-violet-600">
-                        Rp {(Number(variant.unitPrice) || 0).toLocaleString()}
-                      </p>
-                      <p
-                        className={`text-xs mt-0.5 ${
-                          Number(variant.stock || 0) > 0
-                            ? "text-gray-400"
-                            : "text-red-500"
-                        }`}
-                      >
-                        {Number(variant.stock || 0) > 0
-                          ? `Stock: ${variant.stock}`
-                          : "Out of stock"}
-                      </p>
-                    </div>
-                  </button>
-                ))
+                  );
+                })
               ) : (
-                <p className="text-sm text-gray-400 text-center py-4">
+                <p className="text-sm text-gray-400 text-center py-8">
                   No variants available
                 </p>
               )}
@@ -1198,12 +1257,12 @@ export default function Transactions() {
                       <p className="font-semibold text-sm text-gray-900">
                         {getItemDisplayName(item)}
                       </p>
-                      <p className="text-xs text-gray-400">Qty: {item.qty}</p>
                       {item.variantName && (
-                        <p className="text-xs text-purple-500">
-                          SKU: {item.sku}
+                        <p className="text-xs text-gray-400">
+                          Variant: {item.variantName}
                         </p>
                       )}
+                      <p className="text-xs text-gray-400">Qty: {item.qty}</p>
                     </div>
                     <p className="font-semibold text-violet-600">
                       Rp{" "}
@@ -1368,15 +1427,15 @@ export default function Transactions() {
                     <p className="font-semibold text-gray-900">
                       {getItemDisplayName(item)}
                     </p>
+                    {item.variantName && (
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Variant: {item.variantName}
+                      </p>
+                    )}
                     <p className="text-xs text-gray-400 mt-0.5">
                       Rp {Number(item.unitPrice || 0).toLocaleString()} x{" "}
                       {item.qty}
                     </p>
-                    {item.sku && (
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        SKU: {item.sku}
-                      </p>
-                    )}
                   </div>
 
                   <p className="font-bold text-violet-600">

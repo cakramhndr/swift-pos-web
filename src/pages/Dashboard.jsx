@@ -109,7 +109,10 @@ export default function Dashboard() {
             <Download className="h-4 w-4" />
             Export
           </button>
-          <button className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
+          <button
+            onClick={() => navigate("/transactions")}
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+          >
             <Plus className="h-4 w-4" />
             New Order
           </button>
@@ -143,7 +146,7 @@ export default function Dashboard() {
           <TrendingUp size={16} /> View Reports
         </button>
         <button
-          onClick={() => navigate("/analytics")}
+          onClick={() => navigate("/crm")}
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-pink-200 text-pink-700 rounded-lg hover:bg-pink-50 transition-colors cursor-pointer"
         >
           <Users size={16} /> CRM
@@ -575,7 +578,10 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              <button className="text-sm font-medium text-violet-600 hover:text-violet-700 hover:underline transition-all">
+              <button
+                onClick={() => navigate("/transactions")}
+                className="text-sm font-medium text-violet-600 hover:text-violet-700 hover:underline transition-all"
+              >
                 View all &rarr;
               </button>
             </div>
@@ -700,13 +706,19 @@ export default function Dashboard() {
                           </p>
                         </div>
                       </div>
-                      <button className="rounded-lg bg-white border border-red-200/80 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-all duration-200 shadow-sm">
+                      <button
+                        onClick={() => navigate("/inventory")}
+                        className="rounded-lg bg-white border border-red-200/80 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-all duration-200 shadow-sm"
+                      >
                         Restock
                       </button>
                     </div>
                   ))}
                 {products.filter((p) => p.stock <= 10).length > 4 && (
-                  <button className="w-full text-center text-sm font-medium text-violet-600 hover:text-violet-700 hover:underline pt-1 transition-all">
+                  <button
+                    onClick={() => navigate("/inventory")}
+                    className="w-full text-center text-sm font-medium text-violet-600 hover:text-violet-700 hover:underline pt-1 transition-all"
+                  >
                     View all alerts &rarr;
                   </button>
                 )}

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { addStockMovement, addRestockLog } from "@/lib/inventoryLogUtils";
+import { getSuppliers, addSupplier } from "@/lib/supplierUtils";
 
 import {
   Warehouse,
@@ -88,8 +90,13 @@ export default function Inventory() {
 
   // ─── Restock State ──────────────────────────────────────────────────────
   const [restockQty, setRestockQty] = useState(1);
-  const [restockSupplier, setRestockSupplier] = useState("");
+  const [restockSupplierId, setRestockSupplierId] = useState("");
   const [restockNotes, setRestockNotes] = useState("");
+  // New supplier quick-add
+  const [showNewSupplier, setShowNewSupplier] = useState(false);
+  const [newSupplierName, setNewSupplierName] = useState("");
+  const [newSupplierPhone, setNewSupplierPhone] = useState("");
+  const [suppliers, setSuppliers] = useState(() => getSuppliers());
   // Variant-specific restock
   const [restockVariant, setRestockVariant] = useState(null);
   const [restockVariantQty, setRestockVariantQty] = useState(1);
@@ -154,6 +161,26 @@ export default function Inventory() {
     });
   };
 
+  // ─── Quick-add supplier ────────────────────────────────────────────────
+  const handleQuickAddSupplier = () => {
+    if (!newSupplierName.trim()) {
+      toast.error("Nama supplier harus diisi");
+      return;
+    }
+    const created = addSupplier({
+      name: newSupplierName.trim(),
+      phone: newSupplierPhone.trim(),
+    });
+    if (created) {
+      setSuppliers(getSuppliers());
+      setRestockSupplierId(created.id);
+      setShowNewSupplier(false);
+      setNewSupplierName("");
+      setNewSupplierPhone("");
+      toast.success(`Supplier "${created.name}" berhasil ditambahkan`);
+    }
+  };
+
   // ─── Restock Handler ────────────────────────────────────────────────────
   const handleRestock = () => {
     if (!restockQty || restockQty < 1) {
@@ -161,10 +188,16 @@ export default function Inventory() {
       return;
     }
 
+    // Determine supplier name
+    let supplierName = null;
+    if (restockSupplierId) {
+      const found = suppliers.find((s) => s.id === restockSupplierId);
+      supplierName = found ? found.name : null;
+    }
+
     const updated = products.map((p) => {
       if (p.id === restockProduct.id) {
         if (restockVariant) {
-          // Restock specific variant
           const updatedVariants = p.variants.map((v) => {
             if (v.id === restockVariant.id) {
               return {
@@ -185,7 +218,6 @@ export default function Inventory() {
             status: getStockStatus(newStock, p.minStock || 5).label,
           };
         } else {
-          // Restock single product stock
           const newStock = Number(p.stock) + Number(restockQty);
           return {
             ...p,
@@ -197,13 +229,46 @@ export default function Inventory() {
       return p;
     });
 
+    addRestockLog({
+      productId: restockProduct.id,
+      productName: restockProduct.name,
+      variantId: restockVariant?.id || null,
+      variantName: restockVariant?.name || null,
+      supplierId: restockSupplierId || null,
+      supplierName,
+      qty: restockVariant ? restockVariantQty : restockQty,
+      buyPrice: restockVariant
+        ? Number(restockVariant.unitCost || restockProduct.unitCost || 0)
+        : Number(restockProduct.unitCost || 0),
+      note: restockNotes || "",
+    });
+
+    addStockMovement({
+      productId: restockProduct.id,
+      productName: restockProduct.name,
+      variantId: restockVariant?.id || null,
+      variantName: restockVariant?.name || null,
+      type: "restock",
+      qty: restockVariant ? Number(restockVariantQty) : Number(restockQty),
+      stockBefore: restockVariant
+        ? Number(restockVariant.stock || 0)
+        : Number(restockProduct.stock || 0),
+      stockAfter: restockVariant
+        ? Number(restockVariant.stock || 0) + Number(restockVariantQty)
+        : Number(restockProduct.stock || 0) + Number(restockQty),
+      note: restockNotes || "",
+    });
+
     setProducts(updated);
     localStorage.setItem("products", JSON.stringify(updated));
     setRestockProduct(null);
     setRestockVariant(null);
     setRestockQty(1);
     setRestockVariantQty(1);
-    setRestockSupplier("");
+    setRestockSupplierId("");
+    setShowNewSupplier(false);
+    setNewSupplierName("");
+    setNewSupplierPhone("");
     setRestockNotes("");
     toast.success("Stock updated successfully ✅");
   };
@@ -244,6 +309,29 @@ export default function Inventory() {
       }
       return p;
     });
+
+    const stockBefore = adjustVariant
+      ? Number(adjustVariant.stock || 0)
+      : Number(adjustProduct.stock || 0);
+    const stockAfter = adjustVariant
+      ? Math.max(0, Number(adjustVariantStock))
+      : Number(newStockAmount);
+    const qtyDiff = stockAfter - stockBefore;
+
+    if (qtyDiff !== 0) {
+      addStockMovement({
+        productId: adjustProduct.id,
+        productName: adjustProduct.name,
+        variantId: adjustVariant?.id || null,
+        variantName: adjustVariant?.name || null,
+        type: "adjustment",
+        qty: qtyDiff,
+        stockBefore,
+        stockAfter,
+        refId: null,
+        note: adjustNotes || adjustReason || "",
+      });
+    }
 
     setProducts(updated);
     localStorage.setItem("products", JSON.stringify(updated));
@@ -327,7 +415,6 @@ export default function Inventory() {
       {/* ══════════════ Search & Filter Bar ════════════════════════════════ */}
       <div className="space-y-4">
         <div className="flex gap-4">
-          {/* Search Input */}
           <div className="relative flex-1">
             <Search
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
@@ -342,7 +429,6 @@ export default function Inventory() {
             />
           </div>
 
-          {/* Status Filter */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -354,7 +440,6 @@ export default function Inventory() {
             <option value="Out of Stock">Out of Stock</option>
           </select>
 
-          {/* Category Filter */}
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
@@ -426,7 +511,6 @@ export default function Inventory() {
                       key={product.id}
                       className="border-t border-[#ececf2] transition-colors hover:bg-violet-50/30"
                     >
-                      {/* Expand toggle */}
                       <td className="px-4 py-4">
                         {hasVariants && (
                           <button
@@ -442,7 +526,6 @@ export default function Inventory() {
                         )}
                       </td>
 
-                      {/* Product */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-purple-100 text-xs font-bold text-violet-600 flex-shrink-0">
@@ -464,21 +547,18 @@ export default function Inventory() {
                         </div>
                       </td>
 
-                      {/* SKU */}
                       <td className="px-6 py-4">
                         <span className="inline-block rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
                           {product.sku}
                         </span>
                       </td>
 
-                      {/* Category */}
                       <td className="px-6 py-4">
                         <p className="text-sm text-gray-600">
                           {product.category}
                         </p>
                       </td>
 
-                      {/* Stock with Bar */}
                       <td className="px-6 py-4">
                         <div className="space-y-2">
                           <p className="text-sm font-semibold text-gray-900">
@@ -493,28 +573,24 @@ export default function Inventory() {
                         </div>
                       </td>
 
-                      {/* Min Stock */}
                       <td className="px-6 py-4">
                         <p className="text-sm text-gray-600">
                           {product.minStock || 5}
                         </p>
                       </td>
 
-                      {/* Unit Cost */}
                       <td className="px-6 py-4 whitespace-nowrap font-semibold text-gray-900">
                         <span className="whitespace-nowrap">
                           {formatRupiah(effCost)}
                         </span>
                       </td>
 
-                      {/* Stock Value */}
                       <td className="px-6 py-4 whitespace-nowrap font-semibold text-violet-600">
                         <span className="whitespace-nowrap">
                           {formatRupiah(stockValue)}
                         </span>
                       </td>
 
-                      {/* Status Badge */}
                       <td className="px-6 py-4">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${status.color}`}
@@ -523,7 +599,6 @@ export default function Inventory() {
                         </span>
                       </td>
 
-                      {/* Actions */}
                       <td className="px-6 py-4 text-center align-middle whitespace-nowrap">
                         <div className="flex justify-center gap-2">
                           <button
@@ -547,7 +622,6 @@ export default function Inventory() {
                       </td>
                     </tr>
 
-                    {/* Expandable variant rows */}
                     {hasVariants && isExpanded && (
                       <tr key={`variants-${product.id}`}>
                         <td colSpan={10} className="px-6 py-0 bg-purple-50/30">
@@ -707,13 +781,68 @@ export default function Inventory() {
                 <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
                   Supplier (Optional)
                 </label>
-                <input
-                  type="text"
-                  placeholder="Enter supplier name"
-                  value={restockSupplier}
-                  onChange={(e) => setRestockSupplier(e.target.value)}
-                  className="w-full rounded-2xl border border-[#ececf2] bg-white py-2.5 px-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
-                />
+                <select
+                  value={showNewSupplier ? "__new__" : restockSupplierId}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "__new__") {
+                      setShowNewSupplier(true);
+                      setRestockSupplierId("");
+                    } else {
+                      setShowNewSupplier(false);
+                      setRestockSupplierId(val);
+                    }
+                  }}
+                  className="w-full rounded-2xl border border-[#ececf2] bg-white py-2.5 px-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer"
+                >
+                  <option value="">Pilih supplier...</option>
+                  {suppliers.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                  <option value="__new__">+ Tambah supplier baru</option>
+                </select>
+
+                {showNewSupplier && (
+                  <div className="mt-3 p-3 rounded-2xl border border-violet-200 bg-violet-50/40 space-y-3">
+                    <p className="text-xs font-semibold text-violet-700">
+                      Tambah Supplier Baru
+                    </p>
+                    <input
+                      type="text"
+                      placeholder="Nama supplier *"
+                      value={newSupplierName}
+                      onChange={(e) => setNewSupplierName(e.target.value)}
+                      className="w-full rounded-xl border border-[#ececf2] bg-white py-2 px-3 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Nomor telepon (opsional)"
+                      value={newSupplierPhone}
+                      onChange={(e) => setNewSupplierPhone(e.target.value)}
+                      className="w-full rounded-xl border border-[#ececf2] bg-white py-2 px-3 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleQuickAddSupplier}
+                        className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:shadow-md"
+                      >
+                        Simpan Supplier
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowNewSupplier(false);
+                          setNewSupplierName("");
+                          setNewSupplierPhone("");
+                        }}
+                        className="rounded-xl border border-[#ececf2] bg-white px-3 py-2 text-xs font-medium text-gray-600 transition-all hover:bg-gray-50"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>

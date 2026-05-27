@@ -7,6 +7,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Transactions from "./pages/Transactions";
 import Customers from "./pages/Customers";
 import Inventory from "./pages/Inventory";
+import InventoryLogs from "./pages/InventoryLogs";
 import Reports from "./pages/Reports";
 import Analytics from "./pages/Analytics";
 
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/inventory" element={<Inventory />} />
+          <Route path="/inventory-logs" element={<InventoryLogs />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/analytics" element={<Analytics />} />
         </Routes>
