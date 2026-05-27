@@ -309,7 +309,7 @@ export default function Reports() {
 
   // ─── Render ─────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm">
+    <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm dark:bg-gray-800 dark:shadow-none">
       {/* ══════════════ Page Header ═══════════════════════════════════════ */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -317,10 +317,10 @@ export default function Reports() {
             <FileText className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
               Reports
             </h1>
-            <p className="text-sm text-gray-400 mt-0.5">
+            <p className="text-sm text-gray-400 dark:text-gray-400 mt-0.5">
               Laporan penjualan & transaksi
             </p>
           </div>
@@ -329,14 +329,14 @@ export default function Reports() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleExportPDF}
-            className="flex items-center gap-2 rounded-2xl border border-violet-200 px-5 py-2.5 font-semibold text-violet-600 transition-all hover:bg-violet-50"
+            className="relative z-10 flex items-center gap-2 rounded-2xl border border-violet-200 dark:border-violet-800/40 px-5 py-2.5 font-semibold text-violet-600 dark:text-violet-300 transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
           >
             <Download className="h-4 w-4" />
             Export PDF
           </button>
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_-2px_rgba(124,58,237,0.4)] hover:-translate-y-0.5"
           >
             <FileSpreadsheet className="h-4 w-4" />
             Export CSV
@@ -361,8 +361,8 @@ export default function Reports() {
               }}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 selectedPeriod === period.key
-                  ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-sm"
-                  : "border border-[#ececf2] text-gray-600 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600"
+                  ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white dark:text-white shadow-lg shadow-violet-500/20"
+                  : "px-4 py-2 rounded-xl text-sm font-medium transition-all border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-800/60 text-gray-600 dark:text-slate-400 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-gray-700/60 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 dark:hover:text-white"
               }`}
             >
               {period.label}
@@ -373,7 +373,7 @@ export default function Reports() {
         {selectedPeriod === "custom" && (
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-400" />
+              <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-400" />
               <input
                 type="date"
                 value={customDateFrom}
@@ -381,9 +381,9 @@ export default function Reports() {
                   setCustomDateFrom(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="rounded-xl border border-[#ececf2] px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                className="rounded-xl border border-[#ececf2] dark:border-gray-600 px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:bg-gray-700 dark:text-white"
               />
-              <span className="text-gray-400">-</span>
+              <span className="text-gray-400 dark:text-gray-400">-</span>
               <input
                 type="date"
                 value={customDateTo}
@@ -391,88 +391,88 @@ export default function Reports() {
                   setCustomDateTo(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="rounded-xl border border-[#ececf2] px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                className="rounded-xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:text-white dark:placeholder-gray-400"
               />
             </div>
           </div>
         )}
 
-        <p className="text-sm text-gray-400">Periode: {getPeriodLabel()}</p>
+        <p className="text-sm text-gray-400 dark:text-gray-400">Periode: {getPeriodLabel()}</p>
       </div>
 
       {/* ══════════════ Summary Cards ══════════════════════════════════════ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Revenue */}
-        <div className="rounded-2xl border border-[#ececf2] p-6 transition-all hover:border-violet-200 hover:shadow-md">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Total Revenue</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Revenue</p>
               <p className="mt-1 text-3xl font-bold text-violet-600">
                 {formatCurrency(summaryStats.totalRevenue)}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100">
-              <TrendingUp className="h-6 w-6 text-purple-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-900/30 border border-purple-200/50 dark:border-purple-800/30 dark:bg-purple-900/30 border border-purple-200/50 dark:border-purple-800/30">
+              <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400 dark:text-purple-400" />
             </div>
           </div>
         </div>
 
         {/* Total Transaksi */}
-        <div className="rounded-2xl border border-[#ececf2] p-6 transition-all hover:border-violet-200 hover:shadow-md">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Total Transaksi
               </p>
-              <p className="mt-1 text-3xl font-bold text-gray-900">
+              <p className="mt-1 text-3xl font-bold text-gray-900 dark:text-white">
                 {summaryStats.totalTransactions}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100">
-              <Receipt className="h-6 w-6 text-blue-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/30 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/30">
+              <Receipt className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </div>
 
         {/* Produk Terjual */}
-        <div className="rounded-2xl border border-[#ececf2] p-6 transition-all hover:border-violet-200 hover:shadow-md">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Produk Terjual
               </p>
-              <p className="mt-1 text-3xl font-bold text-green-600">
+              <p className="mt-1 text-3xl font-bold text-green-600 dark:text-green-400">
                 {summaryStats.totalItems}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100">
-              <ShoppingBag className="h-6 w-6 text-green-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 dark:bg-green-900/30 border border-green-200/50 dark:border-green-800/30 dark:bg-green-900/30 border border-green-200/50 dark:border-green-800/30">
+              <ShoppingBag className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
           </div>
         </div>
 
         {/* Avg Order Value */}
-        <div className="rounded-2xl border border-[#ececf2] p-6 transition-all hover:border-violet-200 hover:shadow-md">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Avg Order Value
               </p>
-              <p className="mt-1 text-3xl font-bold text-orange-600">
+              <p className="mt-1 text-3xl font-bold text-orange-600 dark:text-orange-400">
                 {formatCurrency(summaryStats.avgOrderValue)}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100">
-              <FileSpreadsheet className="h-6 w-6 text-orange-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-900/30 border border-orange-200/50 dark:border-orange-800/30 dark:bg-orange-900/30 border border-orange-200/50 dark:border-orange-800/30">
+              <FileSpreadsheet className="h-6 w-6 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
         </div>
       </div>
 
       {/* ══════════════ Sales by Product Table ═════════════════════════════ */}
-      <div className="overflow-hidden rounded-2xl border border-[#ececf2]">
-        <div className="p-6 border-b border-[#ececf2]">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+      <div className="overflow-hidden rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div className="p-6 border-b border-[#ececf2] dark:border-gray-700/60">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Package className="h-5 w-5 text-violet-600" />
             Produk Terlaris
           </h2>
@@ -480,10 +480,10 @@ export default function Reports() {
 
         {salesByProduct.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
-              <Package className="h-7 w-7 text-gray-400" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50">
+              <Package className="h-7 w-7 text-gray-400 dark:text-gray-400" />
             </div>
-            <p className="mt-3 text-sm font-medium text-gray-500">
+            <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
               No product data for this period
             </p>
           </div>
@@ -491,7 +491,7 @@ export default function Reports() {
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gradient-to-r from-[#f8f8fc] to-white text-left text-sm text-gray-500">
+                <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80 text-left text-sm text-gray-500 dark:text-gray-400">
                   <th className="px-6 py-4 font-semibold">Produk</th>
                   <th className="px-6 py-4 font-semibold">SKU</th>
                   <th className="px-6 py-4 font-semibold text-center">
@@ -507,25 +507,25 @@ export default function Reports() {
                 {salesByProduct.map((product, index) => (
                   <tr
                     key={product.id || index}
-                    className="border-t border-[#ececf2] transition-colors hover:bg-violet-50/30"
+                    className="border-t border-[#ececf2] dark:border-gray-700/60 bg-white dark:bg-gray-800 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)]"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-100 to-purple-200">
                           <Package className="h-4 w-4 text-violet-600" />
                         </div>
-                        <span className="font-semibold text-gray-900">
+                        <span className="font-semibold text-gray-900 dark:text-white">
                           {product.name}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
                         {product.sku}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className="inline-flex items-center justify-center rounded-lg bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
+                      <span className="inline-flex items-center justify-center rounded-lg bg-gray-500/10 dark:bg-gray-500/15 border border-gray-400/20 dark:border-gray-400/15 px-3 py-1 text-sm font-semibold text-gray-500 dark:text-gray-400">
                         {product.qty}
                       </span>
                     </td>
@@ -536,7 +536,7 @@ export default function Reports() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-gradient-to-r from-violet-500 to-purple-600 rounded-full"
                             style={{ width: `${product.percentage}%` }}
@@ -556,9 +556,9 @@ export default function Reports() {
       </div>
 
       {/* ══════════════ Transaction Detail Table ═══════════════════════════ */}
-      <div className="overflow-hidden rounded-2xl border border-[#ececf2]">
-        <div className="p-6 border-b border-[#ececf2]">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+      <div className="overflow-hidden rounded-2xl border border-[#ececf2] dark:border-gray-700">
+        <div className="p-6 border-b border-[#ececf2] dark:border-gray-700/60">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Receipt className="h-5 w-5 text-violet-600" />
             Rincian Transaksi
           </h2>
@@ -566,10 +566,10 @@ export default function Reports() {
 
         {paginatedTransactions.data.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
-              <Receipt className="h-7 w-7 text-gray-400" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50">
+              <Receipt className="h-7 w-7 text-gray-400 dark:text-gray-400" />
             </div>
-            <p className="mt-3 text-sm font-medium text-gray-500">
+            <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
               No transactions for this period
             </p>
           </div>
@@ -578,7 +578,7 @@ export default function Reports() {
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-gradient-to-r from-[#f8f8fc] to-white text-left text-sm text-gray-500">
+                  <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80 text-left text-sm text-gray-500 dark:text-gray-400">
                     <th className="px-6 py-4 font-semibold">Invoice</th>
                     <th className="px-6 py-4 font-semibold">Tanggal</th>
                     <th className="px-6 py-4 font-semibold">Customer</th>
@@ -596,7 +596,7 @@ export default function Reports() {
                   {paginatedTransactions.data.map((transaction) => (
                     <tr
                       key={transaction.id}
-                      className="border-t border-[#ececf2] transition-colors hover:bg-violet-50/30"
+                      className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)]"
                     >
                       <td className="px-6 py-4">
                         <button
@@ -607,12 +607,12 @@ export default function Reports() {
                         </button>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
                           {formatDate(transaction.date)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
                           {transaction.customerName || "Walk-in Customer"}
                         </span>
                       </td>
@@ -623,31 +623,31 @@ export default function Reports() {
                             .map((item, idx) => (
                               <span
                                 key={idx}
-                                className="inline-block rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600"
+                                className="inline-block rounded-lg bg-gray-500/10 dark:bg-gray-500/15 border border-gray-400/20 dark:border-gray-400/15 px-2.5 py-1 text-xs font-medium text-gray-500 dark:text-gray-400"
                               >
                                 {item.name} x{item.qty}
                               </span>
                             ))}
                           {(transaction.items || []).length > 2 && (
-                            <span className="inline-block rounded-lg bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-600">
+                            <span className="inline-block rounded-lg bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-600 dark:text-violet-400">
                               +{(transaction.items || []).length - 2} more
                             </span>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <span className="font-bold text-violet-600">
+                        <span className="font-bold text-violet-600 dark:text-violet-400">
                           {formatCurrency(transaction.total)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-gray-500/10 dark:bg-gray-500/15 border border-gray-400/20 dark:border-gray-400/15 px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">
                           <CreditCard className="h-3 w-3" />
                           {transaction.paymentMethod || "Cash"}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 text-xs font-medium text-emerald-300">
                           <CheckCircle className="h-3 w-3" />
                           Completed
                         </span>
@@ -660,8 +660,8 @@ export default function Reports() {
 
             {/* Pagination */}
             {paginatedTransactions.totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-[#ececf2]">
-                <p className="text-sm text-gray-400">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-[#ececf2] dark:border-gray-700/60">
+                <p className="text-sm text-gray-400 dark:text-gray-400">
                   Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} -{" "}
                   {Math.min(
                     currentPage * ITEMS_PER_PAGE,
@@ -676,7 +676,7 @@ export default function Reports() {
                       setCurrentPage((prev) => Math.max(prev - 1, 1))
                     }
                     disabled={currentPage === 1}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] text-sm font-medium text-gray-600 transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <ArrowLeft className="h-4 w-4" />
                   </button>
@@ -690,8 +690,8 @@ export default function Reports() {
                       onClick={() => setCurrentPage(page)}
                       className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold transition-all ${
                         page === currentPage
-                          ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-sm"
-                          : "border border-[#ececf2] text-gray-600 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600"
+                          ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white dark:text-white shadow-lg shadow-violet-500/20"
+                          : "border border-[#ececf2] dark:border-gray-700 text-gray-600 hover:border-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:text-violet-600"
                       }`}
                     >
                       {page}
@@ -705,7 +705,7 @@ export default function Reports() {
                       )
                     }
                     disabled={currentPage === paginatedTransactions.totalPages}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] text-sm font-medium text-gray-600 transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <ArrowRight className="h-4 w-4" />
                   </button>

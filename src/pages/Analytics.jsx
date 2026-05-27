@@ -148,17 +148,17 @@ export default function Analytics() {
 
   const getMedalColor = (rank) => {
     if (rank === 1) return "text-yellow-500";
-    if (rank === 2) return "text-gray-400";
-    if (rank === 3) return "text-amber-600";
-    return "text-gray-500";
+    if (rank === 2) return "text-gray-400 dark:text-gray-400";
+    if (rank === 3) return "text-amber-600 dark:text-amber-400";
+    return "text-gray-500 dark:text-gray-400";
   };
 
   const getSegmentBadge = (segment) => {
     const styles = {
-      VIP: "bg-amber-100 text-amber-700",
-      Regular: "bg-blue-100 text-blue-700",
-      New: "bg-green-100 text-green-700",
-      Inactive: "bg-red-100 text-red-700",
+      VIP: "bg-amber-500/15 border border-amber-500/30 text-amber-300",
+      Regular: "bg-violet-500/15 border border-violet-500/30 text-violet-300",
+      New: "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300",
+      Inactive: "bg-red-500/15 border border-red-500/30 text-red-300",
     };
 
     return (
@@ -177,7 +177,7 @@ export default function Analytics() {
 
   // ─── Render ─────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm">
+    <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm dark:bg-gray-800 dark:shadow-none">
       {/* ══════════════ Page Header ═══════════════════════════════════════ */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -185,10 +185,10 @@ export default function Analytics() {
             <Users2 className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
               CRM
             </h1>
-            <p className="text-sm text-gray-400 mt-0.5">
+            <p className="text-sm text-gray-400 dark:text-gray-400 mt-0.5">
               Customer relationship management
             </p>
           </div>
@@ -198,66 +198,66 @@ export default function Analytics() {
       {/* ══════════════ Summary Cards ══════════════════════════════════════ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Customers */}
-        <div className="rounded-2xl border border-[#ececf2] p-6 transition-all hover:border-violet-200 hover:shadow-md">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Total Customers
               </p>
-              <p className="mt-1 text-3xl font-bold text-gray-900">
+              <p className="mt-1 text-3xl font-bold text-gray-900 dark:text-white">
                 {customerMetrics.totalCustomers}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100">
-              <Users2 className="h-6 w-6 text-blue-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/30">
+              <Users2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </div>
 
         {/* VIP Customers */}
-        <div className="rounded-2xl border border-[#ececf2] p-6 transition-all hover:border-violet-200 hover:shadow-md">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">VIP Customers</p>
-              <p className="mt-1 text-3xl font-bold text-amber-600">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">VIP Customers</p>
+              <p className="mt-1 text-3xl font-bold text-amber-600 dark:text-amber-400">
                 {customerMetrics.vipCustomers}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100">
-              <Crown className="h-6 w-6 text-amber-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-900/30 border border-amber-200/50 dark:border-amber-800/30">
+              <Crown className="h-6 w-6 text-amber-600 dark:text-amber-300" />
             </div>
           </div>
         </div>
 
         {/* Inactive Customers */}
-        <div className="rounded-2xl border border-[#ececf2] p-6 transition-all hover:border-violet-200 hover:shadow-md">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Inactive Customers
               </p>
-              <p className="mt-1 text-3xl font-bold text-red-600">
+              <p className="mt-1 text-3xl font-bold text-red-600 dark:text-red-400">
                 {customerMetrics.inactiveCustomers}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100">
-              <Clock className="h-6 w-6 text-red-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-900/30 border border-red-200/50 dark:border-red-800/30">
+              <Clock className="h-6 w-6 text-red-600 dark:text-red-400" />
             </div>
           </div>
         </div>
 
         {/* Avg Lifetime Value */}
-        <div className="rounded-2xl border border-[#ececf2] p-6 transition-all hover:border-violet-200 hover:shadow-md">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Avg Lifetime Value
               </p>
               <p className="mt-1 text-3xl font-bold text-purple-600">
                 {formatCurrency(customerMetrics.avgLifetimeValue)}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-900/30 border border-purple-200/50 dark:border-purple-800/30 dark:bg-purple-900/30 border border-purple-200/50 dark:border-purple-800/30">
               <TrendingUp className="h-6 w-6 text-purple-600" />
             </div>
           </div>
@@ -265,8 +265,8 @@ export default function Analytics() {
       </div>
 
       {/* ══════════════ Customer Segments ══════════════════════════════════ */}
-      <div className="rounded-2xl border border-[#ececf2] p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">
+      <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-6">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
           Customer Segments
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -277,20 +277,20 @@ export default function Analytics() {
             }
             className={`p-4 rounded-2xl border-2 transition-all text-left ${
               selectedSegment === "VIP"
-                ? "border-amber-400 bg-amber-50"
-                : "border-[#ececf2] hover:border-amber-200 hover:bg-amber-50/50"
+                ? "border-amber-400 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20"
+                : "border-[#ececf2] dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-900/10"
             }`}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100">
-                <Crown className="h-5 w-5 text-amber-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/30 border border-amber-200/50 dark:border-amber-800/30 dark:bg-amber-900/30">
+                <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
-              <span className="font-semibold text-amber-700">VIP</span>
+              <span className="font-semibold text-amber-700 dark:text-amber-300">VIP</span>
             </div>
-            <p className="text-2xl font-bold text-amber-600">
+            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
               {customerMetrics.segments.VIP.length}
             </p>
-            <p className="text-xs text-amber-600/70 mt-1">
+            <p className="text-xs text-amber-600 dark:text-amber-400/70 mt-1">
               &gt; Rp 5.000.000 spent
             </p>
           </button>
@@ -304,20 +304,20 @@ export default function Analytics() {
             }
             className={`p-4 rounded-2xl border-2 transition-all text-left ${
               selectedSegment === "Regular"
-                ? "border-blue-400 bg-blue-50"
-                : "border-[#ececf2] hover:border-blue-200 hover:bg-blue-50/50"
+                ? "border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                : "border-[#ececf2] dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10"
             }`}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
-                <Star className="h-5 w-5 text-blue-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/30 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/30">
+                <Star className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <span className="font-semibold text-blue-700">Regular</span>
+              <span className="font-semibold text-blue-700 dark:text-blue-300">Regular</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600">
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
               {customerMetrics.segments.Regular.length}
             </p>
-            <p className="text-xs text-blue-600/70 mt-1">
+            <p className="text-xs text-blue-600 dark:text-blue-400/70 mt-1">
               Rp 1.000.000 - 5.000.000
             </p>
           </button>
@@ -329,20 +329,20 @@ export default function Analytics() {
             }
             className={`p-4 rounded-2xl border-2 transition-all text-left ${
               selectedSegment === "New"
-                ? "border-green-400 bg-green-50"
-                : "border-[#ececf2] hover:border-green-200 hover:bg-green-50/50"
+                ? "border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-900/20"
+                : "border-[#ececf2] dark:border-gray-700 hover:border-green-300 dark:hover:border-green-500 hover:bg-green-50/50 dark:hover:bg-green-900/10"
             }`}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
-                <UserPlus className="h-5 w-5 text-green-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30 border border-green-200/50 dark:border-green-800/30 dark:bg-green-900/30 border border-green-200/50 dark:border-green-800/30">
+                <UserPlus className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
-              <span className="font-semibold text-green-700">New</span>
+              <span className="font-semibold text-green-700 dark:text-green-300">New</span>
             </div>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
               {customerMetrics.segments.New.length}
             </p>
-            <p className="text-xs text-green-600/70 mt-1">0 transactions</p>
+            <p className="text-xs text-green-600 dark:text-green-400/70 mt-1">0 transactions</p>
           </button>
 
           {/* Inactive Segment */}
@@ -354,20 +354,20 @@ export default function Analytics() {
             }
             className={`p-4 rounded-2xl border-2 transition-all text-left ${
               selectedSegment === "Inactive"
-                ? "border-red-400 bg-red-50"
-                : "border-[#ececf2] hover:border-red-200 hover:bg-red-50/50"
+                ? "border-red-400 dark:border-red-600 bg-red-50 dark:bg-red-900/20"
+                : "border-[#ececf2] dark:border-gray-700 hover:border-red-300 dark:hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
             }`}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100">
-                <Clock className="h-5 w-5 text-red-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/30">
+                <Clock className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
-              <span className="font-semibold text-red-700">Inactive</span>
+              <span className="font-semibold text-red-400 dark:text-red-300">Inactive</span>
             </div>
-            <p className="text-2xl font-bold text-red-600">
+            <p className="text-2xl font-bold text-red-600 dark:text-red-400">
               {customerMetrics.segments.Inactive.length}
             </p>
-            <p className="text-xs text-red-600/70 mt-1">
+            <p className="text-xs text-red-600 dark:text-red-400/70 mt-1">
               No purchase in 30 days
             </p>
           </button>
@@ -375,9 +375,9 @@ export default function Analytics() {
       </div>
 
       {/* ══════════════ Top Customers Leaderboard ══════════════════════════ */}
-      <div className="rounded-2xl border border-[#ececf2] overflow-hidden">
-        <div className="p-6 border-b border-[#ececf2]">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+      <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 overflow-hidden">
+        <div className="p-6 border-b border-[#ececf2] dark:border-gray-700/60">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Medal className="h-5 w-5 text-violet-600" />
             Top Customers
           </h2>
@@ -385,19 +385,19 @@ export default function Analytics() {
 
         {filteredLeaderboard.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
-              <Users2 className="h-7 w-7 text-gray-400" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50">
+              <Users2 className="h-7 w-7 text-gray-400 dark:text-gray-400" />
             </div>
-            <p className="mt-3 text-sm font-medium text-gray-500">
+            <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
               No customers in this segment
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-[#ececf2]">
+          <div className="divide-y divide-[#ececf2] dark:divide-gray-700/50">
             {filteredLeaderboard.map((customer, index) => (
               <div
                 key={customer.id}
-                className="flex items-center gap-4 p-4 hover:bg-violet-50/30 transition-colors"
+                className="flex items-center gap-4 p-4 hover:bg-violet-50 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)] transition-colors"
               >
                 {/* Rank */}
                 <div
@@ -419,7 +419,7 @@ export default function Analytics() {
 
                 {/* Customer Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">
+                  <p className="font-semibold text-gray-900 dark:text-white truncate">
                     {customer.fullName}
                   </p>
                   <p className="text-xs text-gray-400 truncate">
@@ -429,7 +429,7 @@ export default function Analytics() {
 
                 {/* Total Orders */}
                 <div className="text-center">
-                  <span className="inline-flex items-center justify-center rounded-lg bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
+                  <span className="inline-flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 px-3 py-1 text-sm font-semibold text-gray-700 dark:text-gray-200">
                     {customer.totalOrders} orders
                   </span>
                 </div>
@@ -443,7 +443,7 @@ export default function Analytics() {
 
                 {/* Last Purchase */}
                 <div className="text-right min-w-[100px]">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     {customer.lastPurchaseDate
                       ? formatDate(customer.lastPurchaseDate.toISOString())
                       : "-"}
@@ -462,35 +462,35 @@ export default function Analytics() {
 
       {/* ══════════════ Inactive Customers Alert ═══════════════════════════ */}
       {customerMetrics.needsAttention.length > 0 && (
-        <div className="rounded-2xl border border-red-200 bg-red-50/50 overflow-hidden">
-          <div className="p-6 border-b border-red-200">
-            <h2 className="text-lg font-bold text-red-700 flex items-center gap-2">
+        <div className="rounded-2xl border border-red-200 dark:border-red-800/50 bg-red-50/50 dark:bg-red-900/10 overflow-hidden">
+          <div className="p-6 border-b border-red-200 dark:border-red-800/50">
+            <h2 className="text-lg font-bold text-red-700 dark:text-red-300 flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
               Perlu Perhatian
             </h2>
           </div>
 
-          <div className="divide-y divide-red-200">
+          <div className="divide-y divide-red-200 dark:divide-red-800/30">
             {customerMetrics.needsAttention.slice(0, 5).map((customer) => (
               <div
                 key={customer.id}
-                className="flex items-center gap-4 p-4 hover:bg-red-50 transition-colors"
+                className="flex items-center gap-4 p-4 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               >
                 {/* Avatar */}
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600 text-sm font-bold flex-shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-bold flex-shrink-0">
                   {getInitials(customer.fullName)}
                 </div>
 
                 {/* Customer Name */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">
+                  <p className="font-semibold text-gray-900 dark:text-white truncate">
                     {customer.fullName}
                   </p>
                 </div>
 
                 {/* Last Purchase */}
                 <div className="text-center">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     Last:{" "}
                     {customer.lastPurchaseDate
                       ? formatDate(customer.lastPurchaseDate.toISOString())
@@ -500,7 +500,7 @@ export default function Analytics() {
 
                 {/* Days Since */}
                 <div className="text-center min-w-[80px]">
-                  <span className="inline-flex items-center justify-center rounded-lg bg-red-100 px-3 py-1 text-sm font-semibold text-red-700">
+                  <span className="inline-flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 border border-red-200/50 dark:border-red-800/30 px-3 py-1 text-sm font-semibold text-red-700">
                     {getDaysSince(customer.lastPurchaseDate)}
                   </span>
                 </div>
@@ -508,7 +508,7 @@ export default function Analytics() {
                 {/* Contact Button */}
                 <button
                   onClick={() => handleContact(customer.fullName)}
-                  className="flex items-center gap-1 rounded-xl border border-red-300 px-4 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-100"
+                  className="flex items-center gap-1 rounded-xl border border-red-300 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 transition-all hover:bg-red-100 dark:bg-red-900/30 border border-red-200/50 dark:border-red-800/30"
                 >
                   <Phone className="h-3.5 w-3.5" />
                   Hubungi

@@ -252,16 +252,16 @@ export default function Products() {
     if (stock === 0)
       return {
         label: "Out of Stock",
-        color: "bg-red-100 text-red-700 border-red-200",
+        color: "bg-red-500/15 text-red-300 border border-red-500/30",
       };
     if (stock <= minStock)
       return {
         label: "Low Stock",
-        color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+        color: "bg-amber-500/15 text-amber-300 border border-amber-500/30",
       };
     return {
       label: "In Stock",
-      color: "bg-green-100 text-green-700 border-green-200",
+      color: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
     };
   };
 
@@ -630,12 +630,12 @@ export default function Products() {
     <div className="mt-4">
       <div className="flex items-center justify-between mb-2.5">
         <div>
-          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400">
             Variants{" "}
             <span className="text-gray-300 font-normal">(Optional)</span>
           </label>
           {variants.length > 0 && (
-            <span className="text-xs text-gray-400 ml-2">
+            <span className="text-xs text-gray-400 dark:text-gray-400 ml-2">
               {variants.length} variant{variants.length !== 1 ? "s" : ""}
             </span>
           )}
@@ -643,7 +643,7 @@ export default function Products() {
         <button
           type="button"
           onClick={() => addVariant(isEdit)}
-          className="text-xs font-semibold text-purple-600 border border-purple-200 px-3.5 py-1.5 rounded-xl hover:bg-purple-50 cursor-pointer flex items-center gap-1.5 transition-all hover:shadow-sm"
+          className="text-xs font-semibold text-purple-600 border border-purple-200 px-3.5 py-1.5 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer flex items-center gap-1.5 transition-all hover:shadow-sm"
         >
           <Plus size={13} /> Add Variant
         </button>
@@ -660,12 +660,12 @@ export default function Products() {
         {variants.map((variant) => (
           <div
             key={variant.id}
-            className="rounded-xl border border-[#ececf2] p-4"
+            className="rounded-xl border border-[#ececf2] dark:border-gray-700 p-4"
           >
             {/* Row 1: Variant Name | Variant SKU */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                   Variant Name
                 </label>
                 <input
@@ -675,11 +675,11 @@ export default function Products() {
                   onChange={(e) =>
                     updateVariant(variant.id, "name", e.target.value, isEdit)
                   }
-                  className="w-full rounded-xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                   Variant SKU
                 </label>
                 <div className="flex gap-2 items-center">
@@ -690,12 +690,12 @@ export default function Products() {
                     onChange={(e) =>
                       updateVariant(variant.id, "sku", e.target.value, isEdit)
                     }
-                    className="flex-1 rounded-xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                    className="flex-1 rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                   />
                   <button
                     type="button"
                     onClick={() => removeVariant(variant.id, isEdit)}
-                    className="shrink-0 flex items-center justify-center h-10 w-10 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                    className="shrink-0 flex items-center justify-center h-10 w-10 rounded-xl text-red-400 hover:text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
                     title="Remove variant"
                   >
                     <X size={16} />
@@ -707,7 +707,7 @@ export default function Products() {
             {/* Row 2: Stock | Price | Cost */}
             <div className="grid grid-cols-3 gap-4 mt-4">
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                   Stock
                 </label>
                 <input
@@ -718,11 +718,11 @@ export default function Products() {
                   onChange={(e) =>
                     updateVariant(variant.id, "stock", e.target.value, isEdit)
                   }
-                  className="w-full rounded-xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                   Unit Price
                 </label>
                 <input
@@ -739,11 +739,11 @@ export default function Products() {
                       isEdit,
                     )
                   }
-                  className="w-full rounded-xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                   Unit Cost
                 </label>
                 <input
@@ -758,7 +758,7 @@ export default function Products() {
                       isEdit,
                     )
                   }
-                  className="w-full rounded-xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                 />
               </div>
             </div>
@@ -766,8 +766,8 @@ export default function Products() {
         ))}
 
         {variants.length === 0 && (
-          <div className="rounded-xl border-2 border-dashed border-gray-200 py-7 text-center">
-            <p className="text-sm text-gray-400">
+          <div className="rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 py-7 text-center">
+            <p className="text-sm text-gray-400 dark:text-gray-400">
               No variants yet. Click{" "}
               <span className="text-purple-500 font-semibold">Add Variant</span>{" "}
               to create product options like size or color.
@@ -779,7 +779,7 @@ export default function Products() {
   );
 
   return (
-    <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm">
+    <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm dark:bg-gray-800 dark:shadow-none">
       {/* ══════════════ Page Header ═══════════════════════════════════════ */}
       <div className="flex items-center justify-between">
         <div>
@@ -788,10 +788,10 @@ export default function Products() {
               <Package className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                 Products
               </h1>
-              <p className="text-sm text-gray-400 mt-0.5">
+              <p className="text-sm text-gray-400 dark:text-gray-400 mt-0.5">
                 Manage your product inventory
               </p>
             </div>
@@ -802,7 +802,7 @@ export default function Products() {
           {/* Export PDF Button */}
           <button
             onClick={() => exportProductsPDF(products)}
-            className="flex items-center gap-2 rounded-2xl border border-violet-200 px-4 py-2.5 text-sm font-semibold text-violet-600 transition-all hover:bg-violet-50"
+            className="relative z-10 flex items-center gap-2 rounded-2xl border border-violet-200 dark:border-violet-800/40 px-4 py-2.5 text-sm font-semibold text-violet-600 dark:text-violet-300 transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
           >
             <Download className="h-4 w-4" />
             Export PDF
@@ -810,7 +810,7 @@ export default function Products() {
           {/* Import CSV Button */}
           <button
             onClick={() => setImportModalOpen(true)}
-            className="flex items-center gap-2 rounded-2xl border border-purple-200 px-5 py-2.5 text-sm font-medium text-purple-600 transition-all hover:bg-purple-50 hover:shadow-sm"
+            className="relative z-10 flex items-center gap-2 rounded-2xl border border-purple-200 dark:border-purple-800/40 px-5 py-2.5 text-sm font-medium text-purple-600 dark:text-purple-300 transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
           >
             <Upload className="h-4 w-4" />
             Import CSV
@@ -818,7 +818,7 @@ export default function Products() {
 
           <Dialog>
             <DialogTrigger asChild>
-              <button className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
+              <button className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_-2px_rgba(124,58,237,0.4)] hover:-translate-y-0.5">
                 <Plus className="h-4 w-4" />
                 Add Product
               </button>
@@ -828,7 +828,7 @@ export default function Products() {
               <div className="relative">
                 <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
                 <DialogHeader className="px-6 pt-5 pb-0">
-                  <DialogTitle className="text-xl font-bold text-gray-900">
+                  <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
                     Add Product
                   </DialogTitle>
                 </DialogHeader>
@@ -837,7 +837,7 @@ export default function Products() {
                   {/* Row 1: SKU + Generate | Category */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                         SKU
                       </label>
                       <div className="flex gap-2">
@@ -851,7 +851,7 @@ export default function Products() {
                               sku: e.target.value,
                             })
                           }
-                          className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                          className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                         />
                         <button
                           type="button"
@@ -860,14 +860,14 @@ export default function Products() {
                             setNewProduct({ ...newProduct, sku });
                           }}
                           disabled={!newProduct.name.trim()}
-                          className="shrink-0 text-xs px-2 py-1 border border-purple-300 text-purple-600 rounded-md hover:bg-purple-50 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="shrink-0 text-xs px-2 py-1 border border-purple-300 text-purple-600 dark:text-purple-400 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           Generate
                         </button>
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                         Category
                       </label>
                       <select
@@ -878,7 +878,7 @@ export default function Products() {
                             category: e.target.value,
                           })
                         }
-                        className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer"
+                        className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer"
                       >
                         <option value="">Select category</option>
                         {categories.map((cat) => (
@@ -892,7 +892,7 @@ export default function Products() {
 
                   {/* Row 2: Product Name (full width) */}
                   <div>
-                    <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                       Product Name <span className="text-red-400">*</span>
                     </label>
                     <input
@@ -906,11 +906,11 @@ export default function Products() {
                       className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
                         errors.name
                           ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                          : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
+                          : "border-[#ececf2] dark:border-gray-700 focus:border-violet-400 focus:ring-violet-100"
                       }`}
                     />
                     {errors.name && (
-                      <p className="text-xs text-red-500 mt-1">
+                      <p className="text-xs text-red-500 dark:text-red-400 mt-1">
                         This field is required
                       </p>
                     )}
@@ -919,7 +919,7 @@ export default function Products() {
                   {/* Row 3: Stock | Min Stock */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                         Stock{" "}
                         {addVariants.length === 0 && (
                           <span className="text-red-400">*</span>
@@ -941,8 +941,8 @@ export default function Products() {
                         className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
                           errors.stock
                             ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                            : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
-                        } ${addVariants.length > 0 ? "bg-gray-50 text-gray-400" : ""}`}
+                            : "border-[#ececf2] dark:border-gray-700 focus:border-violet-400 focus:ring-violet-100"
+                        } ${addVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
                       />
                       {errors.stock && (
                         <p className="text-xs text-red-500 mt-1">
@@ -951,7 +951,7 @@ export default function Products() {
                       )}
                     </div>
                     <div>
-                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                         Min Stock
                       </label>
                       <input
@@ -965,9 +965,9 @@ export default function Products() {
                             minStock: e.target.value,
                           })
                         }
-                        className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                        className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                       />
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-gray-400 dark:text-gray-400 mt-1">
                         Low stock alert threshold
                       </p>
                     </div>
@@ -976,7 +976,7 @@ export default function Products() {
                   {/* Row 4: Unit Cost | Unit Price */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                         Unit Cost
                       </label>
                       <input
@@ -993,11 +993,11 @@ export default function Products() {
                             unitCost: parsePriceInput(e.target.value),
                           })
                         }
-                        className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                        className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                         Unit Price{" "}
                         {addVariants.length === 0 && (
                           <span className="text-red-400">*</span>
@@ -1023,8 +1023,8 @@ export default function Products() {
                         className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
                           errors.unitPrice
                             ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                            : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
-                        } ${addVariants.length > 0 ? "bg-gray-50 text-gray-400" : ""}`}
+                            : "border-[#ececf2] dark:border-gray-700 focus:border-violet-400 focus:ring-violet-100"
+                        } ${addVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
                       />
                       {errors.unitPrice && (
                         <p className="text-xs text-red-500 mt-1">
@@ -1054,7 +1054,7 @@ export default function Products() {
                         setAddVariants([]);
                         setErrors({});
                       }}
-                      className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
+                      className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:shadow-[0_0_12px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_0_12px_-2px_rgba(0,0,0,0.2)] cursor-pointer transition-all duration-200"
                     >
                       Cancel
                     </button>
@@ -1073,12 +1073,12 @@ export default function Products() {
       </div>
 
       {/* ══════════════ Table Card ════════════════════════════════════════ */}
-      <div className="overflow-hidden rounded-3xl border border-[#ececf2] bg-white shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
         <div className="p-6 pb-0">
           <div className="flex items-center justify-between gap-4">
             <div className="relative flex-1">
               <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-400"
                 size={16}
               />
               <input
@@ -1086,7 +1086,7 @@ export default function Products() {
                 placeholder="Search product..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-2xl border border-[#ececf2] bg-white py-3 pl-11 pr-4 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-3 pl-11 pr-4 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
               />
             </div>
 
@@ -1094,58 +1094,28 @@ export default function Products() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="appearance-none rounded-2xl border border-[#ececf2] bg-gradient-to-b from-[#f8f8fc] to-white py-3 pl-4 pr-10 text-sm font-medium text-gray-700 outline-none transition-all focus:border-violet-400 hover:border-violet-300 hover:shadow-sm cursor-pointer"
+                className="appearance-none rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-5 py-3 pr-12 text-sm font-medium text-gray-700 dark:text-white outline-none transition-all duration-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer"
               >
                 <option>All Categories</option>
                 {categories.map((cat) => (
                   <option key={cat}>{cat}</option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-lg bg-violet-50 px-1.5 py-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-violet-500"
-                >
-                  <path d="M4 21V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14" />
-                  <path d="M8 21V9" />
-                  <path d="M12 21V9" />
-                  <path d="M16 21V9" />
-                </svg>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-violet-500"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-lg bg-violet-500/15 border border-violet-500/30 px-1.5 py-1">
+                <span className="text-violet-500 text-[10px] font-bold">▼</span>
               </div>
             </div>
 
             {/* Manage Categories Button */}
             <button
               onClick={() => setManageCatOpen(true)}
-              className="flex items-center gap-1.5 rounded-2xl border border-purple-200 px-4 py-3 text-sm font-medium text-purple-600 transition-all hover:bg-purple-50 hover:shadow-sm"
+              className="relative z-10 flex items-center gap-1.5 rounded-2xl border border-purple-200 dark:border-purple-800/40 px-4 py-3 text-sm font-medium text-purple-600 dark:text-purple-400 transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
             >
               <Settings2 className="h-4 w-4" />
               Manage Categories
             </button>
 
-            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-4 py-2 text-sm font-medium text-violet-600">
+            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-violet-500/15 dark:bg-violet-500/15 border border-violet-500/30 dark:border-violet-500/30 px-4 py-2 text-sm font-medium text-violet-600 dark:text-violet-300">
               <Package className="h-4 w-4" />
               {filteredProducts.length} product
               {filteredProducts.length !== 1 ? "s" : ""}
@@ -1154,19 +1124,19 @@ export default function Products() {
 
           {/* Bulk Action Bar */}
           {selectedIds.length > 0 && (
-            <div className="flex items-center gap-3 px-4 py-2 bg-purple-50 border border-purple-200 rounded-lg mb-3 mt-4">
-              <span className="text-sm text-purple-700">
+            <div className="flex items-center gap-3 px-4 py-2 bg-purple-50 border border-purple-200 rounded-lg dark:bg-purple-900/20 dark:border-purple-800/30 mb-3 mt-4">
+              <span className="text-sm text-purple-600 dark:text-purple-300 font-medium">
                 {selectedIds.length} products selected
               </span>
               <button
                 onClick={() => setBulkDeleteOpen(true)}
-                className="text-sm text-red-600 border border-red-200 px-3 py-1 rounded-lg hover:bg-red-50 cursor-pointer"
+                className="text-sm text-red-600 dark:text-red-400 border border-red-200 px-3 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"
               >
                 Delete Selected
               </button>
               <button
                 onClick={() => setSelectedIds([])}
-                className="text-sm text-gray-600 border border-gray-200 px-3 py-1 rounded-lg hover:bg-gray-50 cursor-pointer"
+                className="text-sm text-gray-600 dark:text-gray-300 border border-gray-200 px-3 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:shadow-[0_0_12px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_0_12px_-2px_rgba(0,0,0,0.2)] cursor-pointer transition-all duration-200"
               >
                 Deselect All
               </button>
@@ -1177,10 +1147,10 @@ export default function Products() {
         <div className="p-6">
           {filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
-                <Package className="h-8 w-8 text-gray-400" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700">
+                <Package className="h-8 w-8 text-gray-400 dark:text-gray-400" />
               </div>
-              <p className="mt-4 text-sm font-medium text-gray-500">
+              <p className="mt-4 text-sm font-medium text-gray-500 dark:text-gray-400">
                 No products found
               </p>
               <p className="text-xs text-gray-400 mt-1">
@@ -1190,10 +1160,10 @@ export default function Products() {
               </p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-[#ececf2]">
+            <div className="overflow-hidden rounded-2xl border border-[#ececf2] dark:border-gray-700">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-gradient-to-r from-[#f8f8fc] to-white text-left text-sm text-gray-500">
+                  <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/60 text-left text-sm text-gray-500 dark:text-gray-400">
                     <th className="px-4 py-4 w-10">
                       <input
                         type="checkbox"
@@ -1202,7 +1172,7 @@ export default function Products() {
                           selectedIds.length === filteredProducts.length &&
                           filteredProducts.length > 0
                         }
-                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                        className="rounded border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-600 text-purple-600 dark:text-purple-400 focus:ring-purple-500 cursor-pointer"
                       />
                     </th>
                     <th className="px-6 py-4 font-semibold">Product</th>
@@ -1229,14 +1199,14 @@ export default function Products() {
                     return (
                       <tr
                         key={product.id}
-                        className={`border-t border-[#ececf2] transition-colors hover:bg-violet-50/30 ${selectedIds.includes(product.id) ? "bg-purple-50" : ""}`}
+                        className={`border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-violet-50 dark:hover:bg-gray-700/50 ${selectedIds.includes(product.id) ? "bg-purple-50 dark:bg-gray-700/30" : ""}`}
                       >
                         <td className="px-4 py-4">
                           <input
                             type="checkbox"
                             onChange={() => toggleSelect(product.id)}
                             checked={selectedIds.includes(product.id)}
-                            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                            className="rounded border-gray-300 dark:border-gray-600 text-purple-600 focus:ring-purple-500 cursor-pointer"
                           />
                         </td>
                         <td className="px-6 py-4">
@@ -1249,29 +1219,29 @@ export default function Products() {
                                 onClick={() =>
                                   navigate(`/products/${product.id}`)
                                 }
-                                className="font-semibold text-gray-900 hover:text-violet-600 cursor-pointer transition-colors"
+                                className="font-semibold text-gray-900 dark:text-white hover:text-violet-600 cursor-pointer transition-colors"
                               >
                                 {product.name}
                               </span>
                               {hasVariants && (
-                                <span className="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full ml-2">
+                                <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full ml-2">
                                   {product.variants.length} variants
                                 </span>
                               )}
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-gray-400 dark:text-gray-400">
                                 {product.category}
                               </p>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="inline-block rounded-lg bg-gray-100 px-3 py-1 text-xs font-mono font-medium text-gray-600">
+                          <span className="inline-block rounded-lg bg-gray-500/10 dark:bg-gray-500/15 border border-gray-400/20 dark:border-gray-400/15 px-3 py-1 text-xs font-mono font-medium text-gray-500 dark:text-gray-400">
                             {product.sku}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <div className="h-2 w-16 rounded-full bg-gray-100 overflow-hidden">
+                            <div className="h-2 w-16 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all ${
                                   effStock === 0
@@ -1286,18 +1256,18 @@ export default function Products() {
                                 }}
                               />
                             </div>
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                               {effStock}
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 font-semibold text-gray-900">
+                        <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                           Rp{" "}
                           {(Number(product.unitCost) || 0).toLocaleString(
                             "id-ID",
                           )}
                         </td>
-                        <td className="px-6 py-4 font-semibold text-gray-900">
+                        <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                           {hasVariants ? (
                             <span className="text-xs text-purple-600 font-medium">
                               From{" "}
@@ -1345,7 +1315,7 @@ export default function Products() {
                                         : [],
                                     );
                                   }}
-                                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-50 to-purple-50 px-4 py-2 text-sm font-medium text-violet-600 transition-all hover:shadow-sm hover:-translate-y-0.5"
+                                  className="relative z-10 flex items-center gap-1.5 rounded-xl border border-violet-200 dark:border-violet-800/40 bg-gradient-to-r from-violet-50 dark:from-violet-900/20 to-purple-50 dark:to-purple-900/20 px-4 py-2 text-sm font-medium text-violet-600 dark:text-violet-300 transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
                                 >
                                   <Edit3 className="h-3.5 w-3.5" /> Edit
                                 </button>
@@ -1354,7 +1324,7 @@ export default function Products() {
                                 <div className="relative">
                                   <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
                                   <DialogHeader className="px-6 pt-5 pb-0">
-                                    <DialogTitle className="text-xl font-bold text-gray-900">
+                                    <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
                                       Edit Product
                                     </DialogTitle>
                                   </DialogHeader>
@@ -1363,7 +1333,7 @@ export default function Products() {
                                       {/* Row 1: SKU | Category */}
                                       <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                                             SKU
                                           </label>
                                           <div className="flex gap-2">
@@ -1376,7 +1346,7 @@ export default function Products() {
                                                   sku: e.target.value,
                                                 })
                                               }
-                                              className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                                              className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                                             />
                                             <button
                                               type="button"
@@ -1392,14 +1362,14 @@ export default function Products() {
                                               disabled={
                                                 !editingProduct.name.trim()
                                               }
-                                              className="shrink-0 text-xs px-2 py-1 border border-purple-300 text-purple-600 rounded-md hover:bg-purple-50 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                              className="shrink-0 text-xs px-2 py-1 border border-purple-300 text-purple-600 dark:text-purple-400 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                             >
                                               Generate
                                             </button>
                                           </div>
                                         </div>
                                         <div>
-                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                                             Category
                                           </label>
                                           <select
@@ -1410,7 +1380,7 @@ export default function Products() {
                                                 category: e.target.value,
                                               })
                                             }
-                                            className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer"
+                                            className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer"
                                           >
                                             {categories.map((cat) => (
                                               <option key={cat} value={cat}>
@@ -1423,7 +1393,7 @@ export default function Products() {
 
                                       {/* Row 2: Product Name (full width) */}
                                       <div>
-                                        <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                        <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                                           Product Name{" "}
                                           <span className="text-red-400">
                                             *
@@ -1446,11 +1416,11 @@ export default function Products() {
                                           className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
                                             editErrors.name
                                               ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                                              : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
+                                              : "border-[#ececf2] dark:border-gray-700 focus:border-violet-400 focus:ring-violet-100"
                                           }`}
                                         />
                                         {editErrors.name && (
-                                          <p className="text-xs text-red-500 mt-1">
+                                          <p className="text-xs text-red-500 dark:text-red-400 mt-1">
                                             This field is required
                                           </p>
                                         )}
@@ -1459,7 +1429,7 @@ export default function Products() {
                                       {/* Row 3: Stock | Min Stock */}
                                       <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                                             Stock{" "}
                                             {editVariants.length === 0 && (
                                               <span className="text-red-400">
@@ -1492,8 +1462,8 @@ export default function Products() {
                                             className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
                                               editErrors.stock
                                                 ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                                                : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
-                                            } ${editVariants.length > 0 ? "bg-gray-50 text-gray-400" : ""}`}
+                                                : "border-[#ececf2] dark:border-gray-700 focus:border-violet-400 focus:ring-violet-100"
+                                            } ${editVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
                                           />
                                           {editErrors.stock && (
                                             <p className="text-xs text-red-500 mt-1">
@@ -1502,7 +1472,7 @@ export default function Products() {
                                           )}
                                         </div>
                                         <div>
-                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                                             Min Stock
                                           </label>
                                           <input
@@ -1521,9 +1491,9 @@ export default function Products() {
                                                 ).label,
                                               })
                                             }
-                                            className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                                            className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                                           />
-                                          <p className="text-xs text-gray-400 mt-1">
+                                          <p className="text-xs text-gray-400 dark:text-gray-400 mt-1">
                                             Low stock alert threshold
                                           </p>
                                         </div>
@@ -1532,7 +1502,7 @@ export default function Products() {
                                       {/* Row 4: Unit Cost | Unit Price */}
                                       <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                                             Unit Cost
                                           </label>
                                           <input
@@ -1554,11 +1524,11 @@ export default function Products() {
                                                 ),
                                               })
                                             }
-                                            className="w-full rounded-2xl border border-[#ececf2] px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                                            className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                                           />
                                         </div>
                                         <div>
-                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                                             Unit Price{" "}
                                             {editVariants.length === 0 && (
                                               <span className="text-red-400">
@@ -1594,8 +1564,8 @@ export default function Products() {
                                             className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
                                               editErrors.unitPrice
                                                 ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                                                : "border-[#ececf2] focus:border-violet-400 focus:ring-violet-100"
-                                            } ${editVariants.length > 0 ? "bg-gray-50 text-gray-400" : ""}`}
+                                                : "border-[#ececf2] dark:border-gray-700 focus:border-violet-400 focus:ring-violet-100"
+                                            } ${editVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
                                           />
                                           {editErrors.unitPrice && (
                                             <p className="text-xs text-red-500 mt-1">
@@ -1622,7 +1592,7 @@ export default function Products() {
                                             setEditVariants([]);
                                             setEditErrors({});
                                           }}
-                                          className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
+                                          className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:shadow-[0_0_12px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_0_12px_-2px_rgba(0,0,0,0.2)] cursor-pointer transition-all duration-200"
                                         >
                                           Cancel
                                         </button>
@@ -1640,7 +1610,7 @@ export default function Products() {
                             </Dialog>
                             <button
                               onClick={() => setDeleteConfirm(product)}
-                              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-red-50 to-rose-50 px-4 py-2 text-sm font-medium text-red-500 transition-all hover:shadow-sm hover:-translate-y-0.5"
+                              className="relative z-10 flex items-center gap-1.5 rounded-xl border border-red-200 dark:border-red-800/40 bg-gradient-to-r from-red-50 dark:from-red-900/20 to-rose-50 dark:to-rose-900/20 px-4 py-2 text-sm font-medium text-red-500 dark:text-red-300 transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/30 hover:shadow-[0_0_20px_-2px_rgba(239,68,68,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(239,68,68,0.15)] hover:-translate-y-0.5"
                             >
                               <Trash2 className="h-3.5 w-3.5" /> Delete
                             </button>
@@ -1659,15 +1629,15 @@ export default function Products() {
       {/* ══════════════ Delete Confirm Modal ════════════════════════════ */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm">
             <div className="flex flex-col items-center text-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-red-100 to-rose-100">
                 <AlertTriangle className="h-6 w-6 text-red-500" />
               </div>
-              <h3 className="mt-4 text-lg font-bold text-gray-900">
+              <h3 className="mt-4 text-lg font-bold text-gray-900 dark:text-white">
                 Delete Product
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Are you sure you want to delete{" "}
                 <span className="font-semibold text-gray-800">
                   {deleteConfirm.name}
@@ -1678,7 +1648,7 @@ export default function Products() {
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 rounded-2xl border border-[#ececf2] py-3 font-medium text-gray-700 transition-all hover:bg-gray-50"
+                className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3 font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all duration-200"
               >
                 Cancel
               </button>
@@ -1696,22 +1666,22 @@ export default function Products() {
       {/* ══════════════ Bulk Delete Confirm Modal ═══════════════════════ */}
       {bulkDeleteOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm">
             <div className="flex flex-col items-center text-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-red-100 to-rose-100">
                 <AlertTriangle className="h-6 w-6 text-red-500" />
               </div>
-              <h3 className="mt-4 text-lg font-bold text-gray-900">
+              <h3 className="mt-4 text-lg font-bold text-gray-900 dark:text-white">
                 Delete {selectedIds.length} Products
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 This action cannot be undone.
               </p>
             </div>
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setBulkDeleteOpen(false)}
-                className="flex-1 rounded-2xl border border-[#ececf2] py-3 font-medium text-gray-700 transition-all hover:bg-gray-50"
+                className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3 font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all duration-200"
               >
                 Cancel
               </button>
@@ -1729,7 +1699,7 @@ export default function Products() {
       {/* ══════════════ Import CSV Modal ════════════════════════════════ */}
       {importModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm max-h-[90vh] overflow-y-auto">
             <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
@@ -1737,10 +1707,10 @@ export default function Products() {
                   <Upload className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                     Import Products from CSV
                   </h2>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
                     Upload a CSV file with your product data
                   </p>
                 </div>
@@ -1751,7 +1721,7 @@ export default function Products() {
                   setCsvData([]);
                   setCsvErrors([]);
                 }}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-gray-200"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 dark:text-gray-400 transition-all hover:bg-gray-200"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1760,14 +1730,14 @@ export default function Products() {
             {/* Download Template */}
             <button
               onClick={handleDownloadTemplate}
-              className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700 mb-4"
+              className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700 dark:text-purple-300 mb-4"
             >
               <FileDown className="h-4 w-4" />
               Download CSV Template
             </button>
 
             {/* Format Info */}
-            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] to-white p-4 mb-4 text-sm text-gray-600">
+            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/60 p-4 mb-4 text-sm text-gray-600 dark:text-gray-300">
               <p className="font-semibold text-gray-700 mb-1">
                 Required: name, sku, category, stock, unitPrice
               </p>
@@ -1777,7 +1747,7 @@ export default function Products() {
             </div>
 
             {/* Upload Area */}
-            <label className="block border-2 border-dashed border-gray-200 rounded-lg p-6 text-center cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-colors mb-4">
+            <label className="block border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center cursor-pointer hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors mb-4">
               <input
                 type="file"
                 accept=".csv"
@@ -1786,13 +1756,13 @@ export default function Products() {
               />
               {csvData.length > 0 ? (
                 <div className="flex flex-col items-center gap-1">
-                  <Upload className="h-5 w-5 text-purple-600" />
-                  <span className="text-sm font-medium text-purple-600">
+                  <Upload className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
                     {csvData.length} rows found
                   </span>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-2 text-gray-500">
+                <div className="flex flex-col items-center gap-2 text-gray-500 dark:text-gray-400">
                   <Upload size={24} />
                   <span className="text-sm font-medium">
                     Click to upload CSV file
@@ -1804,11 +1774,11 @@ export default function Products() {
 
             {/* Preview Table */}
             {csvData.length > 0 && (
-              <div className="overflow-hidden rounded-2xl border border-[#ececf2] mb-4">
+              <div className="overflow-hidden rounded-2xl border border-[#ececf2] dark:border-gray-700 mb-4">
                 <div className="overflow-x-auto max-h-64 overflow-y-auto">
                   <table className="w-full border-collapse text-sm">
                     <thead>
-                      <tr className="bg-gradient-to-r from-[#f8f8fc] to-white text-left text-gray-500 sticky top-0">
+                      <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/60 text-left text-gray-500 sticky top-0">
                         <th className="px-4 py-3 font-semibold">Name</th>
                         <th className="px-4 py-3 font-semibold">SKU</th>
                         <th className="px-4 py-3 font-semibold">Category</th>
@@ -1826,32 +1796,32 @@ export default function Products() {
                         return (
                           <tr
                             key={idx}
-                            className={`border-t border-[#ececf2] ${
+                            className={`border-t border-[#ececf2] dark:border-gray-700/60 ${
                               hasError ? "bg-red-50" : ""
                             }`}
                           >
-                            <td className="px-4 py-3 font-medium text-gray-900">
+                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
                               {row.name || "—"}
                             </td>
                             <td className="px-4 py-3 text-gray-600 font-mono">
                               {row.sku || "—"}
                             </td>
-                            <td className="px-4 py-3 text-gray-600">
+                            <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
                               {row.category || "—"}
                             </td>
-                            <td className="px-4 py-3 text-gray-900">
+                            <td className="px-4 py-3 text-gray-900 dark:text-white">
                               {row.stock || "—"}
                             </td>
-                            <td className="px-4 py-3 text-gray-900">
+                            <td className="px-4 py-3 text-gray-900 dark:text-white">
                               {row.unitPrice || "—"}
                             </td>
                             <td className="px-4 py-3">
                               {hasError ? (
-                                <span className="text-xs text-red-600 font-medium">
+                                <span className="text-xs text-red-600 dark:text-red-400 font-medium">
                                   Invalid
                                 </span>
                               ) : (
-                                <span className="text-xs text-green-600 font-medium">
+                                <span className="text-xs text-green-600 dark:text-green-400 font-medium">
                                   ✓ Valid
                                 </span>
                               )}
@@ -1860,10 +1830,10 @@ export default function Products() {
                         );
                       })}
                       {csvData.length > 5 && (
-                        <tr className="border-t border-[#ececf2]">
+                        <tr className="border-t border-[#ececf2] dark:border-gray-700/60">
                           <td
                             colSpan={6}
-                            className="px-4 py-3 text-center text-sm text-gray-400"
+                            className="px-4 py-3 text-center text-sm text-gray-400 dark:text-gray-400"
                           >
                             ...and {csvData.length - 5} more rows
                           </td>
@@ -1878,12 +1848,15 @@ export default function Products() {
             {/* Error Summary */}
             {csvErrors.length > 0 && (
               <div className="rounded-2xl bg-red-50 border border-red-200 p-3 mb-4">
-                <p className="text-xs font-semibold text-red-700 mb-1">
+                <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">
                   {csvErrors.length} row{csvErrors.length !== 1 ? "s" : ""} with
                   errors
                 </p>
                 {csvErrors.slice(0, 3).map((err, idx) => (
-                  <p key={idx} className="text-xs text-red-600">
+                  <p
+                    key={idx}
+                    className="text-xs text-red-600 dark:text-red-400"
+                  >
                     {err.message}
                   </p>
                 ))}
@@ -1903,7 +1876,7 @@ export default function Products() {
                   setCsvData([]);
                   setCsvErrors([]);
                 }}
-                className="flex-1 rounded-2xl border border-[#ececf2] py-3 font-medium text-gray-700 transition-all hover:bg-gray-50"
+                className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3 font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all duration-200"
               >
                 Cancel
               </button>
@@ -1926,17 +1899,17 @@ export default function Products() {
       {/* ══════════════ Manage Categories Modal ════════════════════════ */}
       {manageCatOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm">
             <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
             <div className="flex items-center gap-3 mb-6">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
                 <Settings2 className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                   Manage Categories
                 </h2>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
                   Add or remove product categories
                 </p>
               </div>
@@ -1952,7 +1925,7 @@ export default function Products() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleAddCategory();
                 }}
-                className="flex-1 rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
               />
               <button
                 onClick={handleAddCategory}
@@ -1965,21 +1938,21 @@ export default function Products() {
             {/* Category List */}
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {categories.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-4">
+                <p className="text-sm text-gray-400 dark:text-gray-400 text-center py-4">
                   No categories yet
                 </p>
               ) : (
                 categories.map((cat) => (
                   <div
                     key={cat}
-                    className="flex items-center justify-between rounded-2xl border border-[#ececf2] px-4 py-3 transition-all hover:bg-violet-50/30"
+                    className="flex items-center justify-between rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 transition-all hover:bg-violet-50 dark:hover:bg-gray-700/50"
                   >
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                       {cat}
                     </span>
                     <button
                       onClick={() => handleDeleteCategory(cat)}
-                      className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-red-500 transition-all hover:bg-red-50"
+                      className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-red-500 transition-all hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       <Trash2 className="h-3 w-3" />
                       Delete
@@ -1992,7 +1965,7 @@ export default function Products() {
             <div className="mt-6">
               <button
                 onClick={() => setManageCatOpen(false)}
-                className="w-full rounded-2xl border border-[#ececf2] py-3 font-medium text-gray-700 transition-all hover:bg-gray-50"
+                className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3 font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all duration-200"
               >
                 Close
               </button>

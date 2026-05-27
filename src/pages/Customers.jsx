@@ -258,9 +258,9 @@ export default function Customers() {
 
   const getStatusBadge = (status) => {
     const styles = {
-      Active: "bg-green-100 text-green-700",
-      Inactive: "bg-gray-100 text-gray-600",
-      New: "bg-blue-100 text-blue-700",
+      Active: "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300",
+      Inactive: "bg-gray-500/15 border border-gray-500/30 text-gray-400",
+      New: "bg-violet-500/15 border border-violet-500/30 text-violet-300",
     };
 
     return (
@@ -274,7 +274,7 @@ export default function Customers() {
 
   // ─── Render ─────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm">
+    <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm dark:bg-gray-800 dark:shadow-none">
       {/* ══════════════ Page Header ═══════════════════════════════════════ */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -282,10 +282,10 @@ export default function Customers() {
             <Users className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
               Customers
             </h1>
-            <p className="text-sm text-gray-400 mt-0.5">
+            <p className="text-sm text-gray-400 dark:text-gray-400 mt-0.5">
               Manage your customers
             </p>
           </div>
@@ -293,7 +293,7 @@ export default function Customers() {
 
         <button
           onClick={() => exportCustomersPDF(customers)}
-          className="flex items-center gap-2 rounded-2xl border border-violet-200 px-4 py-2.5 font-semibold text-violet-600 transition-all hover:bg-violet-50 text-sm"
+          className="relative z-10 flex items-center gap-2 rounded-2xl border border-violet-200 dark:border-violet-800/40 px-4 py-2.5 text-sm font-semibold text-violet-600 dark:text-violet-300 transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 dark:hover:bg-violet-900/30 text-sm"
         >
           <Download className="h-4 w-4" />
           Export PDF
@@ -303,67 +303,67 @@ export default function Customers() {
       {/* ══════════════ Summary Cards ══════════════════════════════════════ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Customers */}
-        <div className="rounded-2xl border border-[#ececf2] p-6 transition-all hover:border-violet-200 hover:shadow-md">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Total Customers
               </p>
-              <p className="mt-1 text-3xl font-bold text-gray-900">
+              <p className="mt-1 text-3xl font-bold text-gray-900 dark:text-white">
                 {customerStats.totalCustomers}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100">
-              <Users className="h-6 w-6 text-blue-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/30">
+              <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </div>
 
         {/* Active Customers */}
-        <div className="rounded-2xl border border-[#ececf2] p-6 transition-all hover:border-violet-200 hover:shadow-md">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Active Customers
               </p>
-              <p className="mt-1 text-3xl font-bold text-gray-900">
+              <p className="mt-1 text-3xl font-bold text-gray-900 dark:text-white">
                 {customerStats.activeCustomers}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100">
-              <UserCheck className="h-6 w-6 text-green-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 dark:bg-green-900/30 border border-green-200/50 dark:border-green-800/30">
+              <UserCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
           </div>
         </div>
 
         {/* Total Revenue */}
-        <div className="rounded-2xl border border-[#ececf2] p-6 transition-all hover:border-violet-200 hover:shadow-md">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Total Revenue</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Revenue</p>
               <p className="mt-1 text-3xl font-bold text-violet-600">
                 {formatCurrency(customerStats.totalRevenue)}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100">
-              <DollarSign className="h-6 w-6 text-purple-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-900/30 border border-purple-200/50 dark:border-purple-800/30">
+              <DollarSign className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
         </div>
 
         {/* Avg Order Value */}
-        <div className="rounded-2xl border border-[#ececf2] p-6 transition-all hover:border-violet-200 hover:shadow-md">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Avg Order Value
               </p>
-              <p className="mt-1 text-3xl font-bold text-orange-600">
+              <p className="mt-1 text-3xl font-bold text-orange-600 dark:text-orange-400">
                 {formatCurrency(customerStats.avgOrderValue)}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100">
-              <TrendingUp className="h-6 w-6 text-orange-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-900/30 border border-orange-200/50 dark:border-orange-800/30 dark:bg-orange-900/30 border border-orange-200/50 dark:border-orange-800/30">
+              <TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
         </div>
@@ -373,7 +373,7 @@ export default function Customers() {
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="relative w-full sm:w-96">
           <Search
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-400"
             size={18}
           />
           <input
@@ -381,7 +381,7 @@ export default function Customers() {
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-[#ececf2] py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+            className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:text-white dark:placeholder-gray-400"
           />
         </div>
 
@@ -389,7 +389,7 @@ export default function Customers() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer"
+            className="rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer dark:bg-gray-700 dark:text-white"
           >
             <option value="All">All Status</option>
             <option value="Active">Active</option>
@@ -397,17 +397,17 @@ export default function Customers() {
             <option value="New">New</option>
           </select>
 
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-400 dark:text-gray-400">
             Showing {filteredCustomers.length} of {customers.length} customers
           </p>
         </div>
       </div>
 
       {/* ══════════════ Customer Table ═════════════════════════════════════ */}
-      <div className="overflow-hidden rounded-2xl border border-[#ececf2]">
+      <div className="overflow-hidden rounded-2xl border border-[#ececf2] dark:border-gray-700">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gradient-to-r from-[#f8f8fc] to-white text-left text-sm text-gray-500">
+            <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80 text-left text-sm text-gray-500 dark:text-gray-400">
               <th className="px-6 py-4 font-semibold">Customer</th>
               <th className="px-6 py-4 font-semibold">Contact</th>
               <th className="px-6 py-4 font-semibold text-center">
@@ -426,10 +426,10 @@ export default function Customers() {
               <tr>
                 <td colSpan="7" className="px-6 py-12 text-center">
                   <div className="flex flex-col items-center justify-center">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
-                      <Users className="h-7 w-7 text-gray-400" />
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50">
+                      <Users className="h-7 w-7 text-gray-400 dark:text-gray-400" />
                     </div>
-                    <p className="mt-3 text-sm font-medium text-gray-500">
+                    <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                       No customers found
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
@@ -448,7 +448,7 @@ export default function Customers() {
                 return (
                   <tr
                     key={customer.id}
-                    className="border-t border-[#ececf2] transition-colors hover:bg-violet-50/30"
+                    className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)]"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -456,14 +456,14 @@ export default function Customers() {
                           {getInitials(customer.fullName)}
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">
+                          <p className="font-semibold text-gray-900 dark:text-white">
                             {customer.fullName}
                           </p>
-                          <p className="text-xs text-gray-400 mt-0.5">
+                          <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
                             {customer.email}
                           </p>
                           {metrics.lastTransaction && (
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-gray-400 dark:text-gray-400">
                               Last invoice: #{metrics.lastTransaction.id}
                             </p>
                           )}
@@ -471,12 +471,12 @@ export default function Customers() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-gray-700">
+                      <p className="text-sm text-gray-700 dark:text-gray-200">
                         {customer.phone || "-"}
                       </p>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className="inline-flex items-center justify-center rounded-lg bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
+                      <span className="inline-flex items-center justify-center rounded-lg bg-gray-500/10 dark:bg-gray-500/15 border border-gray-400/20 dark:border-gray-400/15 px-3 py-1 text-sm font-semibold text-gray-500 dark:text-gray-400">
                         {metrics.totalOrders}
                       </span>
                     </td>
@@ -486,7 +486,7 @@ export default function Customers() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-gray-700">
+                      <p className="text-sm text-gray-700 dark:text-gray-200">
                         {metrics.lastPurchase
                           ? formatDate(metrics.lastPurchase.toISOString())
                           : "-"}
@@ -499,14 +499,14 @@ export default function Customers() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => setSelectedCustomer(customer)}
-                          className="flex items-center gap-1 rounded-xl border border-violet-200 px-3 py-1.5 text-xs font-medium text-violet-600 transition-all hover:bg-violet-50 hover:border-violet-300"
+                          className="flex items-center gap-1 rounded-xl border border-violet-200 px-3 py-1.5 text-xs font-medium text-violet-600 transition-all hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:border-violet-300"
                         >
                           <Eye className="h-3.5 w-3.5" />
                           View
                         </button>
                         <button
                           onClick={() => handleDeleteCustomer(customer.id)}
-                          className="flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-500 transition-all hover:bg-red-50 hover:border-red-300"
+                          className="flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-500 transition-all hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                           Delete
@@ -524,17 +524,17 @@ export default function Customers() {
       {/* ══════════════ Add Customer Modal ═════════════════════════════════ */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
                   <Users className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                     Add New Customer
                   </h2>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
                     Fill in the customer details
                   </p>
                 </div>
@@ -542,7 +542,7 @@ export default function Customers() {
 
               <button
                 onClick={() => setShowAddModal(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-gray-200"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 dark:text-gray-400 transition-all hover:bg-gray-200"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -550,7 +550,7 @@ export default function Customers() {
 
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 block">
                   Full Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -560,12 +560,12 @@ export default function Customers() {
                     setNewCustomer({ ...newCustomer, fullName: e.target.value })
                   }
                   placeholder="Enter full name"
-                  className="w-full rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 block">
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -575,12 +575,12 @@ export default function Customers() {
                     setNewCustomer({ ...newCustomer, email: e.target.value })
                   }
                   placeholder="Enter email address"
-                  className="w-full rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 block">
                   Phone
                 </label>
                 <input
@@ -590,12 +590,12 @@ export default function Customers() {
                     setNewCustomer({ ...newCustomer, phone: e.target.value })
                   }
                   placeholder="Enter phone number"
-                  className="w-full rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 block">
                   Address
                 </label>
                 <textarea
@@ -605,7 +605,7 @@ export default function Customers() {
                   }
                   placeholder="Enter address"
                   rows={3}
-                  className="w-full rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 resize-none"
                 />
               </div>
             </div>
@@ -613,7 +613,7 @@ export default function Customers() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="flex-1 rounded-2xl border border-[#ececf2] py-3.5 font-medium text-gray-700 transition-all hover:bg-gray-50"
+                className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3.5 font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all duration-200"
               >
                 Cancel
               </button>
@@ -631,17 +631,17 @@ export default function Customers() {
       {/* ══════════════ View Customer Modal ════════════════════════════════ */}
       {selectedCustomer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-lg font-bold">
                   {getInitials(selectedCustomer.fullName)}
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                     {selectedCustomer.fullName}
                   </h2>
-                  <p className="text-sm text-gray-400 mt-0.5">
+                  <p className="text-sm text-gray-400 dark:text-gray-400 mt-0.5">
                     Customer Details
                   </p>
                 </div>
@@ -649,27 +649,27 @@ export default function Customers() {
 
               <button
                 onClick={() => setSelectedCustomer(null)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-gray-200"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 dark:text-gray-400 transition-all hover:bg-gray-200"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Contact Info */}
-            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] to-white p-5 mb-6 space-y-3">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/60 p-5 mb-6 space-y-3">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
                 Contact Information
               </h3>
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-violet-500" />
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-gray-700 dark:text-gray-200">
                   {selectedCustomer.email}
                 </span>
               </div>
               {selectedCustomer.phone && (
                 <div className="flex items-center gap-3">
                   <Phone className="h-4 w-4 text-violet-500" />
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-gray-700 dark:text-gray-200">
                     {selectedCustomer.phone}
                   </span>
                 </div>
@@ -677,7 +677,7 @@ export default function Customers() {
               {selectedCustomer.address && (
                 <div className="flex items-start gap-3">
                   <MapPin className="h-4 w-4 text-violet-500 mt-0.5" />
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-gray-700 dark:text-gray-200">
                     {selectedCustomer.address}
                   </span>
                 </div>
@@ -690,21 +690,21 @@ export default function Customers() {
 
               return (
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="rounded-2xl border border-[#ececf2] p-4 text-center">
-                    <p className="text-xs text-gray-500 mb-1">Total Orders</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                  <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-4 text-center">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Orders</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
                       {metrics.totalOrders}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-[#ececf2] p-4 text-center">
+                  <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-4 text-center">
                     <p className="text-xs text-gray-500 mb-1">Total Spent</p>
-                    <p className="text-2xl font-bold text-violet-600">
+                    <p className="text-2xl font-bold text-violet-600 dark:text-violet-400">
                       {formatCurrency(metrics.totalSpent)}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-[#ececf2] p-4 text-center">
-                    <p className="text-xs text-gray-500 mb-1">Avg Order</p>
-                    <p className="text-2xl font-bold text-orange-600">
+                  <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-4 text-center">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Avg Order</p>
+                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                       {formatCurrency(metrics.avgOrderValue)}
                     </p>
                   </div>
@@ -726,14 +726,14 @@ export default function Customers() {
               if (customerTransactions.length > 0) {
                 return (
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
                       Recent Transactions
                     </h3>
                     <div className="space-y-2">
                       {customerTransactions.map((transaction) => (
                         <div
                           key={transaction.id}
-                          className="flex items-center justify-between rounded-2xl border border-[#ececf2] p-4 transition-all hover:border-violet-200"
+                          className="flex items-center justify-between rounded-2xl border border-[#ececf2] dark:border-gray-700 p-4 transition-all hover:border-violet-200"
                         >
                           <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200">
@@ -742,11 +742,11 @@ export default function Customers() {
                             <div>
                               <button
                                 onClick={() => handleViewInvoice(transaction)}
-                                className="text-purple-600 hover:underline cursor-pointer font-medium text-sm text-left"
+                                className="text-purple-600 dark:text-purple-400 hover:underline cursor-pointer font-medium text-sm text-left"
                               >
                                 #{transaction.id}
                               </button>
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-gray-400 dark:text-gray-400">
                                 {transaction.date}
                               </p>
                             </div>
@@ -755,7 +755,7 @@ export default function Customers() {
                             <p className="font-bold text-violet-600">
                               {formatCurrency(transaction.total)}
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-gray-400 dark:text-gray-400">
                               {transaction.items?.length || 0} items
                             </p>
                           </div>
@@ -768,10 +768,10 @@ export default function Customers() {
 
               return (
                 <div className="text-center py-8">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 mx-auto">
-                    <ShoppingBag className="h-6 w-6 text-gray-400" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50 mx-auto">
+                    <ShoppingBag className="h-6 w-6 text-gray-400 dark:text-gray-400" />
                   </div>
-                  <p className="mt-3 text-sm font-medium text-gray-500">
+                  <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                     No transactions yet
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
@@ -787,15 +787,15 @@ export default function Customers() {
       {/* ══════════════ Delete Confirmation Modal ═══════════════════════════ */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm">
             <div className="flex flex-col items-center text-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-red-100 to-rose-100">
                 <AlertTriangle className="h-6 w-6 text-red-500" />
               </div>
-              <h3 className="mt-4 text-lg font-bold text-gray-900">
+              <h3 className="mt-4 text-lg font-bold text-gray-900 dark:text-white">
                 Delete Customer
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Are you sure you want to delete this customer? This action
                 cannot be undone.
               </p>
@@ -803,7 +803,7 @@ export default function Customers() {
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 rounded-lg border border-[#ececf2] py-3 font-medium text-gray-700 transition-all hover:bg-gray-50"
+                className="flex-1 rounded-lg border border-[#ececf2] dark:border-gray-700 py-3 font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all duration-200"
               >
                 Cancel
               </button>
@@ -821,14 +821,14 @@ export default function Customers() {
       {/* ══════════════ Invoice Modal (when clicked from customer detail) ═══ */}
       {selectedTransactionForInvoice && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-2xl rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
                   <Receipt className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Invoice</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Invoice</h2>
                   <p className="text-xs text-gray-400 mt-0.5">
                     #{selectedTransactionForInvoice.id}
                   </p>
@@ -843,20 +843,20 @@ export default function Customers() {
               </button>
             </div>
 
-            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] to-white p-4 mb-4 flex items-center justify-between">
+            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/60 p-4 mb-4 flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400">Transaction Date</p>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
                   {selectedTransactionForInvoice.date}
                 </p>
               </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1.5 text-xs font-medium text-green-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1.5 text-xs font-medium text-emerald-300">
                 <CheckCircle className="h-3 w-3" />
                 Completed
               </span>
             </div>
 
-            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] to-white p-4 mb-4">
+            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/60 p-4 mb-4">
               <div className="flex justify-between items-center">
                 <span className="text-xs text-gray-400">Customer</span>
                 <span className="text-sm font-medium">
@@ -867,16 +867,16 @@ export default function Customers() {
             </div>
 
             <div className="space-y-2.5 mb-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400">
                 Items
               </p>
               {selectedTransactionForInvoice.items.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-2xl border border-[#ececf2] p-4 transition-all hover:border-violet-200"
+                  className="flex items-center justify-between rounded-2xl border border-[#ececf2] dark:border-gray-700 p-4 transition-all hover:border-violet-200"
                 >
                   <div>
-                    <p className="font-semibold text-gray-900">{item.name}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">{item.name}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       Rp {item.unitPrice.toLocaleString()} x {item.qty}
                     </p>
@@ -889,10 +889,10 @@ export default function Customers() {
               ))}
             </div>
 
-            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] to-white p-4 mb-5 space-y-2.5">
+            <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/60 p-4 mb-5 space-y-2.5">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500">Payment Method</p>
-                <p className="font-semibold text-gray-900 flex items-center gap-2">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Payment Method</p>
+                <p className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-violet-500" />
                   {selectedTransactionForInvoice.paymentMethod || "Cash"}
                 </p>
@@ -900,17 +900,17 @@ export default function Customers() {
               {selectedTransactionForInvoice.paidAmount && (
                 <>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-500">Paid Amount</p>
-                    <p className="font-semibold text-gray-900">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Paid Amount</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">
                       Rp{" "}
                       {selectedTransactionForInvoice.paidAmount.toLocaleString()}
                     </p>
                   </div>
                   <div className="flex items-center justify-between bg-green-50 rounded-xl px-3 py-2">
-                    <p className="text-sm font-semibold text-green-700">
+                    <p className="text-sm font-semibold text-green-700 dark:text-green-300">
                       Change
                     </p>
-                    <p className="font-bold text-green-600">
+                    <p className="font-bold text-green-600 dark:text-green-400">
                       Rp{" "}
                       {(
                         selectedTransactionForInvoice.change || 0
@@ -919,8 +919,8 @@ export default function Customers() {
                   </div>
                 </>
               )}
-              <div className="border-t border-[#ececf2] pt-2.5 flex items-center justify-between">
-                <p className="text-base font-bold text-gray-900">Total</p>
+              <div className="border-t border-[#ececf2] dark:border-gray-700/60 pt-2.5 flex items-center justify-between">
+                <p className="text-base font-bold text-gray-900 dark:text-white">Total</p>
                 <p className="text-2xl font-bold text-violet-600">
                   Rp {selectedTransactionForInvoice.total.toLocaleString()}
                 </p>

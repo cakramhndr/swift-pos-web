@@ -74,25 +74,25 @@ const typeBadge = (type) => {
   switch (type) {
     case "sale":
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-600 ring-1 ring-red-200">
+        <span className="inline-flex items-center gap-1 rounded-full bg-red-500/15 border border-red-500/30 px-2.5 py-0.5 text-xs font-medium text-red-300">
           Penjualan
         </span>
       );
     case "restock":
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-green-200">
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
           Restock
         </span>
       );
     case "adjustment":
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-yellow-50 px-2.5 py-0.5 text-xs font-medium text-yellow-700 ring-1 ring-yellow-200">
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 text-xs font-medium text-amber-300">
           Adjustment
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-gray-200">
+        <span className="inline-flex items-center gap-1 rounded-full bg-gray-500/15 border border-gray-500/30 px-2.5 py-0.5 text-xs font-medium text-gray-400">
           {type}
         </span>
       );
@@ -104,7 +104,7 @@ const qtyDisplay = (qty) => {
   const num = Number(qty || 0);
   if (num > 0) {
     return (
-      <span className="inline-flex items-center gap-0.5 font-semibold text-green-600">
+      <span className="inline-flex items-center gap-0.5 font-semibold text-green-600 dark:text-green-400">
         <Plus className="h-3 w-3" />
         {num}
       </span>
@@ -112,13 +112,13 @@ const qtyDisplay = (qty) => {
   }
   if (num < 0) {
     return (
-      <span className="inline-flex items-center gap-0.5 font-semibold text-red-600">
+      <span className="inline-flex items-center gap-0.5 font-semibold text-red-600 dark:text-red-400">
         <Minus className="h-3 w-3" />
         {Math.abs(num)}
       </span>
     );
   }
-  return <span className="text-gray-400">0</span>;
+  return <span className="text-gray-400 dark:text-gray-400">0</span>;
 };
 
 // ─── Time filter helper ──────────────────────────────────────────────────
@@ -444,7 +444,7 @@ export default function InventoryLogs() {
   }, [expandedSupplier, restockData]);
 
   return (
-    <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm">
+    <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm dark:bg-gray-800 dark:shadow-none">
       {/* ══════════════ Page Header ═══════════════════════════════════════ */}
       <div className="flex items-center justify-between">
         <div>
@@ -453,10 +453,10 @@ export default function InventoryLogs() {
               <ClipboardList className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                 Inventory Logs
               </h1>
-              <p className="text-sm text-gray-400 mt-0.5">
+              <p className="text-sm text-gray-400 dark:text-gray-400 mt-0.5">
                 Track stock movements and restock history
               </p>
             </div>
@@ -466,14 +466,16 @@ export default function InventoryLogs() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => exportInventoryLogsPDF(movementData, restockData)}
-            className="flex items-center gap-2 rounded-2xl border border-violet-200 px-4 py-2.5 font-semibold text-violet-600 transition-all hover:bg-violet-50 text-sm"
+            className="relative z-10 flex items-center gap-2 rounded-2xl border border-violet-200 dark:border-violet-800/40 px-4 py-2.5 text-sm font-semibold text-violet-600 dark:text-violet-300 transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 dark:hover:bg-violet-900/30 text-sm"
           >
             <Download className="h-4 w-4" />
             Export PDF
           </button>
-          <div className="flex items-center gap-2 rounded-2xl bg-[#f8f8fc] px-4 py-2.5">
+          <div className="flex items-center gap-2 rounded-2xl bg-[#f8f8fc] dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50 px-4 py-2.5">
             <div className="h-2 w-2 rounded-full bg-green-400" />
-            <span className="text-sm font-medium text-gray-600">Live</span>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+              Live
+            </span>
           </div>
         </div>
       </div>
@@ -481,48 +483,48 @@ export default function InventoryLogs() {
       {/* ══════════════ Stats Row ════════════════════════════════════════ */}
       {activeTab !== "suppliers" && (
         <div className="grid gap-5 md:grid-cols-3">
-          <div className="rounded-2xl border border-[#ececf2] bg-white p-5 shadow-sm transition-all hover:shadow-md">
+          <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm transition-all duration-200 hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.2)]">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200">
-                <RotateCcw className="h-5 w-5 text-violet-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-900/30 border border-violet-200/50 dark:border-violet-800/30 shrink-0">
+                <RotateCcw className="h-5 w-5 text-violet-600 dark:text-violet-400" />
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <p className="text-xs font-medium text-gray-400 dark:text-gray-400 uppercase tracking-wider">
                   Total Pergerakan
                 </p>
-                <p className="text-2xl font-bold text-gray-900 mt-0.5">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-0.5">
                   {totalMovements}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#ececf2] bg-white p-5 shadow-sm transition-all hover:shadow-md">
+          <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm transition-all duration-200 hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.2)]">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-100 to-emerald-200">
-                <TrendingUp className="h-5 w-5 text-green-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200/50 dark:border-emerald-800/30 shrink-0">
+                <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <p className="text-xs font-medium text-gray-400 dark:text-gray-400 uppercase tracking-wider">
                   Stok Masuk (Bulan Ini)
                 </p>
-                <p className="text-2xl font-bold text-green-600 mt-0.5">
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                   +{stockInMonth}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#ececf2] bg-white p-5 shadow-sm transition-all hover:shadow-md">
+          <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm transition-all duration-200 hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.2)]">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-100 to-rose-200">
-                <TrendingDown className="h-5 w-5 text-red-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-900/30 border border-red-200/50 dark:border-red-800/30 shrink-0">
+                <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <p className="text-xs font-medium text-gray-400 dark:text-gray-400 uppercase tracking-wider">
                   Stok Keluar (Bulan Ini)
                 </p>
-                <p className="text-2xl font-bold text-red-600 mt-0.5">
+                <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-0.5">
                   -{stockOutMonth}
                 </p>
               </div>
@@ -534,54 +536,54 @@ export default function InventoryLogs() {
       {/* ══════════════ Supplier Stats Row ═══════════════════════════════ */}
       {activeTab === "suppliers" && (
         <div className="grid gap-5 md:grid-cols-3">
-          <div className="rounded-2xl border border-[#ececf2] bg-white p-5 shadow-sm transition-all hover:shadow-md">
+          <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm transition-all duration-200 hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.2)]">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-indigo-200">
-                <Building2 className="h-5 w-5 text-blue-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/30 shrink-0">
+                <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <p className="text-xs font-medium text-gray-400 dark:text-gray-400 uppercase tracking-wider">
                   Total Supplier
                 </p>
-                <p className="text-2xl font-bold text-gray-900 mt-0.5">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-0.5">
                   {filteredSuppliers.length}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#ececf2] bg-white p-5 shadow-sm transition-all hover:shadow-md">
+          <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm transition-all duration-200 hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.2)]">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-violet-200">
-                <DollarSign className="h-5 w-5 text-purple-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-900/30 border border-purple-200/50 dark:border-purple-800/30 shrink-0">
+                <DollarSign className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <p className="text-xs font-medium text-gray-400 dark:text-gray-400 uppercase tracking-wider">
                   Total Pembelian
                 </p>
-                <p className="text-2xl font-bold text-purple-600 mt-0.5">
+                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-0.5">
                   {formatRp(totalSupplierPembelian)}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#ececf2] bg-white p-5 shadow-sm transition-all hover:shadow-md">
+          <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm transition-all duration-200 hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.2)]">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-100 to-orange-200">
-                <TrendingUp className="h-5 w-5 text-amber-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-900/30 border border-amber-200/50 dark:border-amber-800/30 shrink-0">
+                <TrendingUp className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <p className="text-xs font-medium text-gray-400 dark:text-gray-400 uppercase tracking-wider">
                   Supplier Paling Aktif
                 </p>
-                <p className="text-lg font-bold text-gray-900 mt-0.5 truncate">
+                <p className="text-lg font-bold text-gray-900 dark:text-white mt-0.5 truncate">
                   {mostActiveSupplier
                     ? mostActiveSupplier.name
                     : "Belum ada data"}
                 </p>
                 {mostActiveSupplier && (
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
                     {mostActiveSupplier.count} transaksi
                   </p>
                 )}
@@ -592,33 +594,33 @@ export default function InventoryLogs() {
       )}
 
       {/* ══════════════ Tab Bar ══════════════════════════════════════════ */}
-      <div className="flex items-center gap-1 rounded-2xl bg-[#f8f8fc] p-1.5">
+      <div className="flex items-center gap-1 rounded-2xl bg-[#f8f8fc] dark:bg-gray-800/60 border border-gray-200/50 dark:border-gray-700/50 p-1.5">
         <button
           onClick={() => setActiveTab("movement")}
-          className={`flex-1 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all ${
+          className={`flex-1 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
             activeTab === "movement"
-              ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
+              ? "bg-violet-600 dark:bg-violet-600 text-white dark:text-white shadow-lg shadow-violet-500/20"
+              : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white"
           }`}
         >
           Stock Movement
         </button>
         <button
           onClick={() => setActiveTab("restock")}
-          className={`flex-1 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all ${
+          className={`flex-1 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
             activeTab === "restock"
-              ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
+              ? "bg-violet-600 dark:bg-violet-600 text-white dark:text-white shadow-lg shadow-violet-500/20"
+              : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white"
           }`}
         >
           Restock Logs
         </button>
         <button
           onClick={() => setActiveTab("suppliers")}
-          className={`flex-1 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all ${
+          className={`flex-1 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
             activeTab === "suppliers"
-              ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
+              ? "bg-violet-600 dark:bg-violet-600 text-white dark:text-white shadow-lg shadow-violet-500/20"
+              : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white"
           }`}
         >
           Suppliers
@@ -627,13 +629,13 @@ export default function InventoryLogs() {
 
       {/* ══════════════ TAB: Stock Movement ═════════════════════════════ */}
       {activeTab === "movement" && (
-        <div className="overflow-hidden rounded-3xl border border-[#ececf2] bg-white shadow-sm">
+        <div className="overflow-hidden rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
           <div className="relative p-6">
             <div className="flex flex-wrap items-center gap-3 mb-5">
               <div className="relative flex-1 min-w-[200px]">
                 <Search
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-400"
                   size={15}
                 />
                 <input
@@ -641,14 +643,14 @@ export default function InventoryLogs() {
                   placeholder="Cari produk..."
                   value={movementSearch}
                   onChange={(e) => handleMovementSearch(e.target.value)}
-                  className="w-full rounded-2xl border border-[#ececf2] py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none dark:text-white dark:placeholder-gray-400 transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                 />
               </div>
 
               <select
                 value={movementTypeFilter}
                 onChange={(e) => handleMovementTypeFilter(e.target.value)}
-                className="rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer bg-white"
+                className="rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm outline-none transition-all duration-200 focus:border-violet-400 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer dark:text-white"
               >
                 <option value="all">Semua Tipe</option>
                 <option value="sale">Penjualan</option>
@@ -659,7 +661,7 @@ export default function InventoryLogs() {
               <select
                 value={movementTimeFilter}
                 onChange={(e) => handleMovementTimeFilter(e.target.value)}
-                className="rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer bg-white"
+                className="rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm outline-none transition-all duration-200 focus:border-violet-400 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer dark:text-white"
               >
                 <option value="all">Semua Waktu</option>
                 <option value="7">7 Hari Terakhir</option>
@@ -670,10 +672,10 @@ export default function InventoryLogs() {
 
             {paginatedMovements.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
-                  <ClipboardList className="h-7 w-7 text-gray-400" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50">
+                  <ClipboardList className="h-7 w-7 text-gray-400 dark:text-gray-400" />
                 </div>
-                <p className="mt-4 text-sm font-medium text-gray-500">
+                <p className="mt-4 text-sm font-medium text-gray-500 dark:text-gray-400">
                   {movementData.length === 0
                     ? "Belum ada pergerakan stok"
                     : "Tidak ada hasil untuk filter saat ini"}
@@ -688,23 +690,23 @@ export default function InventoryLogs() {
               <>
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-[#f8f8fc] to-white">
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5">
+                    <TableRow className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80">
+                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-[0.08em] py-3.5">
                         Waktu
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5">
+                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-[0.08em] py-3.5">
                         Produk
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5">
                         Tipe
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5 text-right">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5 text-right">
                         Qty
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5 text-right">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5 text-right">
                         Stok Akhir
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5">
                         Ref
                       </TableHead>
                     </TableRow>
@@ -713,15 +715,15 @@ export default function InventoryLogs() {
                     {paginatedMovements.map((movement) => (
                       <TableRow
                         key={movement.id}
-                        className="hover:bg-violet-50/30 transition-colors"
+                        className="hover:bg-violet-50 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)] transition-colors"
                       >
                         <TableCell className="py-3.5">
-                          <p className="text-sm text-gray-700 whitespace-nowrap">
+                          <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap">
                             {formatDate(movement.createdAt)}
                           </p>
                         </TableCell>
                         <TableCell className="py-3.5">
-                          <p className="font-semibold text-sm text-gray-900">
+                          <p className="font-semibold text-sm text-gray-900 dark:text-white">
                             {movement.productName}
                           </p>
                           {movement.variantName && (
@@ -737,13 +739,13 @@ export default function InventoryLogs() {
                           {qtyDisplay(movement.qty)}
                         </TableCell>
                         <TableCell className="py-3.5 text-right">
-                          <span className="text-sm font-semibold text-gray-900">
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white">
                             {Number(movement.stockAfter || 0).toLocaleString()}
                           </span>
                         </TableCell>
                         <TableCell className="py-3.5">
                           {movement.refId ? (
-                            <span className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded-lg">
+                            <span className="text-xs font-mono text-gray-500 dark:text-gray-400 bg-gray-500/10 dark:bg-gray-500/15 border border-gray-400/20 dark:border-gray-400/15 px-2 py-1 rounded-lg">
                               #{movement.refId}
                             </span>
                           ) : movement.note ? (
@@ -751,7 +753,9 @@ export default function InventoryLogs() {
                               {movement.note}
                             </span>
                           ) : (
-                            <span className="text-xs text-gray-300">-</span>
+                            <span className="text-xs text-gray-300 dark:text-gray-500 dark:text-gray-400">
+                              -
+                            </span>
                           )}
                         </TableCell>
                       </TableRow>
@@ -759,8 +763,8 @@ export default function InventoryLogs() {
                   </TableBody>
                 </Table>
 
-                <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#ececf2]">
-                  <p className="text-sm text-gray-400">
+                <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#ececf2] dark:border-gray-700/60">
+                  <p className="text-sm text-gray-400 dark:text-gray-400">
                     Menampilkan{" "}
                     {Math.min(
                       (movementPage - 1) * ITEMS_PER_PAGE + 1,
@@ -780,7 +784,7 @@ export default function InventoryLogs() {
                         setMovementPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={movementPage <= 1}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] text-sm font-medium text-gray-600 transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
@@ -794,7 +798,7 @@ export default function InventoryLogs() {
                         )
                       }
                       disabled={movementPage >= totalMovementPages}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] text-sm font-medium text-gray-600 transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowRight className="h-4 w-4" />
                     </button>
@@ -808,13 +812,13 @@ export default function InventoryLogs() {
 
       {/* ══════════════ TAB: Restock Logs ════════════════════════════════ */}
       {activeTab === "restock" && (
-        <div className="overflow-hidden rounded-3xl border border-[#ececf2] bg-white shadow-sm">
+        <div className="overflow-hidden rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
           <div className="relative p-6">
             <div className="flex flex-wrap items-center gap-3 mb-5">
               <div className="relative flex-1 min-w-[200px]">
                 <Search
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-400"
                   size={15}
                 />
                 <input
@@ -822,14 +826,14 @@ export default function InventoryLogs() {
                   placeholder="Cari produk atau supplier..."
                   value={restockSearch}
                   onChange={(e) => handleRestockSearch(e.target.value)}
-                  className="w-full rounded-2xl border border-[#ececf2] py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:text-white dark:placeholder-gray-400"
                 />
               </div>
 
               <select
                 value={restockTimeFilter}
                 onChange={(e) => handleRestockTimeFilter(e.target.value)}
-                className="rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer bg-white"
+                className="rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm outline-none transition-all duration-200 focus:border-violet-400 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer dark:text-white"
               >
                 <option value="all">Semua Waktu</option>
                 <option value="7">7 Hari Terakhir</option>
@@ -840,10 +844,10 @@ export default function InventoryLogs() {
 
             {paginatedRestocks.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
-                  <Package className="h-7 w-7 text-gray-400" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50">
+                  <Package className="h-7 w-7 text-gray-400 dark:text-gray-400" />
                 </div>
-                <p className="mt-4 text-sm font-medium text-gray-500">
+                <p className="mt-4 text-sm font-medium text-gray-500 dark:text-gray-400">
                   {restockData.length === 0
                     ? "Belum ada restock"
                     : "Tidak ada hasil untuk filter saat ini"}
@@ -858,23 +862,23 @@ export default function InventoryLogs() {
               <>
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-[#f8f8fc] to-white">
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5">
+                    <TableRow className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80">
+                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-[0.08em] py-3.5">
                         Tanggal
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5">
+                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-[0.08em] py-3.5">
                         Produk
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5">
                         Supplier
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5 text-right">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5 text-right">
                         Qty
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5 text-right">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5 text-right">
                         Harga Beli
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5 text-right">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5 text-right">
                         Total
                       </TableHead>
                     </TableRow>
@@ -883,15 +887,15 @@ export default function InventoryLogs() {
                     {paginatedRestocks.map((log) => (
                       <TableRow
                         key={log.id}
-                        className="hover:bg-violet-50/30 transition-colors"
+                        className="hover:bg-violet-50 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)] transition-colors"
                       >
                         <TableCell className="py-3.5">
-                          <p className="text-sm text-gray-700 whitespace-nowrap">
+                          <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap">
                             {formatDate(log.createdAt)}
                           </p>
                         </TableCell>
                         <TableCell className="py-3.5">
-                          <p className="font-semibold text-sm text-gray-900">
+                          <p className="font-semibold text-sm text-gray-900 dark:text-white">
                             {log.productName}
                           </p>
                           {log.variantName && (
@@ -902,7 +906,7 @@ export default function InventoryLogs() {
                         </TableCell>
                         <TableCell className="py-3.5">
                           {log.supplierName ? (
-                            <span className="text-sm text-gray-700">
+                            <span className="text-sm text-gray-700 dark:text-gray-200">
                               {log.supplierName}
                             </span>
                           ) : (
@@ -910,12 +914,12 @@ export default function InventoryLogs() {
                           )}
                         </TableCell>
                         <TableCell className="py-3.5 text-right">
-                          <span className="text-sm font-semibold text-green-600">
+                          <span className="text-sm font-semibold text-green-600 dark:text-green-400">
                             +{Number(log.qty).toLocaleString()}
                           </span>
                         </TableCell>
                         <TableCell className="py-3.5 text-right">
-                          <span className="text-sm text-gray-700">
+                          <span className="text-sm text-gray-700 dark:text-gray-200">
                             {formatRp(log.buyPrice)}
                           </span>
                         </TableCell>
@@ -929,8 +933,8 @@ export default function InventoryLogs() {
                   </TableBody>
                 </Table>
 
-                <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#ececf2]">
-                  <p className="text-sm text-gray-400">
+                <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#ececf2] dark:border-gray-700/60">
+                  <p className="text-sm text-gray-400 dark:text-gray-400">
                     Menampilkan{" "}
                     {Math.min(
                       (restockPage - 1) * ITEMS_PER_PAGE + 1,
@@ -950,7 +954,7 @@ export default function InventoryLogs() {
                         setRestockPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={restockPage <= 1}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] text-sm font-medium text-gray-600 transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
@@ -964,7 +968,7 @@ export default function InventoryLogs() {
                         )
                       }
                       disabled={restockPage >= totalRestockPages}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] text-sm font-medium text-gray-600 transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowRight className="h-4 w-4" />
                     </button>
@@ -978,14 +982,14 @@ export default function InventoryLogs() {
 
       {/* ══════════════ TAB: Suppliers ═══════════════════════════════════ */}
       {activeTab === "suppliers" && (
-        <div className="overflow-hidden rounded-3xl border border-[#ececf2] bg-white shadow-sm">
+        <div className="overflow-hidden rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
           <div className="relative p-6">
             {/* Header + Add Button */}
             <div className="flex items-center justify-between mb-5">
               <div className="relative flex-1 min-w-[200px] max-w-sm">
                 <Search
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-400"
                   size={15}
                 />
                 <input
@@ -993,7 +997,7 @@ export default function InventoryLogs() {
                   placeholder="Cari supplier..."
                   value={supplierSearch}
                   onChange={(e) => handleSupplierSearch(e.target.value)}
-                  className="w-full rounded-2xl border border-[#ececf2] py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:text-white dark:placeholder-gray-400"
                 />
               </div>
               <button
@@ -1008,10 +1012,10 @@ export default function InventoryLogs() {
             {/* Table */}
             {paginatedSuppliers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
-                  <Building2 className="h-7 w-7 text-gray-400" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50">
+                  <Building2 className="h-7 w-7 text-gray-400 dark:text-gray-400" />
                 </div>
-                <p className="mt-4 text-sm font-medium text-gray-500">
+                <p className="mt-4 text-sm font-medium text-gray-500 dark:text-gray-400">
                   {supplierData.length === 0
                     ? "Belum ada supplier"
                     : "Tidak ada hasil untuk filter saat ini"}
@@ -1026,24 +1030,24 @@ export default function InventoryLogs() {
               <>
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-[#f8f8fc] to-white">
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5 w-8"></TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5">
+                    <TableRow className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80">
+                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-[0.08em] py-3.5 w-8"></TableHead>
+                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-[0.08em] py-3.5">
                         Nama Supplier
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5">
                         Kontak
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5 text-right">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5 text-right">
                         Transaksi
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5 text-right">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5 text-right">
                         Total Unit
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5 text-right">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5 text-right">
                         Total Pembelian
                       </TableHead>
-                      <TableHead className="font-semibold text-gray-500 text-xs uppercase tracking-wider py-3.5 text-center">
+                      <TableHead className="font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-[0.08em] py-3.5 text-center">
                         Aksi
                       </TableHead>
                     </TableRow>
@@ -1053,7 +1057,7 @@ export default function InventoryLogs() {
                       <>
                         <TableRow
                           key={supplier.id}
-                          className="hover:bg-violet-50/30 transition-colors cursor-pointer"
+                          className="hover:bg-violet-50 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)] transition-colors cursor-pointer"
                           onClick={() =>
                             setExpandedSupplier(
                               expandedSupplier?.id === supplier.id
@@ -1063,7 +1067,7 @@ export default function InventoryLogs() {
                           }
                         >
                           <TableCell className="py-3.5">
-                            <button className="text-gray-400 hover:text-violet-600">
+                            <button className="text-gray-400 dark:text-gray-400 hover:text-violet-600">
                               {expandedSupplier?.id === supplier.id ? (
                                 <ChevronDown size={16} />
                               ) : (
@@ -1073,11 +1077,11 @@ export default function InventoryLogs() {
                           </TableCell>
                           <TableCell className="py-3.5">
                             <div className="flex items-center gap-3">
-                              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-indigo-200 text-xs font-bold text-blue-600 flex-shrink-0">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-indigo-200 text-xs font-bold text-blue-600 dark:text-blue-400 flex-shrink-0">
                                 {supplier.name.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <p className="font-semibold text-sm text-gray-900">
+                                <p className="font-semibold text-sm text-gray-900 dark:text-white">
                                   {supplier.name}
                                 </p>
                                 {supplier.email && (
@@ -1090,7 +1094,7 @@ export default function InventoryLogs() {
                           </TableCell>
                           <TableCell className="py-3.5">
                             {supplier.phone ? (
-                              <span className="text-sm text-gray-700">
+                              <span className="text-sm text-gray-700 dark:text-gray-200">
                                 {supplier.phone}
                               </span>
                             ) : (
@@ -1098,17 +1102,17 @@ export default function InventoryLogs() {
                             )}
                           </TableCell>
                           <TableCell className="py-3.5 text-right">
-                            <span className="text-sm font-semibold text-gray-900">
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
                               {supplier.totalTransaksi}
                             </span>
                           </TableCell>
                           <TableCell className="py-3.5 text-right">
-                            <span className="text-sm text-gray-700">
+                            <span className="text-sm text-gray-700 dark:text-gray-200">
                               {Number(supplier.totalUnit || 0).toLocaleString()}
                             </span>
                           </TableCell>
                           <TableCell className="py-3.5 text-right">
-                            <span className="text-sm font-bold text-violet-600">
+                            <span className="text-sm font-bold text-violet-600 dark:text-violet-400">
                               {formatRp(supplier.totalPembelian)}
                             </span>
                           </TableCell>
@@ -1119,7 +1123,7 @@ export default function InventoryLogs() {
                                   e.stopPropagation();
                                   openEditSupplier(supplier);
                                 }}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#ececf2] text-gray-500 transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#ececf2] dark:border-gray-700 text-gray-500 dark:text-gray-400 transition-all hover:border-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:text-violet-600"
                               >
                                 <Pencil className="h-3.5 w-3.5" />
                               </button>
@@ -1128,7 +1132,7 @@ export default function InventoryLogs() {
                                   e.stopPropagation();
                                   handleDeleteSupplier(supplier);
                                 }}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#ececf2] text-gray-500 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#ececf2] dark:border-gray-700 text-gray-500 dark:text-gray-400 transition-all hover:border-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:text-red-400"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
@@ -1144,17 +1148,17 @@ export default function InventoryLogs() {
                               className="px-6 py-4 bg-purple-50/30"
                             >
                               <div className="pl-10">
-                                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+                                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-3">
                                   Riwayat Restock
                                 </p>
                                 {supplierRestockHistory.length === 0 ? (
-                                  <p className="text-sm text-gray-400 py-4 text-center">
+                                  <p className="text-sm text-gray-400 dark:text-gray-400 py-4 text-center">
                                     Belum ada riwayat restock untuk supplier ini
                                   </p>
                                 ) : (
                                   <table className="w-full text-left">
                                     <thead>
-                                      <tr className="text-xs text-gray-400">
+                                      <tr className="text-xs text-gray-400 dark:text-gray-400">
                                         <th className="pb-2 font-medium pr-4">
                                           Tanggal
                                         </th>
@@ -1173,15 +1177,15 @@ export default function InventoryLogs() {
                                       {supplierRestockHistory.map((log) => (
                                         <tr
                                           key={log.id}
-                                          className="hover:bg-purple-50/50 transition-colors"
+                                          className="hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
                                         >
                                           <td className="py-2 pr-4">
-                                            <span className="text-sm text-gray-600 whitespace-nowrap">
+                                            <span className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
                                               {formatDateShort(log.createdAt)}
                                             </span>
                                           </td>
                                           <td className="py-2 pr-4">
-                                            <span className="text-sm font-medium text-gray-900">
+                                            <span className="text-sm font-medium text-gray-900 dark:text-white">
                                               {log.productName}
                                             </span>
                                             {log.variantName && (
@@ -1191,13 +1195,13 @@ export default function InventoryLogs() {
                                             )}
                                           </td>
                                           <td className="py-2 pr-4 text-right">
-                                            <span className="text-sm font-semibold text-green-600">
+                                            <span className="text-sm font-semibold text-green-600 dark:text-green-400">
                                               +
                                               {Number(log.qty).toLocaleString()}
                                             </span>
                                           </td>
                                           <td className="py-2 text-right">
-                                            <span className="text-sm font-bold text-violet-600">
+                                            <span className="text-sm font-bold text-violet-600 dark:text-violet-400">
                                               {formatRp(log.totalCost)}
                                             </span>
                                           </td>
@@ -1215,8 +1219,8 @@ export default function InventoryLogs() {
                   </TableBody>
                 </Table>
 
-                <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#ececf2]">
-                  <p className="text-sm text-gray-400">
+                <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#ececf2] dark:border-gray-700/60">
+                  <p className="text-sm text-gray-400 dark:text-gray-400">
                     Menampilkan{" "}
                     {Math.min(
                       (supplierPage - 1) * ITEMS_PER_PAGE + 1,
@@ -1236,7 +1240,7 @@ export default function InventoryLogs() {
                         setSupplierPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={supplierPage <= 1}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] text-sm font-medium text-gray-600 transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
@@ -1250,7 +1254,7 @@ export default function InventoryLogs() {
                         )
                       }
                       disabled={supplierPage >= totalSupplierPages}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] text-sm font-medium text-gray-600 transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowRight className="h-4 w-4" />
                     </button>
@@ -1269,7 +1273,7 @@ export default function InventoryLogs() {
           onClick={() => setShowSupplierModal(false)}
         >
           <div
-            className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+            className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
@@ -1278,10 +1282,10 @@ export default function InventoryLogs() {
                 <Building2 className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                   {editingSupplier ? "Edit Supplier" : "Tambah Supplier"}
                 </h2>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
                   {editingSupplier
                     ? "Ubah informasi supplier"
                     : "Masukkan informasi supplier baru"}
@@ -1291,7 +1295,7 @@ export default function InventoryLogs() {
 
             <div className="space-y-4 mb-6">
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 block">
                   Nama Supplier <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -1301,12 +1305,12 @@ export default function InventoryLogs() {
                   onChange={(e) =>
                     handleSupplierFormChange("name", e.target.value)
                   }
-                  className="w-full rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 block">
                   Nomor Telepon
                 </label>
                 <input
@@ -1316,12 +1320,12 @@ export default function InventoryLogs() {
                   onChange={(e) =>
                     handleSupplierFormChange("phone", e.target.value)
                   }
-                  className="w-full rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 block">
                   Email
                 </label>
                 <input
@@ -1331,12 +1335,12 @@ export default function InventoryLogs() {
                   onChange={(e) =>
                     handleSupplierFormChange("email", e.target.value)
                   }
-                  className="w-full rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 block">
                   Alamat
                 </label>
                 <textarea
@@ -1346,12 +1350,12 @@ export default function InventoryLogs() {
                     handleSupplierFormChange("address", e.target.value)
                   }
                   rows="2"
-                  className="w-full rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 block">
                   Catatan
                 </label>
                 <textarea
@@ -1361,7 +1365,7 @@ export default function InventoryLogs() {
                     handleSupplierFormChange("note", e.target.value)
                   }
                   rows="2"
-                  className="w-full rounded-2xl border border-[#ececf2] px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none"
                 />
               </div>
             </div>
@@ -1372,7 +1376,7 @@ export default function InventoryLogs() {
                   setShowSupplierModal(false);
                   setEditingSupplier(null);
                 }}
-                className="flex-1 rounded-2xl border border-[#ececf2] py-3.5 font-medium text-gray-700 transition-all hover:bg-gray-50"
+                className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3.5 font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all duration-200"
               >
                 Batal
               </button>

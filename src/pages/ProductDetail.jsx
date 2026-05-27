@@ -49,17 +49,17 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm">
+      <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm dark:bg-gray-800 dark:shadow-none">
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
             <Package className="h-8 w-8 text-gray-400" />
           </div>
-          <p className="mt-4 text-sm font-medium text-gray-500">
+          <p className="mt-4 text-sm font-medium text-gray-500 dark:text-gray-400">
             Product not found
           </p>
           <button
             onClick={() => navigate("/products")}
-            className="mt-4 flex items-center gap-2 rounded-2xl border border-[#ececf2] px-5 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
+            className="mt-4 flex items-center gap-2 rounded-2xl border border-[#ececf2] dark:border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all duration-200"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Products
@@ -80,16 +80,16 @@ export default function ProductDetail() {
       if (stock === 0)
         return {
           label: "Out of Stock",
-          color: "bg-red-100 text-red-700 border-red-200",
+          color: "bg-red-500/15 border border-red-500/30 text-red-300 border-red-200",
         };
       if (stock <= minStock)
         return {
           label: "Low Stock",
-          color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+          color: "bg-amber-500/15 border border-amber-500/30 text-amber-300 border-yellow-200",
         };
       return {
         label: "In Stock",
-        color: "bg-green-100 text-green-700 border-green-200",
+        color: "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 border-green-200",
       };
     })();
   } else {
@@ -104,26 +104,26 @@ export default function ProductDetail() {
       if (stock === 0)
         return {
           label: "Out of Stock",
-          color: "bg-red-100 text-red-700 border-red-200",
+          color: "bg-red-500/15 border border-red-500/30 text-red-300 border-red-200",
         };
       if (stock <= minStock)
         return {
           label: "Low Stock",
-          color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+          color: "bg-amber-500/15 border border-amber-500/30 text-amber-300 border-yellow-200",
         };
       return {
         label: "In Stock",
-        color: "bg-green-100 text-green-700 border-green-200",
+        color: "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 border-green-200",
       };
     })();
   }
 
   return (
-    <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm">
+    <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm dark:bg-gray-800 dark:shadow-none">
       {/* Back Button */}
       <button
         onClick={() => navigate("/products")}
-        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Products
@@ -133,7 +133,7 @@ export default function ProductDetail() {
       <div className="grid grid-cols-5 gap-8">
         {/* Left: Image (40%) */}
         <div className="col-span-2">
-          <div className="aspect-square rounded-3xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center overflow-hidden border border-[#ececf2]">
+          <div className="aspect-square rounded-3xl bg-gradient-to-br from-violet-50 dark:from-violet-900/30 to-purple-50 dark:to-purple-900/30 flex items-center justify-center overflow-hidden border border-[#ececf2] dark:border-gray-700">
             {product.image ? (
               <img
                 src={product.image}
@@ -150,12 +150,12 @@ export default function ProductDetail() {
         <div className="col-span-3 space-y-6">
           {/* Name & Badges */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{product.name}</h1>
             <div className="flex items-center gap-2 mt-3">
               <span className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700">
                 {product.category}
               </span>
-              <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-mono font-medium text-gray-600">
+              <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-3 py-1 text-xs font-mono font-medium text-gray-600 dark:text-gray-300">
                 {product.sku}
               </span>
             </div>
@@ -166,22 +166,22 @@ export default function ProductDetail() {
           {hasVariants ? (
             /* Variants Table */
             <div className="mt-4">
-              <h3 className="text-sm font-medium text-gray-500 uppercase mb-3">
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase mb-3">
                 Variants
               </h3>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-2 text-gray-500 font-normal">
+                    <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-normal">
                       Variant
                     </th>
-                    <th className="text-right py-2 text-gray-500 font-normal">
+                    <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-normal">
                       Stock
                     </th>
-                    <th className="text-right py-2 text-gray-500 font-normal">
+                    <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-normal">
                       Price
                     </th>
-                    <th className="text-right py-2 text-gray-500 font-normal">
+                    <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-normal">
                       Status
                     </th>
                   </tr>
@@ -191,12 +191,12 @@ export default function ProductDetail() {
                     <tr key={variant.id} className="border-b last:border-0">
                       <td className="py-2 font-medium">{variant.name}</td>
                       <td className="py-2 text-right">{variant.stock}</td>
-                      <td className="py-2 text-right text-purple-600">
+                      <td className="py-2 text-right text-purple-600 dark:text-purple-400">
                         Rp {variant.unitPrice?.toLocaleString("id-ID")}
                       </td>
                       <td className="py-2 text-right">
                         {variant.stock === 0 ? (
-                          <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">
+                          <span className="text-xs bg-red-100 dark:bg-red-900/30 border border-red-200/50 dark:border-red-800/30 text-red-600 dark:text-red-400 px-2 py-1 rounded-full">
                             Out
                           </span>
                         ) : variant.stock <= 5 ? (
@@ -204,7 +204,7 @@ export default function ProductDetail() {
                             Low
                           </span>
                         ) : (
-                          <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">
+                          <span className="text-xs bg-green-100 dark:bg-green-900/30 border border-green-200/50 dark:border-green-800/30 text-green-600 dark:text-green-400 px-2 py-1 rounded-full">
                             OK
                           </span>
                         )}
@@ -218,25 +218,25 @@ export default function ProductDetail() {
             /* Price Section */
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Unit Cost</span>
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Unit Cost</span>
+                <span className="text-sm text-gray-700 dark:text-gray-200">
                   {formatRupiah(unitCost)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Unit Price</span>
-                <span className="text-xl font-bold text-purple-600">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Unit Price</span>
+                <span className="text-xl font-bold text-purple-600 dark:text-purple-400">
                   {formatRupiah(unitPrice)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Margin</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Margin</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-green-600">
+                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">
                     {formatRupiah(margin)}
                   </span>
                   {unitCost > 0 && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-medium">
                       {marginPercent}%
                     </span>
                   )}
@@ -250,19 +250,19 @@ export default function ProductDetail() {
           {/* Stock Section */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Current Stock</span>
-              <span className="text-lg font-bold text-gray-900">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Current Stock</span>
+              <span className="text-lg font-bold text-gray-900 dark:text-white">
                 {stock} units
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Min Stock Threshold</span>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Min Stock Threshold</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                 {minStock}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Status</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">Status</span>
               <span
                 className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${status.color}`}
               >
@@ -273,7 +273,7 @@ export default function ProductDetail() {
               </span>
             </div>
             {/* Stock Bar */}
-            <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+            <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${
                   stock === 0
@@ -293,7 +293,7 @@ export default function ProductDetail() {
               onClick={() => {
                 navigate("/products");
               }}
-              className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-violet-200 px-5 py-3 text-sm font-medium text-violet-600 transition-all hover:bg-violet-50 hover:shadow-sm"
+              className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-violet-200 px-5 py-3 text-sm font-medium text-violet-600 transition-all hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.2)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.12)] hover:-translate-y-0.5"
             >
               <Edit3 className="h-4 w-4" />
               Edit Product
@@ -304,7 +304,7 @@ export default function ProductDetail() {
                   handleDelete();
                 }
               }}
-              className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-red-200 px-5 py-3 text-sm font-medium text-red-500 transition-all hover:bg-red-50 hover:shadow-sm"
+              className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-red-200 px-5 py-3 text-sm font-medium text-red-500 transition-all hover:bg-red-50 dark:hover:bg-red-900/20 hover:shadow-sm"
             >
               <Trash2 className="h-4 w-4" />
               Delete Product
@@ -314,17 +314,17 @@ export default function ProductDetail() {
       </div>
 
       {/* Sales History */}
-      <div className="overflow-hidden rounded-3xl border border-[#ececf2] bg-white shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
         <div className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
               <ShoppingCart className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-gray-900">
+              <h2 className="text-base font-bold text-gray-900 dark:text-white">
                 Sales History
               </h2>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
                 Last {Math.min(salesHistory.length, 10)} transactions
               </p>
             </div>
@@ -332,10 +332,10 @@ export default function ProductDetail() {
 
           {salesHistory.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100">
-                <ShoppingCart className="h-6 w-6 text-gray-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50">
+                <ShoppingCart className="h-6 w-6 text-gray-400 dark:text-gray-400" />
               </div>
-              <p className="mt-3 text-sm font-medium text-gray-500">
+              <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                 No sales history yet
               </p>
               <p className="text-xs text-gray-400 mt-1">
@@ -343,10 +343,10 @@ export default function ProductDetail() {
               </p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-[#ececf2]">
+            <div className="overflow-hidden rounded-2xl border border-[#ececf2] dark:border-gray-700">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-gradient-to-r from-[#f8f8fc] to-white text-left text-sm text-gray-500">
+                  <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80 text-left text-sm text-gray-500 dark:text-gray-400">
                     <th className="px-6 py-4 font-semibold">Invoice #</th>
                     <th className="px-6 py-4 font-semibold">Date</th>
                     <th className="px-6 py-4 font-semibold">Qty Sold</th>
@@ -361,7 +361,7 @@ export default function ProductDetail() {
                     return (
                       <tr
                         key={t.id}
-                        className="border-t border-[#ececf2] transition-colors hover:bg-violet-50/30"
+                        className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-violet-50 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)]"
                       >
                         <td className="px-6 py-4">
                           <span className="font-semibold text-violet-600">
@@ -369,15 +369,15 @@ export default function ProductDetail() {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-sm text-gray-700">{t.date}</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-200">{t.date}</p>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="inline-block rounded-lg bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+                          <span className="inline-block rounded-lg bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">
                             {item?.qty || 0} units
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <span className="font-bold text-violet-600">
+                          <span className="font-bold text-violet-600 dark:text-violet-400">
                             {formatRupiah(item ? item.unitPrice * item.qty : 0)}
                           </span>
                         </td>
