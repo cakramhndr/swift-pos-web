@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
+import { exportReportsPDF } from "@/lib/exportUtils";
 
 export default function Reports() {
   // ─── State ──────────────────────────────────────────────────────────────
@@ -167,8 +168,15 @@ export default function Reports() {
 
   // ─── Handlers ───────────────────────────────────────────────────────────
   const handleExportPDF = () => {
-    window.print();
-    toast.success("PDF exported successfully");
+    exportReportsPDF({
+      revenue: summaryStats.totalRevenue,
+      totalTransaksi: summaryStats.totalTransactions,
+      produkTerjual: summaryStats.totalItems,
+      avgOrderValue: summaryStats.avgOrderValue,
+      topProducts: salesByProduct,
+      transactions: filteredTransactions,
+      periode: getPeriodLabel(),
+    });
   };
 
   const handleExportCSV = () => {

@@ -12,12 +12,14 @@ import {
   Trash2,
   X,
   Printer,
+  Download,
   CreditCard,
   CheckCircle,
   ArrowLeft,
   ArrowRight,
   User,
 } from "lucide-react";
+import { exportTransactionsPDF } from "@/lib/exportUtils";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────
 function getEffectiveStock(product) {
@@ -406,9 +408,20 @@ export default function Transactions() {
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 rounded-2xl bg-[#f8f8fc] px-4 py-2.5">
-          <div className="h-2 w-2 rounded-full bg-green-400" />
-          <span className="text-sm font-medium text-gray-600">POS Active</span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => exportTransactionsPDF(transactions)}
+            className="flex items-center gap-2 rounded-2xl border border-violet-200 px-4 py-2.5 font-semibold text-violet-600 transition-all hover:bg-violet-50 text-sm"
+          >
+            <Download className="h-4 w-4" />
+            Export PDF
+          </button>
+          <div className="hidden sm:flex items-center gap-2 rounded-2xl bg-[#f8f8fc] px-4 py-2.5">
+            <div className="h-2 w-2 rounded-full bg-green-400" />
+            <span className="text-sm font-medium text-gray-600">
+              POS Active
+            </span>
+          </div>
         </div>
       </div>
 

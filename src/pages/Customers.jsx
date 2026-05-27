@@ -18,7 +18,9 @@ import {
   CreditCard,
   Printer,
   AlertTriangle,
+  Download,
 } from "lucide-react";
+import { exportCustomersPDF } from "@/lib/exportUtils";
 
 export default function Customers() {
   // ─── State ──────────────────────────────────────────────────────────────
@@ -274,7 +276,7 @@ export default function Customers() {
   return (
     <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm">
       {/* ══════════════ Page Header ═══════════════════════════════════════ */}
-      <div>
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-md">
             <Users className="h-5 w-5 text-white" />
@@ -288,6 +290,14 @@ export default function Customers() {
             </p>
           </div>
         </div>
+
+        <button
+          onClick={() => exportCustomersPDF(customers)}
+          className="flex items-center gap-2 rounded-2xl border border-violet-200 px-4 py-2.5 font-semibold text-violet-600 transition-all hover:bg-violet-50 text-sm"
+        >
+          <Download className="h-4 w-4" />
+          Export PDF
+        </button>
       </div>
 
       {/* ══════════════ Summary Cards ══════════════════════════════════════ */}

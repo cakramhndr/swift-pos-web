@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { exportDashboardPDF } from "@/lib/exportUtils";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -105,7 +106,18 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 rounded-2xl border border-violet-200 px-5 py-2.5 font-semibold text-violet-600 transition-all hover:bg-violet-50">
+          <button
+            onClick={() =>
+              exportDashboardPDF({
+                revenue: totalRevenue,
+                orders: totalTransactions,
+                productsSold: totalProductsSold,
+                topProducts,
+                recentOrders: recentTransactions,
+              })
+            }
+            className="flex items-center gap-2 rounded-2xl border border-violet-200 px-5 py-2.5 font-semibold text-violet-600 transition-all hover:bg-violet-50"
+          >
             <Download className="h-4 w-4" />
             Export
           </button>

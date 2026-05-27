@@ -21,7 +21,9 @@ import {
   Upload,
   X,
   FileDown,
+  Download,
 } from "lucide-react";
+import { exportProductsPDF } from "@/lib/exportUtils";
 
 const DEFAULT_CATEGORIES = [
   "Headset",
@@ -797,6 +799,14 @@ export default function Products() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Export PDF Button */}
+          <button
+            onClick={() => exportProductsPDF(products)}
+            className="flex items-center gap-2 rounded-2xl border border-violet-200 px-4 py-2.5 text-sm font-semibold text-violet-600 transition-all hover:bg-violet-50"
+          >
+            <Download className="h-4 w-4" />
+            Export PDF
+          </button>
           {/* Import CSV Button */}
           <button
             onClick={() => setImportModalOpen(true)}

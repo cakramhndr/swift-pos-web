@@ -13,7 +13,9 @@ import {
   ArrowUpDown,
   ChevronDown,
   ChevronRight,
+  Download,
 } from "lucide-react";
+import { exportInventoryPDF } from "@/lib/exportUtils";
 
 // ─── Format Rupiah ───────────────────────────────────────────────────────
 const formatRupiah = (num) => {
@@ -378,6 +380,14 @@ export default function Inventory() {
             </p>
           </div>
         </div>
+
+        <button
+          onClick={() => exportInventoryPDF(products)}
+          className="flex items-center gap-2 rounded-2xl border border-violet-200 px-4 py-2.5 font-semibold text-violet-600 transition-all hover:bg-violet-50 text-sm"
+        >
+          <Download className="h-4 w-4" />
+          Export PDF
+        </button>
       </div>
 
       {/* ══════════════ Summary Cards ═════════════════════════════════════ */}
@@ -475,17 +485,35 @@ export default function Inventory() {
         ) : (
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-gradient-to-r from-[#f8f8fc] to-white text-left text-sm text-gray-500">
-                <th className="px-4 py-4 w-8"></th>
-                <th className="px-6 py-4 font-semibold">Product</th>
-                <th className="px-6 py-4 font-semibold">SKU</th>
-                <th className="px-6 py-4 font-semibold">Category</th>
-                <th className="px-6 py-4 font-semibold">Stock</th>
-                <th className="px-6 py-4 font-semibold">Min Stock</th>
-                <th className="px-6 py-4 font-semibold">Unit Cost</th>
-                <th className="px-6 py-4 font-semibold">Stock Value</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold text-center">Actions</th>
+              <tr className="bg-gradient-to-r from-[#f8f8fc] to-white text-left text-gray-500">
+                <th className="px-3 py-3 w-8"></th>
+                <th className="px-3 py-3 text-[12px] font-medium uppercase tracking-wider text-gray-400">
+                  Product
+                </th>
+                <th className="px-3 py-3 text-[12px] font-medium uppercase tracking-wider text-gray-400 w-[100px]">
+                  SKU
+                </th>
+                <th className="px-3 py-3 text-[12px] font-medium uppercase tracking-wider text-gray-400 w-[110px]">
+                  Category
+                </th>
+                <th className="px-3 py-3 text-[12px] font-medium uppercase tracking-wider text-gray-400 w-[120px]">
+                  Stock
+                </th>
+                <th className="px-3 py-3 text-[12px] font-medium uppercase tracking-wider text-gray-400 w-[90px]">
+                  Min
+                </th>
+                <th className="px-3 py-3 text-[12px] font-medium uppercase tracking-wider text-gray-400 w-[120px]">
+                  Unit Cost
+                </th>
+                <th className="px-3 py-3 text-[12px] font-medium uppercase tracking-wider text-gray-400 w-[130px]">
+                  Stock Value
+                </th>
+                <th className="px-3 py-3 text-[12px] font-medium uppercase tracking-wider text-gray-400 w-[90px]">
+                  Status
+                </th>
+                <th className="px-3 py-3 text-[12px] font-medium uppercase tracking-wider text-gray-400 w-[140px] text-center">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -511,7 +539,7 @@ export default function Inventory() {
                       key={product.id}
                       className="border-t border-[#ececf2] transition-colors hover:bg-violet-50/30"
                     >
-                      <td className="px-4 py-4">
+                      <td className="px-3 py-3">
                         {hasVariants && (
                           <button
                             onClick={() => toggleExpand(product.id)}
@@ -526,8 +554,8 @@ export default function Inventory() {
                         )}
                       </td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2.5">
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-purple-100 text-xs font-bold text-violet-600 flex-shrink-0">
                             {product.name.charAt(0).toUpperCase()}
                           </div>
@@ -547,24 +575,24 @@ export default function Inventory() {
                         </div>
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-3 w-[100px]">
                         <span className="inline-block rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
                           {product.sku}
                         </span>
                       </td>
 
-                      <td className="px-6 py-4">
-                        <p className="text-sm text-gray-600">
+                      <td className="px-3 py-3 w-[110px]">
+                        <p className="text-[13px] text-gray-600 truncate">
                           {product.category}
                         </p>
                       </td>
 
-                      <td className="px-6 py-4">
-                        <div className="space-y-2">
-                          <p className="text-sm font-semibold text-gray-900">
+                      <td className="px-3 py-3 w-[120px]">
+                        <div>
+                          <p className="text-[13px] font-semibold text-gray-900">
                             {effStock} units
                           </p>
-                          <div className="h-1.5 w-24 rounded-full bg-gray-200 overflow-hidden">
+                          <div className="mt-1.5 h-1.5 w-full max-w-[80px] rounded-full bg-gray-200 overflow-hidden">
                             <div
                               className={`h-full ${barColor} transition-all duration-300`}
                               style={{ width: `${barWidth}%` }}
@@ -573,37 +601,33 @@ export default function Inventory() {
                         </div>
                       </td>
 
-                      <td className="px-6 py-4">
-                        <p className="text-sm text-gray-600">
+                      <td className="px-3 py-3 w-[90px]">
+                        <p className="text-[13px] text-gray-600">
                           {product.minStock || 5}
                         </p>
                       </td>
 
-                      <td className="px-6 py-4 whitespace-nowrap font-semibold text-gray-900">
-                        <span className="whitespace-nowrap">
-                          {formatRupiah(effCost)}
-                        </span>
+                      <td className="px-3 py-3 w-[120px] whitespace-nowrap font-semibold text-gray-900 text-[13px]">
+                        {formatRupiah(effCost)}
                       </td>
 
-                      <td className="px-6 py-4 whitespace-nowrap font-semibold text-violet-600">
-                        <span className="whitespace-nowrap">
-                          {formatRupiah(stockValue)}
-                        </span>
+                      <td className="px-3 py-3 w-[130px] whitespace-nowrap font-semibold text-gray-900 text-[13px]">
+                        {formatRupiah(stockValue)}
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-3 w-[90px]">
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${status.color}`}
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${status.color}`}
                         >
                           {status.label}
                         </span>
                       </td>
 
-                      <td className="px-6 py-4 text-center align-middle whitespace-nowrap">
-                        <div className="flex justify-center gap-2">
+                      <td className="px-3 py-3 w-[140px] text-center align-middle whitespace-nowrap">
+                        <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => setRestockProduct(product)}
-                            className="flex items-center gap-1 rounded-lg border border-violet-200 px-2 py-1 text-xs font-medium text-violet-600 transition-all hover:bg-violet-50 hover:shadow-sm hover:-translate-y-0.5"
+                            className="inline-flex items-center gap-1 rounded-lg border border-violet-200 px-2.5 py-1.5 text-xs font-medium text-violet-600 transition-all hover:bg-violet-50 hover:shadow-sm"
                           >
                             <Package className="h-3 w-3" />
                             Restock
@@ -613,7 +637,7 @@ export default function Inventory() {
                               setAdjustProduct(product);
                               setNewStockAmount(effStock);
                             }}
-                            className="flex items-center gap-1 rounded-lg border border-[#ececf2] px-2 py-1 text-xs font-medium text-gray-600 transition-all hover:bg-gray-50 hover:shadow-sm hover:-translate-y-0.5"
+                            className="inline-flex items-center gap-1 rounded-lg border border-[#ececf2] px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-all hover:bg-gray-50 hover:shadow-sm"
                           >
                             <ArrowUpDown className="h-3 w-3" />
                             Adjust

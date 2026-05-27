@@ -18,7 +18,9 @@ import {
   ChevronDown,
   ChevronRight,
   DollarSign,
+  Download,
 } from "lucide-react";
+import { exportInventoryLogsPDF } from "@/lib/exportUtils";
 
 import { getStockMovements, getRestockLogs } from "@/lib/inventoryLogUtils";
 import {
@@ -461,9 +463,18 @@ export default function InventoryLogs() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-2xl bg-[#f8f8fc] px-4 py-2.5">
-          <div className="h-2 w-2 rounded-full bg-green-400" />
-          <span className="text-sm font-medium text-gray-600">Live</span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => exportInventoryLogsPDF(movementData, restockData)}
+            className="flex items-center gap-2 rounded-2xl border border-violet-200 px-4 py-2.5 font-semibold text-violet-600 transition-all hover:bg-violet-50 text-sm"
+          >
+            <Download className="h-4 w-4" />
+            Export PDF
+          </button>
+          <div className="flex items-center gap-2 rounded-2xl bg-[#f8f8fc] px-4 py-2.5">
+            <div className="h-2 w-2 rounded-full bg-green-400" />
+            <span className="text-sm font-medium text-gray-600">Live</span>
+          </div>
         </div>
       </div>
 
