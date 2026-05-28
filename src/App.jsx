@@ -18,7 +18,7 @@ export default function App() {
   return (
     <div className="flex min-h-screen w-full bg-[#f7f8fa] dark:bg-gray-900">
       <AppSidebar />
-      <main className="flex-1 ml-[240px] p-7 lg:p-10 max-w-[1600px]">
+      <main className="flex-1 ml-[260px] p-7 lg:p-10 max-w-[1600px]">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />

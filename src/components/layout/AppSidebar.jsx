@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -11,8 +12,12 @@ import {
   Settings,
   Moon,
   Sun,
+  ChevronDown,
+  Store,
+  LogOut,
 } from "lucide-react";
 import useDarkMode from "@/hooks/useDarkMode";
+import { cn } from "@/lib/utils";
 
 const mainNav = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -30,93 +35,186 @@ const analyticsNav = [
 
 const systemNav = [{ to: "/settings", icon: Settings, label: "Settings" }];
 
-function NavGroup({ items }) {
+function NavGroup({ items, label }) {
   return (
-    <div className="space-y-0.5">
-      {items.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm transition-all ${
-              isActive
-                ? "bg-purple-600 text-white"
-                : "text-gray-400 hover:bg-white/10 hover:text-white"
-            }`
-          }
-        >
-          <item.icon size={16} />
-          {item.label}
-        </NavLink>
-      ))}
+    <div className="px-3">
+      {label && (
+        <p className="px-3 pb-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-gray-400 dark:text-gray-500">
+          {label}
+        </p>
+      )}
+      <div className="space-y-0.5">
+        {items.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              cn(
+                "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-gradient-to-r from-purple-600/90 to-purple-500/90 text-white shadow-lg shadow-purple-500/20 dark:shadow-purple-500/15"
+                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-700 dark:hover:text-gray-200",
+              )
+            }
+          >
+            <item.icon
+              size={18}
+              className="shrink-0 transition-colors duration-200 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 aria-[current=page]:text-white"
+            />
+            <span className="truncate">{item.label}</span>
+          </NavLink>
+        ))}
+      </div>
     </div>
   );
 }
 
 export default function AppSidebar() {
   const { isDark, toggleDark } = useDarkMode();
+  const [outletOpen, setOutletOpen] = useState(false);
 
   return (
-    <div className="flex flex-col h-screen w-[240px] bg-[#1a1035] dark:bg-gray-950 text-white fixed left-0 top-0">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5">
-        <div className="w-9 h-9 bg-purple-600 rounded-xl flex items-center justify-center">
-          <ShoppingCart size={18} className="text-white" />
+    <aside
+      className={cn(
+        "flex flex-col h-screen w-[260px] fixed left-0 top-0 z-40",
+        "bg-white dark:bg-gray-950",
+        "border-r border-gray-200/70 dark:border-gray-800/80",
+        "shadow-sm dark:shadow-none",
+      )}
+    >
+      {/* Scrollable content area */}
+      <div className="flex-1 flex flex-col overflow-y-auto">
+        {/* Top Brand Section */}
+        <div className="px-5 pt-6 pb-4">
+          <div className="flex items-center gap-3.5">
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 shadow-md shadow-purple-500/20 dark:shadow-purple-500/10">
+              <ShoppingCart size={20} className="text-white" />
+              <div className="absolute inset-0 rounded-xl bg-white/[0.08]" />
+            </div>
+            <div>
+              <h1 className="text-[15px] font-semibold tracking-tight text-gray-900 dark:text-white leading-tight">
+                SwiftPOS
+              </h1>
+              <p className="text-[11px] font-medium text-gray-400 dark:text-gray-500 leading-tight mt-px">
+                Management System
+              </p>
+            </div>
+          </div>
         </div>
-        <div>
-          <p className="text-white font-semibold text-sm leading-tight">
-            SwiftPOS
-          </p>
-          <p className="text-purple-300 text-xs">Management System</p>
+
+        {/* Outlet Switcher Card */}
+        <div className="px-5 pb-4">
+          <button
+            onClick={() => setOutletOpen(!outletOpen)}
+            className={cn(
+              "w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left transition-all duration-200",
+              "bg-gray-50 dark:bg-white/[0.04]",
+              "border border-gray-200/60 dark:border-gray-800/60",
+              "hover:bg-gray-100 dark:hover:bg-white/[0.07]",
+              "hover:border-gray-300 dark:hover:border-gray-700/80",
+              "group",
+            )}
+          >
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/10 dark:from-purple-400/15 dark:to-purple-500/15 border border-purple-200/50 dark:border-purple-500/20 shrink-0">
+              <Store
+                size={16}
+                className="text-purple-600 dark:text-purple-400"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+                Main Store
+              </p>
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                Online · Active
+              </p>
+            </div>
+            <ChevronDown
+              size={14}
+              className={cn(
+                "shrink-0 text-gray-400 dark:text-gray-500 transition-transform duration-200",
+                "group-hover:text-gray-600 dark:group-hover:text-gray-400",
+                outletOpen && "rotate-180",
+              )}
+            />
+          </button>
+        </div>
+
+        {/* Navigation Sections */}
+        <div className="flex-1 space-y-5 py-2">
+          <NavGroup label="Main Menu" items={mainNav} />
+          <NavGroup label="Analytics" items={analyticsNav} />
+          <NavGroup label="System" items={systemNav} />
         </div>
       </div>
 
-      {/* Main Nav */}
-      <NavGroup items={mainNav} />
-
-      {/* Analytics */}
-      <p className="text-[10px] text-gray-500 uppercase tracking-widest px-5 py-2 mt-3">
-        Analytics
-      </p>
-      <NavGroup items={analyticsNav} />
-
-      {/* System */}
-      <p className="text-[10px] text-gray-500 uppercase tracking-widest px-5 py-2 mt-3">
-        System
-      </p>
-      <NavGroup items={systemNav} />
-
-      {/* Dark Mode Toggle */}
-      <div className="px-4 py-3 border-t border-white/10">
-        <button
-          onClick={toggleDark}
-          className="flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all"
-        >
-          <span className="flex items-center gap-3">
-            {isDark ? <Moon size={16} /> : <Sun size={16} />}
-            {isDark ? "Dark mode" : "Light mode"}
-          </span>
-          <div
-            className={`w-9 h-5 rounded-full transition-colors duration-200 ${
-              isDark ? "bg-purple-600" : "bg-gray-600"
-            }`}
+      {/* Bottom Controls - Fixed at bottom */}
+      <div className="shrink-0 border-t border-gray-200/70 dark:border-gray-800/80 bg-white dark:bg-gray-950">
+        {/* Dark Mode Toggle */}
+        <div className="px-4 py-2.5">
+          <button
+            onClick={toggleDark}
+            className={cn(
+              "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200",
+              "bg-gray-50 dark:bg-white/[0.04]",
+              "border border-gray-200/60 dark:border-gray-800/60",
+              "hover:bg-gray-100 dark:hover:bg-white/[0.07]",
+              "hover:border-gray-300 dark:hover:border-gray-700/80",
+              "group",
+            )}
           >
             <div
-              className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
-                isDark ? "translate-x-[18px]" : "translate-x-[2px]"
-              }`}
-            />
-          </div>
-        </button>
-      </div>
-
-      {/* User */}
-      <div className="px-4 py-4 border-t border-white/10 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-medium">
-          A
+              className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 shrink-0",
+                isDark
+                  ? "bg-purple-500/15 text-purple-400 border border-purple-500/20"
+                  : "bg-amber-50 text-amber-500 border border-amber-200/60",
+              )}
+            >
+              {isDark ? <Moon size={15} /> : <Sun size={15} />}
+            </div>
+            <span className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300 text-left">
+              {isDark ? "Dark Mode" : "Light Mode"}
+            </span>
+            <div
+              className={cn(
+                "relative w-9 h-5 rounded-full transition-colors duration-300 shrink-0",
+                isDark ? "bg-purple-500/30" : "bg-gray-300",
+              )}
+            >
+              <div
+                className={cn(
+                  "absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-300",
+                  isDark ? "left-[18px]" : "left-[2px]",
+                )}
+              />
+            </div>
+          </button>
         </div>
-        <span className="text-sm text-white">Admin</span>
+
+        {/* User Profile Section */}
+        <div className="px-4 pb-4 pt-1">
+          <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-200/40 dark:border-gray-800/40">
+            <div className="relative shrink-0">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
+                A
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-gray-950 bg-emerald-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+                Admin
+              </p>
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                admin@swiftpos.com
+              </p>
+            </div>
+            <button className="shrink-0 p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/[0.06] transition-all">
+              <LogOut size={15} />
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </aside>
   );
 }
