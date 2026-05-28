@@ -10,6 +10,7 @@ import Inventory from "./pages/Inventory";
 import InventoryLogs from "./pages/InventoryLogs";
 import Reports from "./pages/Reports";
 import Analytics from "./pages/Analytics";
+import Settings from "./pages/Settings";
 
 import { Toaster } from "sonner";
 
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/inventory-logs" element={<InventoryLogs />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
 
         <Toaster richColors position="top-center" />

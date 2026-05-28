@@ -45,7 +45,16 @@ export default function Transactions() {
   const [invoiceSearch, setInvoiceSearch] = useState("");
   const [showCustomerSelect, setShowCustomerSelect] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("Cash");
+  const [paymentMethod, setPaymentMethod] = useState(() => {
+    try {
+      const s = JSON.parse(
+        localStorage.getItem("swiftpos_pos_settings") || "{}",
+      );
+      return s.defaultPaymentMethod || "Cash";
+    } catch {
+      return "Cash";
+    }
+  });
   const [paidAmount, setPaidAmount] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
@@ -247,8 +256,35 @@ export default function Transactions() {
     setShowCheckout(true);
   };
 
+  const getInvoiceId = () => {
+    try {
+      const s = JSON.parse(
+        localStorage.getItem("swiftpos_invoice_settings") || "{}",
+      );
+      const prefix = s.prefix || "INV";
+      const sep = s.separator ?? "-";
+      const pad = Number(s.padLength) || 3;
+      const num = Number(s.nextNumber) || 1;
+      const padded = pad > 0 ? String(num).padStart(pad, "0") : String(num);
+      return `${prefix}${sep}${padded}`;
+    } catch {
+      return `INV-${Date.now()}`;
+    }
+  };
+
   const handleCheckout = () => {
-    const transactionId = Date.now();
+    // Check if customer is required
+    try {
+      const posSettings = JSON.parse(
+        localStorage.getItem("swiftpos_pos_settings") || "{}",
+      );
+      if (posSettings.requireCustomer && !selectedCustomer) {
+        toast.error("Pilih pelanggan terlebih dahulu");
+        return;
+      }
+    } catch {}
+
+    const transactionId = getInvoiceId();
     const newTransaction = {
       id: transactionId,
       items: cart,
@@ -360,6 +396,15 @@ export default function Transactions() {
     setShowCheckout(false);
     setPaymentMethod("Cash");
     setPaidAmount("");
+
+    // Increment next invoice number
+    try {
+      const s = JSON.parse(
+        localStorage.getItem("swiftpos_invoice_settings") || "{}",
+      );
+      s.nextNumber = (Number(s.nextNumber) || 1) + 1;
+      localStorage.setItem("swiftpos_invoice_settings", JSON.stringify(s));
+    } catch {}
 
     toast.success("Transaction Successful 🎉");
   };
@@ -672,7 +717,9 @@ export default function Transactions() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Items</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Items
+                  </span>
                   <span className="font-semibold text-gray-900 dark:text-white">
                     {cart.reduce((sum, item) => sum + item.qty, 0)}
                   </span>
@@ -1303,9 +1350,29 @@ export default function Transactions() {
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer dark:bg-gray-700 dark:text-white"
                   >
-                    <option value="Cash">Cash</option>
-                    <option value="QRIS">QRIS</option>
-                    <option value="Transfer">Transfer</option>
+                    {(() => {
+                      const getPaymentMethods = () => {
+                        try {
+                          const saved = JSON.parse(
+                            localStorage.getItem("swiftpos_payment_methods") ||
+                              "[]",
+                          );
+                          if (!saved.length) throw new Error();
+                          return saved.filter((m) => m.enabled);
+                        } catch {
+                          return [
+                            { id: "cash", label: "Cash" },
+                            { id: "transfer", label: "Transfer Bank" },
+                            { id: "qris", label: "QRIS" },
+                          ];
+                        }
+                      };
+                      return getPaymentMethods().map((m) => (
+                        <option key={m.id} value={m.label}>
+                          {m.label}
+                        </option>
+                      ));
+                    })()}
                   </select>
                 </div>
 
@@ -1400,7 +1467,9 @@ export default function Transactions() {
                   <Receipt className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Invoice</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Invoice
+                  </h2>
                   <p className="text-xs text-gray-400 mt-0.5">
                     #{selectedTransaction.id}
                   </p>
@@ -1471,7 +1540,9 @@ export default function Transactions() {
 
             <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/60 p-4 mb-5 space-y-2.5">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Payment Method</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Payment Method
+                </p>
                 <p className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-violet-500" />
                   {selectedTransaction.paymentMethod || "Cash"}

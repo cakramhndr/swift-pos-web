@@ -190,14 +190,27 @@ export default function Products() {
     return DEFAULT_PRODUCTS;
   });
 
-  const [newProduct, setNewProduct] = useState({
-    sku: "",
-    name: "",
-    category: "",
-    stock: "",
-    minStock: 5,
-    unitCost: "",
-    unitPrice: "",
+  const getProductDefaults = () => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("swiftpos_product_defaults") || "{}",
+      );
+    } catch {
+      return {};
+    }
+  };
+
+  const [newProduct, setNewProduct] = useState(() => {
+    const d = getProductDefaults();
+    return {
+      sku: "",
+      name: "",
+      category: d.defaultCategory || "",
+      stock: "",
+      minStock: d.defaultMinStock || 5,
+      unitCost: "",
+      unitPrice: "",
+    };
   });
 
   const [errors, setErrors] = useState({});
