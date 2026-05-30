@@ -368,7 +368,7 @@ export default function Inventory() {
       {/* ══════════════ Page Header ════════════════════════════════════════ */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br shadow-sm" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
             <Warehouse className="h-6 w-6 text-white" />
           </div>
           <div>
@@ -383,7 +383,7 @@ export default function Inventory() {
 
         <button
           onClick={() => exportInventoryPDF(products)}
-          className="relative z-10 flex items-center gap-2 rounded-2xl border border-violet-200 dark:border-violet-800/40 px-4 py-2.5 text-sm font-semibold text-violet-600 dark:text-violet-300 transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 dark:hover:bg-violet-900/30 text-sm"
+          className="relative z-10 flex items-center gap-2 rounded-2xl border border-accent px-4 py-2.5 text-sm font-semibold text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 dark:hover:bg-accent/30 text-sm"
         >
           <Download className="h-4 w-4" />
           Export PDF
@@ -403,8 +403,8 @@ export default function Inventory() {
           icon={DollarSign}
           label="Total Stock Value"
           value={formatRupiah(totalStockValue)}
-          iconBg="bg-purple-100 dark:bg-purple-900/30 border border-purple-200/50 dark:border-purple-800/30"
-          iconColor="text-purple-600 dark:text-purple-400"
+          iconBg="bg-accent-light dark:bg-accent/20 border border-accent/30"
+          iconColor="text-accent dark:text-accent"
         />
         <StatCard
           icon={AlertTriangle}
@@ -435,14 +435,14 @@ export default function Inventory() {
               placeholder="Search product or SKU..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:text-white dark:placeholder-gray-400"
+              className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-white dark:placeholder-gray-400"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer dark:bg-gray-700 dark:text-white"
+            className="rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer dark:bg-gray-700 dark:text-white"
           >
             <option value="All">All Status</option>
             <option value="In Stock">In Stock</option>
@@ -453,7 +453,7 @@ export default function Inventory() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer dark:bg-gray-700 dark:text-white"
+            className="rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer dark:bg-gray-700 dark:text-white"
           >
             {categories.map((cat) => (
               <option key={cat} value={cat}>
@@ -543,7 +543,7 @@ export default function Inventory() {
                         {hasVariants && (
                           <button
                             onClick={() => toggleExpand(product.id)}
-                            className="text-gray-400 dark:text-gray-400 hover:text-violet-600 cursor-pointer"
+                            className="text-gray-400 dark:text-gray-400 hover:text-accent cursor-pointer"
                           >
                             {isExpanded ? (
                               <ChevronDown size={16} />
@@ -556,7 +556,7 @@ export default function Inventory() {
 
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-purple-100 text-xs font-bold text-violet-600 flex-shrink-0">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-purple-100 text-xs font-bold text-accent flex-shrink-0">
                             {product.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0">
@@ -566,7 +566,7 @@ export default function Inventory() {
                             <p className="text-xs text-gray-400 mt-0.5">
                               {product.category}
                               {hasVariants && (
-                                <span className="ml-1.5 text-purple-500 dark:text-purple-400">
+                                <span className="ml-1.5 text-accent dark:text-accent">
                                   ({product.variants.length} variants)
                                 </span>
                               )}
@@ -627,7 +627,7 @@ export default function Inventory() {
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => setRestockProduct(product)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-violet-200 dark:border-violet-800/40 px-2.5 py-1.5 text-xs font-medium text-violet-600 dark:text-violet-300 transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.2)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.12)] hover:-translate-y-0.5"
+                            className="inline-flex items-center gap-1 rounded-lg border border-accent px-2.5 py-1.5 text-xs font-medium text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.2)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.12)] hover:-translate-y-0.5"
                           >
                             <Package className="h-3 w-3" />
                             Restock
@@ -648,7 +648,7 @@ export default function Inventory() {
 
                     {hasVariants && isExpanded && (
                       <tr key={`variants-${product.id}`}>
-                        <td colSpan={10} className="px-6 py-0 bg-purple-50/30">
+                        <td colSpan={10} className="px-6 py-0 bg-accent-light/50">
                           <table className="w-full border-collapse">
                             <thead>
                               <tr className="text-left text-xs text-gray-400 dark:text-gray-400">
@@ -673,7 +673,7 @@ export default function Inventory() {
                                 return (
                                   <tr
                                     key={variant.id}
-                                    className="border-t border-purple-100 dark:border-purple-900/30 transition-colors hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                                    className="border-t border-accent/30 transition-colors hover:bg-accent-light dark:hover:bg-accent/20"
                                   >
                                     <td className="py-2.5 pl-10">
                                       <span className="text-sm font-medium text-gray-800">
@@ -691,7 +691,7 @@ export default function Inventory() {
                                       </span>
                                     </td>
                                     <td className="py-2.5">
-                                      <span className="text-sm text-violet-600 font-medium">
+                                      <span className="text-sm text-accent font-medium">
                                         {formatRupiah(
                                           variant.unitPrice ||
                                             product.unitPrice,
@@ -713,7 +713,7 @@ export default function Inventory() {
                                             setRestockVariant(variant);
                                             setRestockVariantQty(1);
                                           }}
-                                          className="text-xs text-violet-600 dark:text-violet-400 border border-violet-200 px-2 py-0.5 rounded-md hover:bg-violet-50 dark:hover:bg-violet-900/30 cursor-pointer"
+                                          className="text-xs text-accent border border-accent px-2 py-0.5 rounded-md hover:bg-accent-light dark:hover:bg-accent/30 cursor-pointer"
                                         >
                                           Restock
                                         </button>
@@ -751,9 +751,9 @@ export default function Inventory() {
       {restockProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm">
-            <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
+            <div className="h-1 bg-gradient-to-r  rounded-t-3xl -mt-6 -mx-6 mb-6" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
                 <Package className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -763,7 +763,7 @@ export default function Inventory() {
                 <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
                   {restockProduct.name}
                   {restockVariant && (
-                    <span className="text-purple-500">
+                    <span className="text-accent">
                       {" "}
                       — {restockVariant.name}
                     </span>
@@ -797,7 +797,7 @@ export default function Inventory() {
                     if (restockVariant) setRestockVariantQty(val);
                     else setRestockQty(val);
                   }}
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 px-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 px-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                 />
               </div>
 
@@ -817,7 +817,7 @@ export default function Inventory() {
                       setRestockSupplierId(val);
                     }
                   }}
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 px-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 px-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer"
                 >
                   <option value="">Pilih supplier...</option>
                   {suppliers.map((s) => (
@@ -829,8 +829,8 @@ export default function Inventory() {
                 </select>
 
                 {showNewSupplier && (
-                  <div className="mt-3 p-3 rounded-2xl border border-violet-200 bg-violet-50/40 space-y-3">
-                    <p className="text-xs font-semibold text-violet-700 dark:text-violet-300">
+                  <div className="mt-3 p-3 rounded-2xl border border-accent bg-violet-50/40 space-y-3">
+                    <p className="text-xs font-semibold text-accent dark:text-accent">
                       Tambah Supplier Baru
                     </p>
                     <input
@@ -838,19 +838,19 @@ export default function Inventory() {
                       placeholder="Nama supplier *"
                       value={newSupplierName}
                       onChange={(e) => setNewSupplierName(e.target.value)}
-                      className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2 px-3 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                      className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2 px-3 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                     />
                     <input
                       type="text"
                       placeholder="Nomor telepon (opsional)"
                       value={newSupplierPhone}
                       onChange={(e) => setNewSupplierPhone(e.target.value)}
-                      className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2 px-3 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                      className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2 px-3 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                     />
                     <div className="flex gap-2">
                       <button
                         onClick={handleQuickAddSupplier}
-                        className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:shadow-md"
+                        className="flex-1 rounded-xl bg-gradient-to-r py-2 text-xs font-semibold text-white shadow-sm transition-all hover:shadow-md" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
                       >
                         Simpan Supplier
                       </button>
@@ -878,7 +878,7 @@ export default function Inventory() {
                   value={restockNotes}
                   onChange={(e) => setRestockNotes(e.target.value)}
                   rows="3"
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 px-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 px-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 resize-none"
                 />
               </div>
             </div>
@@ -895,7 +895,7 @@ export default function Inventory() {
               </button>
               <button
                 onClick={handleRestock}
-                className="flex-1 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md"
+                className="flex-1 rounded-2xl bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
               >
                 Confirm Restock
               </button>
@@ -908,9 +908,9 @@ export default function Inventory() {
       {adjustProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm">
-            <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
+            <div className="h-1 bg-gradient-to-r  rounded-t-3xl -mt-6 -mx-6 mb-6" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
                 <ArrowUpDown className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -920,7 +920,7 @@ export default function Inventory() {
                 <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
                   {adjustProduct.name}
                   {adjustVariant && (
-                    <span className="text-purple-500">
+                    <span className="text-accent">
                       {" "}
                       — {adjustVariant.name}
                     </span>
@@ -954,7 +954,7 @@ export default function Inventory() {
                     if (adjustVariant) setAdjustVariantStock(val);
                     else setNewStockAmount(val);
                   }}
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 px-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 px-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                 />
               </div>
 
@@ -965,7 +965,7 @@ export default function Inventory() {
                 <select
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white py-2.5 px-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white py-2.5 px-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer"
                 >
                   <option value="Correction">Correction</option>
                   <option value="Damaged">Damaged</option>
@@ -983,7 +983,7 @@ export default function Inventory() {
                   value={adjustNotes}
                   onChange={(e) => setAdjustNotes(e.target.value)}
                   rows="3"
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 px-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 px-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 resize-none"
                 />
               </div>
             </div>
@@ -1000,7 +1000,7 @@ export default function Inventory() {
               </button>
               <button
                 onClick={handleAdjustStock}
-                className="flex-1 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md"
+                className="flex-1 rounded-2xl bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
               >
                 Save Adjustment
               </button>

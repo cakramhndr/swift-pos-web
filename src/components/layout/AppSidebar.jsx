@@ -52,7 +52,7 @@ function NavGroup({ items, label }) {
               cn(
                 "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-gradient-to-r from-purple-600/90 to-purple-500/90 text-white shadow-lg shadow-purple-500/20 dark:shadow-purple-500/15"
+                  ? "bg-gradient-to-r bg-accent text-white shadow-lg shadow-accent/20"
                   : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-700 dark:hover:text-gray-200",
               )
             }
@@ -87,7 +87,7 @@ export default function AppSidebar() {
         {/* Top Brand Section */}
         <div className="px-5 pt-6 pb-4">
           <div className="flex items-center gap-3.5">
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 shadow-md shadow-purple-500/20 dark:shadow-purple-500/10">
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-accent shadow-md shadow-accent/20">
               <ShoppingCart size={20} className="text-white" />
               <div className="absolute inset-0 rounded-xl bg-white/[0.08]" />
             </div>
@@ -115,10 +115,10 @@ export default function AppSidebar() {
               "group",
             )}
           >
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/10 dark:from-purple-400/15 dark:to-purple-500/15 border border-purple-200/50 dark:border-purple-500/20 shrink-0">
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-accent/10 border border-accent/30 shrink-0">
               <Store
                 size={16}
-                className="text-purple-600 dark:text-purple-400"
+                className="text-accent dark:text-accent"
               />
             </div>
             <div className="flex-1 min-w-0">
@@ -167,7 +167,7 @@ export default function AppSidebar() {
               className={cn(
                 "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 shrink-0",
                 isDark
-                  ? "bg-purple-500/15 text-purple-400 border border-purple-500/20"
+                  ? "bg-accent/15 text-accent border border-accent/20"
                   : "bg-amber-50 text-amber-500 border border-amber-200/60",
               )}
             >
@@ -179,7 +179,7 @@ export default function AppSidebar() {
             <div
               className={cn(
                 "relative w-9 h-5 rounded-full transition-colors duration-300 shrink-0",
-                isDark ? "bg-purple-500/30" : "bg-gray-300",
+                isDark ? "bg-accent/30" : "bg-gray-300",
               )}
             >
               <div

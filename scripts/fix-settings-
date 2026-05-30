@@ -1,0 +1,29 @@
+$content = Get-Content "src\pages\Settings.jsx" -Raw
+$modified = $false
+
+$reps = @(
+  @("checked ? `"bg-violet-600`" : `"bg-gray-200 dark:bg-gray-700`"", "checked ? `"bg-accent`" : `"bg-gray-200 dark:bg-gray-700`""),
+  @("appearance.cardRadius === r.value ? `"bg-violet-600 text-white shadow-sm`"", "appearance.cardRadius === r.value ? `"bg-accent text-white shadow-sm`""),
+  @("appearance.fontScale === f.value ? `"bg-violet-600 text-white shadow-sm`"", "appearance.fontScale === f.value ? `"bg-accent text-white shadow-sm`""),
+  @("bg-fuchsia-300/20 blur-2xl", "bg-accent/10 blur-2xl"),
+  @("bg-violet-300/20 blur-xl", "bg-accent/10 blur-xl"),
+  @("text-sm text-violet-200 mt-1", "text-sm text-white/80 mt-1"),
+  @("from-violet-500/5 via-transparent to-purple-500/5", "from-accent/5 via-transparent to-accent-hover/5"),
+  @("method.enabled ? `"bg-violet-600`"", "method.enabled ? `"bg-accent`""),
+  @("role?.active ? `"bg-violet-600`"", "role?.active ? `"bg-accent`""),
+  @("text-violet-600 dark:text-violet-400", "text-accent dark:text-accent")
+)
+
+foreach ($r in $reps) {
+  if ($content.Contains($r[0])) {
+    $content = $content -replace [regex]::Escape($r[0]), $r[1]
+    $modified = $true
+  }
+}
+
+if ($modified) {
+  Set-Content "src\pages\Settings.jsx" $content -NoNewline
+  Write-Host "Settings.jsx UPDATED"
+} else {
+  Write-Host "Settings.jsx - no changes"
+}

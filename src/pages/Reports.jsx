@@ -313,7 +313,7 @@ export default function Reports() {
       {/* ══════════════ Page Header ═══════════════════════════════════════ */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-md">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br shadow-md" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
             <FileText className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -329,14 +329,14 @@ export default function Reports() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleExportPDF}
-            className="relative z-10 flex items-center gap-2 rounded-2xl border border-violet-200 dark:border-violet-800/40 px-5 py-2.5 font-semibold text-violet-600 dark:text-violet-300 transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
+            className="relative z-10 flex items-center gap-2 rounded-2xl border border-accent px-5 py-2.5 font-semibold text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
           >
             <Download className="h-4 w-4" />
             Export PDF
           </button>
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_-2px_rgba(124,58,237,0.4)] hover:-translate-y-0.5"
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_-2px_rgba(124,58,237,0.4)] hover:-translate-y-0.5" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
           >
             <FileSpreadsheet className="h-4 w-4" />
             Export CSV
@@ -361,8 +361,8 @@ export default function Reports() {
               }}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 selectedPeriod === period.key
-                  ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white dark:text-white shadow-lg shadow-violet-500/20"
-                  : "px-4 py-2 rounded-xl text-sm font-medium transition-all border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-800/60 text-gray-600 dark:text-slate-400 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-gray-700/60 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 dark:hover:text-white"
+                  ? "bg-gradient-to-r from-accent to-accent-hover text-white dark:text-white shadow-lg shadow-accent/20"
+                  : "px-4 py-2 rounded-xl text-sm font-medium transition-all border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-800/60 text-gray-600 dark:text-slate-400 hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-gray-700/60 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-accent dark:hover:text-white"
               }`}
             >
               {period.label}
@@ -381,7 +381,7 @@ export default function Reports() {
                   setCustomDateFrom(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="rounded-xl border border-[#ececf2] dark:border-gray-600 px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:bg-gray-700 dark:text-white"
+                className="rounded-xl border border-[#ececf2] dark:border-gray-600 px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 dark:bg-gray-700 dark:text-white"
               />
               <span className="text-gray-400 dark:text-gray-400">-</span>
               <input
@@ -391,7 +391,7 @@ export default function Reports() {
                   setCustomDateTo(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="rounded-xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:text-white dark:placeholder-gray-400"
+                className="rounded-xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-white dark:placeholder-gray-400"
               />
             </div>
           </div>
@@ -403,22 +403,22 @@ export default function Reports() {
       {/* ══════════════ Summary Cards ══════════════════════════════════════ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Revenue */}
-        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Revenue</p>
-              <p className="mt-1 text-3xl font-bold text-violet-600">
+              <p className="mt-1 text-3xl font-bold text-accent">
                 {formatCurrency(summaryStats.totalRevenue)}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-900/30 border border-purple-200/50 dark:border-purple-800/30 dark:bg-purple-900/30 border border-purple-200/50 dark:border-purple-800/30">
-              <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400 dark:text-purple-400" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-light dark:bg-accent/20 border border-accent/30 dark:bg-accent/30 border border-purple-200/50 dark:border-accent/30">
+              <TrendingUp className="h-6 w-6 text-accent dark:text-accent dark:text-accent" />
             </div>
           </div>
         </div>
 
         {/* Total Transaksi */}
-        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -435,7 +435,7 @@ export default function Reports() {
         </div>
 
         {/* Produk Terjual */}
-        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -452,7 +452,7 @@ export default function Reports() {
         </div>
 
         {/* Avg Order Value */}
-        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -473,7 +473,7 @@ export default function Reports() {
       <div className="overflow-hidden rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 dark:border-gray-700 bg-white dark:bg-gray-800">
         <div className="p-6 border-b border-[#ececf2] dark:border-gray-700/60">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Package className="h-5 w-5 text-violet-600" />
+            <Package className="h-5 w-5 text-accent" />
             Produk Terlaris
           </h2>
         </div>
@@ -512,7 +512,7 @@ export default function Reports() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-100 to-purple-200">
-                          <Package className="h-4 w-4 text-violet-600" />
+                          <Package className="h-4 w-4 text-accent" />
                         </div>
                         <span className="font-semibold text-gray-900 dark:text-white">
                           {product.name}
@@ -530,7 +530,7 @@ export default function Reports() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="font-bold text-violet-600">
+                      <span className="font-bold text-accent">
                         {formatCurrency(product.revenue)}
                       </span>
                     </td>
@@ -538,7 +538,7 @@ export default function Reports() {
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-violet-500 to-purple-600 rounded-full"
+                            className="h-full bg-gradient-to-r rounded-full" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
                             style={{ width: `${product.percentage}%` }}
                           />
                         </div>
@@ -559,7 +559,7 @@ export default function Reports() {
       <div className="overflow-hidden rounded-2xl border border-[#ececf2] dark:border-gray-700">
         <div className="p-6 border-b border-[#ececf2] dark:border-gray-700/60">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-violet-600" />
+            <Receipt className="h-5 w-5 text-accent" />
             Rincian Transaksi
           </h2>
         </div>
@@ -601,7 +601,7 @@ export default function Reports() {
                       <td className="px-6 py-4">
                         <button
                           onClick={() => handleViewInvoice(transaction)}
-                          className="text-violet-600 font-semibold hover:underline cursor-pointer"
+                          className="text-accent font-semibold hover:underline cursor-pointer"
                         >
                           #{transaction.id}
                         </button>
@@ -629,14 +629,14 @@ export default function Reports() {
                               </span>
                             ))}
                           {(transaction.items || []).length > 2 && (
-                            <span className="inline-block rounded-lg bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-600 dark:text-violet-400">
+                            <span className="inline-block rounded-lg bg-accent-light px-2.5 py-1 text-xs font-medium text-accent">
                               +{(transaction.items || []).length - 2} more
                             </span>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <span className="font-bold text-violet-600 dark:text-violet-400">
+                        <span className="font-bold text-accent dark:text-accent">
                           {formatCurrency(transaction.total)}
                         </span>
                       </td>
@@ -676,7 +676,7 @@ export default function Reports() {
                       setCurrentPage((prev) => Math.max(prev - 1, 1))
                     }
                     disabled={currentPage === 1}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <ArrowLeft className="h-4 w-4" />
                   </button>
@@ -690,8 +690,8 @@ export default function Reports() {
                       onClick={() => setCurrentPage(page)}
                       className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold transition-all ${
                         page === currentPage
-                          ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white dark:text-white shadow-lg shadow-violet-500/20"
-                          : "border border-[#ececf2] dark:border-gray-700 text-gray-600 hover:border-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:text-violet-600"
+                          ? "bg-gradient-to-r from-accent to-accent-hover text-white dark:text-white shadow-lg shadow-accent/20"
+                          : "border border-[#ececf2] dark:border-gray-700 text-gray-600 hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:text-accent"
                       }`}
                     >
                       {page}
@@ -705,7 +705,7 @@ export default function Reports() {
                       )
                     }
                     disabled={currentPage === paginatedTransactions.totalPages}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <ArrowRight className="h-4 w-4" />
                   </button>

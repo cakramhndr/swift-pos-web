@@ -156,7 +156,7 @@ export default function Analytics() {
   const getSegmentBadge = (segment) => {
     const styles = {
       VIP: "bg-amber-500/15 border border-amber-500/30 text-amber-300",
-      Regular: "bg-violet-500/15 border border-violet-500/30 text-violet-300",
+      Regular: "bg-accent/15 border border-accent/30 text-accent",
       New: "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300",
       Inactive: "bg-red-500/15 border border-red-500/30 text-red-300",
     };
@@ -181,7 +181,7 @@ export default function Analytics() {
       {/* ══════════════ Page Header ═══════════════════════════════════════ */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-md">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br shadow-md" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
             <Users2 className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -198,7 +198,7 @@ export default function Analytics() {
       {/* ══════════════ Summary Cards ══════════════════════════════════════ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Customers */}
-        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -215,7 +215,7 @@ export default function Analytics() {
         </div>
 
         {/* VIP Customers */}
-        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">VIP Customers</p>
@@ -230,7 +230,7 @@ export default function Analytics() {
         </div>
 
         {/* Inactive Customers */}
-        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -247,18 +247,18 @@ export default function Analytics() {
         </div>
 
         {/* Avg Lifetime Value */}
-        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
+        <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-6 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.08)]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Avg Lifetime Value
               </p>
-              <p className="mt-1 text-3xl font-bold text-purple-600">
+              <p className="mt-1 text-3xl font-bold text-accent">
                 {formatCurrency(customerMetrics.avgLifetimeValue)}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-900/30 border border-purple-200/50 dark:border-purple-800/30 dark:bg-purple-900/30 border border-purple-200/50 dark:border-purple-800/30">
-              <TrendingUp className="h-6 w-6 text-purple-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-light dark:bg-accent/20 border border-accent/30 dark:bg-accent/30 border border-purple-200/50 dark:border-accent/30">
+              <TrendingUp className="h-6 w-6 text-accent" />
             </div>
           </div>
         </div>
@@ -378,7 +378,7 @@ export default function Analytics() {
       <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 overflow-hidden">
         <div className="p-6 border-b border-[#ececf2] dark:border-gray-700/60">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Medal className="h-5 w-5 text-violet-600" />
+            <Medal className="h-5 w-5 text-accent" />
             Top Customers
           </h2>
         </div>
@@ -397,7 +397,7 @@ export default function Analytics() {
             {filteredLeaderboard.map((customer, index) => (
               <div
                 key={customer.id}
-                className="flex items-center gap-4 p-4 hover:bg-violet-50 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)] transition-colors"
+                className="flex items-center gap-4 p-4 hover:bg-accent-light dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)] transition-colors"
               >
                 {/* Rank */}
                 <div
@@ -413,7 +413,7 @@ export default function Analytics() {
                 </div>
 
                 {/* Avatar */}
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-sm font-bold flex-shrink-0">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br text-white text-sm font-bold flex-shrink-0" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
                   {getInitials(customer.fullName)}
                 </div>
 
@@ -436,7 +436,7 @@ export default function Analytics() {
 
                 {/* Total Spent */}
                 <div className="text-right min-w-[120px]">
-                  <p className="text-lg font-bold text-violet-600">
+                  <p className="text-lg font-bold text-accent">
                     {formatCurrency(customer.totalSpent)}
                   </p>
                 </div>

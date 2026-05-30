@@ -116,14 +116,14 @@ export default function Dashboard() {
                 recentOrders: recentTransactions,
               })
             }
-            className="flex items-center gap-2 rounded-2xl border border-violet-200 px-5 py-2.5 font-semibold text-violet-600 transition-all hover:bg-violet-50 dark:hover:bg-violet-900/30"
+            className="flex items-center gap-2 rounded-2xl border border-accent px-5 py-2.5 font-semibold text-accent transition-all hover:bg-accent-light dark:hover:bg-accent/30"
           >
             <Download className="h-4 w-4" />
             Export
           </button>
           <button
             onClick={() => navigate("/transactions")}
-            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
           >
             <Plus className="h-4 w-4" />
             New Order
@@ -135,7 +135,7 @@ export default function Dashboard() {
       <div className="flex items-center gap-4 overflow-visible pb-2 pt-1">
         <button
           onClick={() => navigate("/transactions")}
-          className="relative z-10 flex items-center gap-2 px-4 py-2 text-sm font-medium border border-purple-200 dark:border-purple-800/40 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+          className="relative z-10 flex items-center gap-2 px-4 py-2 text-sm font-medium border border-purple-200 dark:border-accent/40 text-accent dark:text-accent rounded-lg hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
         >
           <ShoppingCart size={16} /> New Sale
         </button>
@@ -168,7 +168,7 @@ export default function Dashboard() {
       {/* ══════════════ Stat Cards ════════════════════════════════════════ */}
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
         {/* ─── Total Revenue ─────────────────────────────────────────── */}
-        <div className="group relative rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_-4px_rgba(124,58,237,0.12)] hover:border-violet-200/80 transition-all duration-300">
+        <div className="group relative rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_-4px_rgba(124,58,237,0.12)] hover:border-accent/80 transition-all duration-300">
           <div className="flex items-start justify-between">
             <div className="space-y-2.5">
               <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400 tracking-wide">
@@ -187,7 +187,7 @@ export default function Dashboard() {
                 </span>
               </div>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20 shrink-0">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20 shrink-0" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
               <DollarSign className="h-6 w-6 text-white" />
             </div>
           </div>
@@ -199,22 +199,22 @@ export default function Dashboard() {
             <div className="flex gap-2 items-center">
               <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-purple-500"
+                  className="h-full rounded-full bg-accent"
                   style={{ width: "100%" }}
                 />
               </div>
               <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-purple-200"
+                  className="h-full rounded-full bg-accent-light"
                   style={{ width: "89%" }}
                 />
               </div>
             </div>
             <div className="flex justify-between text-xs font-medium">
-              <span className="text-purple-600 dark:text-purple-400">
+              <span className="text-accent dark:text-accent">
                 Rp 62.361.000
               </span>
-              <span className="text-purple-300 dark:text-purple-400">
+              <span className="text-accent/50">
                 Rp 55.432.000
               </span>
             </div>
@@ -388,7 +388,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between px-7 pt-7 pb-5">
             <div>
               <div className="flex items-center gap-3.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
                   <TrendingUp className="h-5 w-5 text-white" />
                 </div>
                 <div className="space-y-0.5">
@@ -593,7 +593,7 @@ export default function Dashboard() {
           <div className="px-7 pt-7 pb-5">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
                   <Clock className="h-5 w-5 text-white" />
                 </div>
                 <div className="space-y-0.5">
@@ -607,7 +607,7 @@ export default function Dashboard() {
               </div>
               <button
                 onClick={() => navigate("/transactions")}
-                className="text-sm font-medium text-violet-600 hover:text-violet-700 dark:text-violet-300 hover:underline transition-all"
+                className="text-sm font-medium text-accent hover:text-accent dark:text-accent hover:underline transition-all"
               >
                 View all &rarr;
               </button>
@@ -656,7 +656,7 @@ export default function Dashboard() {
                       >
                         <td className="py-4 pr-4">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 text-xs font-bold text-white shadow-sm">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br text-xs font-bold text-white shadow-sm" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
                               #{String(transaction.id).slice(-3)}
                             </div>
                             <span className="font-medium text-gray-900 text-sm">
@@ -744,7 +744,7 @@ export default function Dashboard() {
                 {products.filter((p) => p.stock <= 10).length > 4 && (
                   <button
                     onClick={() => navigate("/inventory")}
-                    className="w-full text-center text-sm font-medium text-violet-600 hover:text-violet-700 dark:text-violet-300 hover:underline pt-1 transition-all"
+                    className="w-full text-center text-sm font-medium text-accent hover:text-accent dark:text-accent hover:underline pt-1 transition-all"
                   >
                     View all alerts &rarr;
                   </button>
@@ -768,7 +768,7 @@ export default function Dashboard() {
           {/* Quick Summary Card */}
           <div className="rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 p-7">
             <div className="flex items-center gap-3.5 mb-5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
                 <TrendingUp className="h-5 w-5 text-white" />
               </div>
               <div className="space-y-0.5">

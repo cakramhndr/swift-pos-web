@@ -439,7 +439,13 @@ export default function Transactions() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-md">
+            <div
+              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br shadow-md"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+              }}
+            >
               <Receipt className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -456,7 +462,7 @@ export default function Transactions() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => exportTransactionsPDF(transactions)}
-            className="relative z-10 flex items-center gap-2 rounded-2xl border border-violet-200 dark:border-violet-800/40 px-4 py-2.5 text-sm font-semibold text-violet-600 dark:text-violet-300 transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 dark:hover:bg-violet-900/30 text-sm"
+            className="relative z-10 flex items-center gap-2 rounded-2xl border border-accent px-4 py-2.5 text-sm font-semibold text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 dark:hover:bg-accent/30 text-sm"
           >
             <Download className="h-4 w-4" />
             Export PDF
@@ -475,12 +481,24 @@ export default function Transactions() {
         {/* ─── Products Panel (Left - 2 columns) ──────────────────────── */}
         <div className="col-span-2 overflow-hidden rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
           <div className="relative">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
+            <div
+              className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r "
+              style={{
+                background:
+                  "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
+              }}
+            />
 
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+                  <div
+                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                    }}
+                  >
                     <Package className="h-5 w-5 text-white" />
                   </div>
                   <div>
@@ -503,7 +521,7 @@ export default function Transactions() {
                     placeholder="Search product..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-56 rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:text-white dark:placeholder-gray-400"
+                    className="w-56 rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-white dark:placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -528,7 +546,7 @@ export default function Transactions() {
                         key={product.id}
                         onClick={() => addToCart(product)}
                         disabled={effStock <= 0}
-                        className="group cursor-pointer rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-4 text-left transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                        className="group cursor-pointer rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-4 text-left transition-all duration-200 hover:border-accent dark:hover:border-accent hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.1)] hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
                       >
                         <div className="mb-3 h-28 rounded-2xl bg-gradient-to-br from-violet-50 dark:from-violet-900/30 to-purple-50 dark:to-purple-900/30 flex items-center justify-center overflow-hidden">
                           {product.image ? (
@@ -538,7 +556,7 @@ export default function Transactions() {
                               className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
                             />
                           ) : (
-                            <Package className="h-10 w-10 text-violet-300 group-hover:scale-110 transition-transform duration-300" />
+                            <Package className="h-10 w-10 text-accent group-hover:scale-110 transition-transform duration-300" />
                           )}
                         </div>
 
@@ -550,7 +568,7 @@ export default function Transactions() {
                         </p>
 
                         <div className="mt-3 flex items-center justify-between">
-                          <p className="text-base font-bold text-violet-600 dark:text-violet-400">
+                          <p className="text-base font-bold text-accent dark:text-accent">
                             {hasVariants
                               ? `From Rp ${Number(product.variants[0]?.unitPrice || 0).toLocaleString()}`
                               : `Rp ${Number(product.unitPrice).toLocaleString()}`}
@@ -558,7 +576,7 @@ export default function Transactions() {
                           <span
                             className={`flex h-6 w-6 items-center justify-center rounded-lg transition-all duration-200 ${
                               effStock > 0
-                                ? "bg-violet-100 dark:bg-violet-900/30 text-violet-600 group-hover:bg-violet-600 group-hover:text-white"
+                                ? "bg-accent-light dark:bg-accent/20 text-accent group-hover:bg-accent group-hover:text-white"
                                 : "bg-gray-100 text-gray-400 dark:text-gray-400"
                             }`}
                           >
@@ -567,7 +585,7 @@ export default function Transactions() {
                         </div>
 
                         {hasVariants && (
-                          <p className="mt-1 text-xs text-purple-500 dark:text-purple-400 font-medium">
+                          <p className="mt-1 text-xs text-accent dark:text-accent font-medium">
                             {product.variants.length} variants
                           </p>
                         )}
@@ -596,7 +614,13 @@ export default function Transactions() {
           className="sticky top-4 flex flex-col justify-between rounded-xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
           style={{ height: "calc(100vh - 220px)" }}
         >
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 z-10" />
+          <div
+            className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r  z-10"
+            style={{
+              background:
+                "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
+            }}
+          />
 
           {cart.length === 0 ? (
             <div className="flex flex-1 items-center justify-center p-4">
@@ -619,7 +643,13 @@ export default function Transactions() {
                 {/* Cart Header */}
                 <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-[#ececf2] dark:border-gray-700/60">
                   <div className="flex items-center gap-2.5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+                    <div
+                      className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                      }}
+                    >
                       <ShoppingCart className="h-5 w-5 text-white" />
                     </div>
                     <div>
@@ -650,7 +680,7 @@ export default function Transactions() {
                   {cart.map((item) => (
                     <div
                       key={item.cartId || item.id}
-                      className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-3 transition-all hover:border-violet-200"
+                      className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-3 transition-all hover:border-accent"
                     >
                       {/* Item Header */}
                       <div className="flex items-start justify-between gap-2">
@@ -680,7 +710,7 @@ export default function Transactions() {
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => decreaseQty(item.cartId || item.id)}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#ececf2] dark:border-gray-700 transition-all hover:border-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:text-violet-600"
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#ececf2] dark:border-gray-700 transition-all hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:text-accent"
                           >
                             <Minus className="h-3 w-3 text-gray-500 dark:text-gray-400" />
                           </button>
@@ -689,12 +719,12 @@ export default function Transactions() {
                           </span>
                           <button
                             onClick={() => increaseQty(item.cartId || item.id)}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#ececf2] dark:border-gray-700 transition-all hover:border-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:text-violet-600"
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#ececf2] dark:border-gray-700 transition-all hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:text-accent"
                           >
                             <Plus className="h-3 w-3 text-gray-500 dark:text-gray-400" />
                           </button>
                         </div>
-                        <p className="text-sm font-bold text-violet-600">
+                        <p className="text-sm font-bold text-accent">
                           Rp{" "}
                           {(
                             Number(item.unitPrice || 0) * item.qty
@@ -729,14 +759,18 @@ export default function Transactions() {
                   <span className="text-base font-bold text-gray-900 dark:text-white">
                     Total
                   </span>
-                  <span className="text-xl font-bold text-violet-600">
+                  <span className="text-xl font-bold text-accent">
                     Rp {totalAmount.toLocaleString()}
                   </span>
                 </div>
 
                 <button
                   onClick={handleProceedToCheckout}
-                  className="w-full rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                  className="w-full rounded-2xl bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                  style={{
+                    background:
+                      "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                  }}
                 >
                   Proceed to Checkout
                 </button>
@@ -756,7 +790,13 @@ export default function Transactions() {
             className="w-full max-w-lg rounded-3xl bg-white dark:bg-gray-800 p-7 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-7 -mx-7 mb-6" />
+            <div
+              className="h-1 bg-gradient-to-r  rounded-t-3xl -mt-7 -mx-7 mb-6"
+              style={{
+                background:
+                  "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
+              }}
+            />
             <div className="flex items-start justify-between mb-5">
               <div className="flex items-center gap-3.5">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200">
@@ -767,7 +807,7 @@ export default function Transactions() {
                       className="h-full w-full object-cover rounded-xl"
                     />
                   ) : (
-                    <Package className="h-5.5 w-5.5 text-violet-600 dark:text-violet-400" />
+                    <Package className="h-5.5 w-5.5 text-accent dark:text-accent" />
                   )}
                 </div>
                 <div>
@@ -804,7 +844,7 @@ export default function Transactions() {
                       className={`w-full flex items-center justify-between rounded-2xl border p-4 transition-all duration-200 ${
                         isOutOfStock
                           ? "border-gray-100 dark:border-gray-700 bg-gray-50 opacity-50 cursor-not-allowed"
-                          : "border-[#ececf2] dark:border-gray-700 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer hover:scale-[1.01]"
+                          : "border-[#ececf2] dark:border-gray-700 hover:border-accent hover:bg-accent-light dark:hover:bg-accent/20 cursor-pointer hover:scale-[1.01]"
                       }`}
                     >
                       <div className="text-left min-w-0 flex-1 pr-3">
@@ -818,7 +858,7 @@ export default function Transactions() {
                         )}
                       </div>
                       <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
-                        <p className="font-bold text-violet-600 dark:text-violet-400 text-sm">
+                        <p className="font-bold text-accent dark:text-accent text-sm">
                           Rp {(Number(variant.unitPrice) || 0).toLocaleString()}
                         </p>
                         <span
@@ -853,12 +893,24 @@ export default function Transactions() {
       {/* ══════════════ Transaction History ════════════════════════════════ */}
       <div className="overflow-hidden rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm transition-all duration-300 hover:shadow-md">
         <div className="relative">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
+          <div
+            className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r "
+            style={{
+              background:
+                "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
+            }}
+          />
 
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+                <div
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                  }}
+                >
                   <Receipt className="h-5 w-5 text-white" />
                 </div>
                 <div>
@@ -887,7 +939,7 @@ export default function Transactions() {
                       setInvoiceSearch(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:text-white dark:placeholder-gray-400"
+                    className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-white dark:placeholder-gray-400"
                   />
                 </div>
               )}
@@ -941,10 +993,10 @@ export default function Transactions() {
                           >
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200 text-xs font-bold text-violet-600">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200 text-xs font-bold text-accent">
                                   #{String(transaction.id).slice(-3)}
                                 </div>
-                                <span className="font-semibold text-violet-600">
+                                <span className="font-semibold text-accent">
                                   #{transaction.id}
                                 </span>
                               </div>
@@ -968,14 +1020,14 @@ export default function Transactions() {
                                   </span>
                                 ))}
                                 {transaction.items.length > 2 && (
-                                  <span className="inline-block rounded-lg bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-600 dark:text-violet-400">
+                                  <span className="inline-block rounded-lg bg-accent-light px-2.5 py-1 text-xs font-medium text-accent">
                                     +{transaction.items.length - 2} more
                                   </span>
                                 )}
                               </div>
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <span className="font-bold text-violet-600 dark:text-violet-400">
+                              <span className="font-bold text-accent dark:text-accent">
                                 Rp {transaction.total.toLocaleString()}
                               </span>
                             </td>
@@ -1013,7 +1065,7 @@ export default function Transactions() {
                         setCurrentPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={currentPage === 1}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
@@ -1029,8 +1081,8 @@ export default function Transactions() {
                         onClick={() => setCurrentPage(page)}
                         className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold transition-all ${
                           page === currentPage
-                            ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white dark:text-white shadow-lg shadow-violet-500/20"
-                            : "border border-[#ececf2] dark:border-gray-700 text-gray-600 hover:border-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:text-violet-600"
+                            ? "bg-gradient-to-r from-accent to-accent-hover text-white dark:text-white shadow-lg shadow-accent/20"
+                            : "border border-[#ececf2] dark:border-gray-700 text-gray-600 hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:text-accent"
                         }`}
                       >
                         {page}
@@ -1050,7 +1102,7 @@ export default function Transactions() {
                         currentPage ===
                         Math.ceil(transactions.length / ITEMS_PER_PAGE)
                       }
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowRight className="h-4 w-4" />
                     </button>
@@ -1068,7 +1120,13 @@ export default function Transactions() {
           <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                  }}
+                >
                   <User className="h-5 w-5 text-white" />
                 </div>
                 <div>
@@ -1083,7 +1141,7 @@ export default function Transactions() {
 
               <button
                 onClick={handleCloseCustomerSelect}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 dark:text-gray-400 transition-all hover:bg-gray-200"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 transition-all hover:bg-gray-200 dark:hover:bg-gray-600"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1102,7 +1160,7 @@ export default function Transactions() {
                     placeholder="Search customers..."
                     value={customerSearch}
                     onChange={(e) => setCustomerSearch(e.target.value)}
-                    className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:text-white dark:placeholder-gray-400"
+                    className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-white dark:placeholder-gray-400"
                   />
                 </div>
 
@@ -1115,18 +1173,36 @@ export default function Transactions() {
                         onClick={() => handleSelectCustomer(customer)}
                         className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all ${
                           selectedCustomer?.id === customer.id
-                            ? "border-violet-400 bg-violet-50"
-                            : "border-[#ececf2] dark:border-gray-700 hover:border-violet-200 hover:bg-gray-50 dark:bg-gray-800"
+                            ? "border-accent bg-accent/20 dark:bg-accent/30"
+                            : "border-[#ececf2] dark:border-gray-700 hover:border-accent hover:bg-gray-50 dark:hover:bg-gray-700/50"
                         }`}
                       >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-sm font-bold flex-shrink-0">
+                        <div
+                          className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br text-white text-sm font-bold flex-shrink-0"
+                          style={{
+                            background:
+                              "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                          }}
+                        >
                           {getInitials(customer.fullName)}
                         </div>
-                        <div className="flex-1 text-left min-w-0">
-                          <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                        <div
+                          className={`flex-1 text-left min-w-0 ${
+                            selectedCustomer?.id === customer.id
+                              ? "text-gray-900 dark:text-white"
+                              : "text-gray-900 dark:text-white"
+                          }`}
+                        >
+                          <p className="font-semibold text-sm truncate">
                             {customer.fullName}
                           </p>
-                          <p className="text-xs text-gray-400 truncate">
+                          <p
+                            className={`text-xs truncate ${
+                              selectedCustomer?.id === customer.id
+                                ? "text-gray-900 dark:text-white"
+                                : "text-gray-400"
+                            }`}
+                          >
                             {customer.email ||
                               customer.phone ||
                               "No contact info"}
@@ -1136,8 +1212,8 @@ export default function Transactions() {
                     ))
                   ) : (
                     <div className="text-center py-8">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50 mx-auto mb-3">
-                        <User className="h-6 w-6 text-gray-400 dark:text-gray-400" />
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700 border border-gray-200/50 dark:border-gray-600/50 mx-auto mb-3">
+                        <User className="h-6 w-6 text-gray-400 dark:text-gray-500" />
                       </div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         No customers found
@@ -1151,11 +1227,11 @@ export default function Transactions() {
                   onClick={handleSelectWalkIn}
                   className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 border-dashed transition-all mb-3 ${
                     selectedCustomerType === "walkin"
-                      ? "border-violet-400 bg-violet-50"
-                      : "border-gray-300 dark:border-gray-600 hover:border-violet-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all duration-200"
+                      ? "border-accent bg-accent/20 dark:bg-accent/30"
+                      : "border-gray-300 dark:border-gray-600 hover:border-accent hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all duration-200"
                   }`}
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-500 dark:text-gray-400 text-sm font-bold flex-shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm font-bold flex-shrink-0">
                     <User className="h-5 w-5" />
                   </div>
                   <div className="flex-1 text-left">
@@ -1171,7 +1247,7 @@ export default function Transactions() {
                 {/* Add New Customer Button */}
                 <button
                   onClick={() => setShowNewCustomerForm(true)}
-                  className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl border border-violet-200 text-violet-600 dark:text-violet-400 font-medium text-sm transition-all hover:bg-violet-50 dark:hover:bg-violet-900/30"
+                  className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl border border-accent text-accent dark:text-accent font-medium text-sm transition-all hover:bg-accent-light dark:hover:bg-accent/30"
                 >
                   <Plus className="h-4 w-4" />
                   Add New Customer
@@ -1195,7 +1271,7 @@ export default function Transactions() {
                         })
                       }
                       placeholder="Enter customer name"
-                      className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                      className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                     />
                   </div>
 
@@ -1213,7 +1289,7 @@ export default function Transactions() {
                         })
                       }
                       placeholder="Enter phone number"
-                      className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                      className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                     />
                   </div>
                 </div>
@@ -1230,7 +1306,11 @@ export default function Transactions() {
                   </button>
                   <button
                     onClick={handleCreateNewCustomer}
-                    className="flex-1 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                    className="flex-1 rounded-2xl bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                    style={{
+                      background:
+                        "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                    }}
                   >
                     Create Customer
                   </button>
@@ -1243,10 +1323,15 @@ export default function Transactions() {
               <button
                 onClick={handleContinueToPayment}
                 disabled={!selectedCustomerType}
+                style={
+                  selectedCustomerType
+                    ? { background: "var(--color-accent)" }
+                    : {}
+                }
                 className={`w-full rounded-2xl py-3.5 font-semibold shadow-sm transition-all mt-4 ${
                   selectedCustomerType
-                    ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:shadow-md hover:-translate-y-0.5"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    ? "text-white hover:shadow-md hover:-translate-y-0.5"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
                 }`}
               >
                 Continue to Payment
@@ -1261,12 +1346,22 @@ export default function Transactions() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm">
             <div
-              className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl"
+              className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r  rounded-t-3xl"
+              style={{
+                background:
+                  "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
+              }}
               style={{ position: "relative", marginBottom: 0 }}
             />
             <div className="-mt-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                  }}
+                >
                   <CreditCard className="h-5 w-5 text-white" />
                 </div>
                 <div>
@@ -1281,7 +1376,13 @@ export default function Transactions() {
 
               {/* Customer Info Display */}
               <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/60 p-4 mb-6 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-sm font-bold flex-shrink-0">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br text-white text-sm font-bold flex-shrink-0"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                  }}
+                >
                   {selectedCustomer ? (
                     getInitials(selectedCustomer.fullName)
                   ) : (
@@ -1304,7 +1405,7 @@ export default function Transactions() {
                       setShowCheckout(false);
                       setShowCustomerSelect(true);
                     }}
-                    className="text-xs text-violet-600 dark:text-violet-400 font-medium hover:underline"
+                    className="text-xs text-accent dark:text-accent font-medium hover:underline"
                   >
                     Change
                   </button>
@@ -1330,7 +1431,7 @@ export default function Transactions() {
                         Qty: {item.qty}
                       </p>
                     </div>
-                    <p className="font-semibold text-violet-600">
+                    <p className="font-semibold text-accent">
                       Rp{" "}
                       {(
                         Number(item.unitPrice || 0) * item.qty
@@ -1348,7 +1449,7 @@ export default function Transactions() {
                   <select
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer dark:bg-gray-700 dark:text-white"
                   >
                     {(() => {
                       const getPaymentMethods = () => {
@@ -1392,7 +1493,7 @@ export default function Transactions() {
                       const value = e.target.value.replace(/[^0-9]/g, "");
                       setPaidAmount(value);
                     }}
-                    className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                    className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -1402,7 +1503,7 @@ export default function Transactions() {
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     Total Payment
                   </p>
-                  <p className="text-lg font-bold text-violet-600">
+                  <p className="text-lg font-bold text-accent">
                     Rp {totalAmount.toLocaleString()}
                   </p>
                 </div>
@@ -1443,10 +1544,10 @@ export default function Transactions() {
                 <button
                   onClick={handleCheckout}
                   disabled={Number(paidAmount) < totalAmount || !paidAmount}
-                  className={`flex-1 rounded-2xl py-3.5 font-semibold shadow-sm transition-all ${
+                  className={`flex-1 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all ${
                     Number(paidAmount) >= totalAmount && paidAmount
-                      ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:shadow-md"
-                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      ? "bg-[var(--color-accent)] text-white text-center"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed text-center"
                   }`}
                 >
                   Confirm Payment
@@ -1463,7 +1564,13 @@ export default function Transactions() {
           <div className="w-full max-w-2xl rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                  }}
+                >
                   <Receipt className="h-5 w-5 text-white" />
                 </div>
                 <div>
@@ -1513,7 +1620,7 @@ export default function Transactions() {
               {selectedTransaction.items.map((item) => (
                 <div
                   key={item.cartId || item.id}
-                  className="flex items-center justify-between rounded-2xl border border-[#ececf2] dark:border-gray-700 p-4 transition-all hover:border-violet-200"
+                  className="flex items-center justify-between rounded-2xl border border-[#ececf2] dark:border-gray-700 p-4 transition-all hover:border-accent"
                 >
                   <div>
                     <p className="font-semibold text-gray-900 dark:text-white">
@@ -1530,7 +1637,7 @@ export default function Transactions() {
                     </p>
                   </div>
 
-                  <p className="font-bold text-violet-600">
+                  <p className="font-bold text-accent">
                     Rp{" "}
                     {(Number(item.unitPrice || 0) * item.qty).toLocaleString()}
                   </p>
@@ -1544,7 +1651,7 @@ export default function Transactions() {
                   Payment Method
                 </p>
                 <p className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-violet-500" />
+                  <CreditCard className="h-4 w-4 text-accent" />
                   {selectedTransaction.paymentMethod || "Cash"}
                 </p>
               </div>
@@ -1572,7 +1679,7 @@ export default function Transactions() {
                 <p className="text-base font-bold text-gray-900 dark:text-white">
                   Total
                 </p>
-                <p className="text-2xl font-bold text-violet-600">
+                <p className="text-2xl font-bold text-accent">
                   Rp {selectedTransaction.total.toLocaleString()}
                 </p>
               </div>
@@ -1580,7 +1687,11 @@ export default function Transactions() {
 
             <button
               onClick={handlePrintReceipt}
-              className="w-full rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-2"
+              className="w-full rounded-2xl bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-2"
+              style={{
+                background:
+                  "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+              }}
             >
               <Printer className="h-4 w-4" />
               Print Receipt

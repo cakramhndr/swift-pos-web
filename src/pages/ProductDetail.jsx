@@ -141,7 +141,7 @@ export default function ProductDetail() {
                 className="h-full w-full object-contain p-4"
               />
             ) : (
-              <Package className="h-24 w-24 text-violet-300" />
+              <Package className="h-24 w-24 text-accent" />
             )}
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function ProductDetail() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{product.name}</h1>
             <div className="flex items-center gap-2 mt-3">
-              <span className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700">
+              <span className="inline-flex items-center rounded-full bg-accent-light px-3 py-1 text-xs font-medium text-accent">
                 {product.category}
               </span>
               <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-3 py-1 text-xs font-mono font-medium text-gray-600 dark:text-gray-300">
@@ -191,7 +191,7 @@ export default function ProductDetail() {
                     <tr key={variant.id} className="border-b last:border-0">
                       <td className="py-2 font-medium">{variant.name}</td>
                       <td className="py-2 text-right">{variant.stock}</td>
-                      <td className="py-2 text-right text-purple-600 dark:text-purple-400">
+                      <td className="py-2 text-right text-accent dark:text-accent">
                         Rp {variant.unitPrice?.toLocaleString("id-ID")}
                       </td>
                       <td className="py-2 text-right">
@@ -225,7 +225,7 @@ export default function ProductDetail() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500 dark:text-gray-400">Unit Price</span>
-                <span className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                <span className="text-xl font-bold text-accent dark:text-accent">
                   {formatRupiah(unitPrice)}
                 </span>
               </div>
@@ -293,7 +293,7 @@ export default function ProductDetail() {
               onClick={() => {
                 navigate("/products");
               }}
-              className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-violet-200 px-5 py-3 text-sm font-medium text-violet-600 transition-all hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.2)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.12)] hover:-translate-y-0.5"
+              className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-accent px-5 py-3 text-sm font-medium text-accent transition-all hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.2)] dark:hover:shadow-[0_0_16px_-2px_rgba(168,85,247,0.12)] hover:-translate-y-0.5"
             >
               <Edit3 className="h-4 w-4" />
               Edit Product
@@ -317,7 +317,7 @@ export default function ProductDetail() {
       <div className="overflow-hidden rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
         <div className="p-6">
           <div className="flex items-center gap-3 mb-6">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
               <ShoppingCart className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -361,10 +361,10 @@ export default function ProductDetail() {
                     return (
                       <tr
                         key={t.id}
-                        className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-violet-50 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)]"
+                        className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-accent-light dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)]"
                       >
                         <td className="px-6 py-4">
-                          <span className="font-semibold text-violet-600">
+                          <span className="font-semibold text-accent">
                             #{t.id}
                           </span>
                         </td>
@@ -377,7 +377,7 @@ export default function ProductDetail() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <span className="font-bold text-violet-600 dark:text-violet-400">
+                          <span className="font-bold text-accent dark:text-accent">
                             {formatRupiah(item ? item.unitPrice * item.qty : 0)}
                           </span>
                         </td>

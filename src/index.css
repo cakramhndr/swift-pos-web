@@ -136,6 +136,59 @@
   background: transparent;
 }
 .cart-items::-webkit-scrollbar-thumb {
-  background: #c4b5fd;
+  background: var(--color-accent-light, #c4b5fd);
   border-radius: 2px;
+}
+
+/* ─── Accent Color Utility Classes ────────────────────────────────── */
+.bg-accent {
+  background: var(--color-accent);
+}
+.bg-accent-light {
+  background: var(--color-accent-light);
+}
+.text-accent {
+  color: var(--color-accent);
+}
+.text-accent-hover {
+  color: var(--color-accent-hover);
+}
+.border-accent {
+  border-color: var(--color-accent);
+}
+.ring-accent {
+  --ring-color: var(--color-accent);
+}
+
+/* Gradient utilities using CSS variables */
+.from-accent {
+  --tw-gradient-from: var(--color-accent) var(--tw-gradient-from-position);
+  --tw-gradient-to: var(--color-accent-hover) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+.to-accent-hover {
+  --tw-gradient-to: var(--color-accent-hover) var(--tw-gradient-to-position);
+}
+.via-accent-light {
+  --tw-gradient-via: var(--color-accent-light) var(--tw-gradient-via-position);
+}
+
+/* Accent shadow utility */
+.shadow-accent {
+  --tw-shadow-color: var(--color-accent);
+  --tw-shadow: 0 4px 14px -2px var(--tw-shadow-color);
+}
+
+/* Hover accent bg on hover (for items) */
+.hover\:bg-accent-light:hover {
+  background: var(--color-accent-light);
+}
+.hover\:text-accent:hover {
+  color: var(--color-accent);
+}
+.hover\:border-accent:hover {
+  border-color: var(--color-accent);
+}
+.group:hover .group-hover\:text-accent {
+  color: var(--color-accent);
 }

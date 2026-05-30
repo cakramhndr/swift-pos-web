@@ -656,7 +656,7 @@ export default function Products() {
         <button
           type="button"
           onClick={() => addVariant(isEdit)}
-          className="text-xs font-semibold text-purple-600 border border-purple-200 px-3.5 py-1.5 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer flex items-center gap-1.5 transition-all hover:shadow-sm"
+          className="text-xs font-semibold text-accent border border-purple-200 px-3.5 py-1.5 rounded-xl hover:bg-accent-light dark:hover:bg-accent/20 cursor-pointer flex items-center gap-1.5 transition-all hover:shadow-sm"
         >
           <Plus size={13} /> Add Variant
         </button>
@@ -688,7 +688,7 @@ export default function Products() {
                   onChange={(e) =>
                     updateVariant(variant.id, "name", e.target.value, isEdit)
                   }
-                  className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                 />
               </div>
               <div>
@@ -703,7 +703,7 @@ export default function Products() {
                     onChange={(e) =>
                       updateVariant(variant.id, "sku", e.target.value, isEdit)
                     }
-                    className="flex-1 rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                    className="flex-1 rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                   />
                   <button
                     type="button"
@@ -731,7 +731,7 @@ export default function Products() {
                   onChange={(e) =>
                     updateVariant(variant.id, "stock", e.target.value, isEdit)
                   }
-                  className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                 />
               </div>
               <div>
@@ -752,7 +752,7 @@ export default function Products() {
                       isEdit,
                     )
                   }
-                  className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                 />
               </div>
               <div>
@@ -771,7 +771,7 @@ export default function Products() {
                       isEdit,
                     )
                   }
-                  className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                 />
               </div>
             </div>
@@ -782,7 +782,7 @@ export default function Products() {
           <div className="rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 py-7 text-center">
             <p className="text-sm text-gray-400 dark:text-gray-400">
               No variants yet. Click{" "}
-              <span className="text-purple-500 font-semibold">Add Variant</span>{" "}
+              <span className="text-accent font-semibold">Add Variant</span>{" "}
               to create product options like size or color.
             </p>
           </div>
@@ -797,7 +797,7 @@ export default function Products() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-md">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br shadow-md" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
               <Package className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -815,7 +815,7 @@ export default function Products() {
           {/* Export PDF Button */}
           <button
             onClick={() => exportProductsPDF(products)}
-            className="relative z-10 flex items-center gap-2 rounded-2xl border border-violet-200 dark:border-violet-800/40 px-4 py-2.5 text-sm font-semibold text-violet-600 dark:text-violet-300 transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
+            className="relative z-10 flex items-center gap-2 rounded-2xl border border-accent px-4 py-2.5 text-sm font-semibold text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
           >
             <Download className="h-4 w-4" />
             Export PDF
@@ -823,7 +823,7 @@ export default function Products() {
           {/* Import CSV Button */}
           <button
             onClick={() => setImportModalOpen(true)}
-            className="relative z-10 flex items-center gap-2 rounded-2xl border border-purple-200 dark:border-purple-800/40 px-5 py-2.5 text-sm font-medium text-purple-600 dark:text-purple-300 transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
+            className="relative z-10 flex items-center gap-2 rounded-2xl border border-accent dark:border-accent/40 px-5 py-2.5 text-sm font-medium text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
           >
             <Upload className="h-4 w-4" />
             Import CSV
@@ -831,7 +831,7 @@ export default function Products() {
 
           <Dialog>
             <DialogTrigger asChild>
-              <button className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_-2px_rgba(124,58,237,0.4)] hover:-translate-y-0.5">
+              <button className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_-2px_rgba(124,58,237,0.4)] hover:-translate-y-0.5" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}>
                 <Plus className="h-4 w-4" />
                 Add Product
               </button>
@@ -839,7 +839,7 @@ export default function Products() {
 
             <DialogContent className="rounded-3xl sm:max-w-4xl p-0 overflow-hidden">
               <div className="relative">
-                <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
+                <div className="h-1 bg-gradient-to-r " style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
                 <DialogHeader className="px-6 pt-5 pb-0">
                   <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
                     Add Product
@@ -864,7 +864,7 @@ export default function Products() {
                               sku: e.target.value,
                             })
                           }
-                          className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                          className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                         />
                         <button
                           type="button"
@@ -873,7 +873,7 @@ export default function Products() {
                             setNewProduct({ ...newProduct, sku });
                           }}
                           disabled={!newProduct.name.trim()}
-                          className="shrink-0 text-xs px-2 py-1 border border-purple-300 text-purple-600 dark:text-purple-400 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="shrink-0 text-xs px-2 py-1 border border-accent text-accent rounded-md hover:bg-accent-light dark:hover:bg-accent/20 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           Generate
                         </button>
@@ -891,7 +891,7 @@ export default function Products() {
                             category: e.target.value,
                           })
                         }
-                        className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer"
+                        className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer"
                       >
                         <option value="">Select category</option>
                         {categories.map((cat) => (
@@ -919,7 +919,7 @@ export default function Products() {
                       className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
                         errors.name
                           ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                          : "border-[#ececf2] dark:border-gray-700 focus:border-violet-400 focus:ring-violet-100"
+                          : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"
                       }`}
                     />
                     {errors.name && (
@@ -954,7 +954,7 @@ export default function Products() {
                         className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
                           errors.stock
                             ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                            : "border-[#ececf2] dark:border-gray-700 focus:border-violet-400 focus:ring-violet-100"
+                            : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"
                         } ${addVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
                       />
                       {errors.stock && (
@@ -978,7 +978,7 @@ export default function Products() {
                             minStock: e.target.value,
                           })
                         }
-                        className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                        className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                       />
                       <p className="text-xs text-gray-400 dark:text-gray-400 mt-1">
                         Low stock alert threshold
@@ -1006,7 +1006,7 @@ export default function Products() {
                             unitCost: parsePriceInput(e.target.value),
                           })
                         }
-                        className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                        className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                       />
                     </div>
                     <div>
@@ -1036,7 +1036,7 @@ export default function Products() {
                         className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
                           errors.unitPrice
                             ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                            : "border-[#ececf2] dark:border-gray-700 focus:border-violet-400 focus:ring-violet-100"
+                            : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"
                         } ${addVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
                       />
                       {errors.unitPrice && (
@@ -1073,7 +1073,7 @@ export default function Products() {
                     </button>
                     <button
                       onClick={handleAddProduct}
-                      className="flex-1 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md"
+                      className="flex-1 rounded-lg bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
                     >
                       Save Product
                     </button>
@@ -1099,7 +1099,7 @@ export default function Products() {
                 placeholder="Search product..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-3 pl-11 pr-4 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 py-3 pl-11 pr-4 outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
             </div>
 
@@ -1107,7 +1107,7 @@ export default function Products() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="appearance-none rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-5 py-3 pr-12 text-sm font-medium text-gray-700 dark:text-white outline-none transition-all duration-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer"
+                className="appearance-none rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-5 py-3 pr-12 text-sm font-medium text-gray-700 dark:text-white outline-none transition-all duration-200 focus:border-accent focus:ring-2 focus:ring-accent/20 hover:border-accent dark:hover:border-accent hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer"
               >
                 <option>All Categories</option>
                 {categories.map((cat) => (
@@ -1115,20 +1115,20 @@ export default function Products() {
                 ))}
               </select>
               <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-lg bg-violet-500/15 border border-violet-500/30 px-1.5 py-1">
-                <span className="text-violet-500 text-[10px] font-bold">▼</span>
+                <span className="text-accent text-[10px] font-bold">▼</span>
               </div>
             </div>
 
             {/* Manage Categories Button */}
             <button
               onClick={() => setManageCatOpen(true)}
-              className="relative z-10 flex items-center gap-1.5 rounded-2xl border border-purple-200 dark:border-purple-800/40 px-4 py-3 text-sm font-medium text-purple-600 dark:text-purple-400 transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
+              className="relative z-10 flex items-center gap-1.5 rounded-2xl border border-accent dark:border-accent/40 px-4 py-3 text-sm font-medium text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
             >
               <Settings2 className="h-4 w-4" />
               Manage Categories
             </button>
 
-            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-violet-500/15 dark:bg-violet-500/15 border border-violet-500/30 dark:border-violet-500/30 px-4 py-2 text-sm font-medium text-violet-600 dark:text-violet-300">
+            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-violet-500/15 dark:bg-violet-500/15 border border-violet-500/30 dark:border-violet-500/30 px-4 py-2 text-sm font-medium text-accent dark:text-accent">
               <Package className="h-4 w-4" />
               {filteredProducts.length} product
               {filteredProducts.length !== 1 ? "s" : ""}
@@ -1137,8 +1137,8 @@ export default function Products() {
 
           {/* Bulk Action Bar */}
           {selectedIds.length > 0 && (
-            <div className="flex items-center gap-3 px-4 py-2 bg-purple-50 border border-purple-200 rounded-lg dark:bg-purple-900/20 dark:border-purple-800/30 mb-3 mt-4">
-              <span className="text-sm text-purple-600 dark:text-purple-300 font-medium">
+            <div className="flex items-center gap-3 px-4 py-2 bg-accent-light border border-accent rounded-lg dark:bg-accent/20 dark:border-accent/30 mb-3 mt-4">
+              <span className="text-sm text-accent dark:text-accent font-medium">
                 {selectedIds.length} products selected
               </span>
               <button
@@ -1185,7 +1185,7 @@ export default function Products() {
                           selectedIds.length === filteredProducts.length &&
                           filteredProducts.length > 0
                         }
-                        className="rounded border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-600 text-purple-600 dark:text-purple-400 focus:ring-purple-500 cursor-pointer"
+                        className="rounded border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-600 text-accent dark:text-accent focus:ring-accent cursor-pointer"
                       />
                     </th>
                     <th className="px-6 py-4 font-semibold">Product</th>
@@ -1212,19 +1212,19 @@ export default function Products() {
                     return (
                       <tr
                         key={product.id}
-                        className={`border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-violet-50 dark:hover:bg-gray-700/50 ${selectedIds.includes(product.id) ? "bg-purple-50 dark:bg-gray-700/30" : ""}`}
+                        className={`border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-accent-light dark:hover:bg-gray-700/50 ${selectedIds.includes(product.id) ? "bg-accent-light dark:bg-gray-700/30" : ""}`}
                       >
                         <td className="px-4 py-4">
                           <input
                             type="checkbox"
                             onChange={() => toggleSelect(product.id)}
                             checked={selectedIds.includes(product.id)}
-                            className="rounded border-gray-300 dark:border-gray-600 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                            className="rounded border-gray-300 dark:border-gray-600 text-accent focus:ring-accent cursor-pointer"
                           />
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200 text-xs font-bold text-violet-600">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200 text-xs font-bold text-accent">
                               {product.name.charAt(0)}
                             </div>
                             <div>
@@ -1232,12 +1232,12 @@ export default function Products() {
                                 onClick={() =>
                                   navigate(`/products/${product.id}`)
                                 }
-                                className="font-semibold text-gray-900 dark:text-white hover:text-violet-600 cursor-pointer transition-colors"
+                                className="font-semibold text-gray-900 dark:text-white hover:text-accent cursor-pointer transition-colors"
                               >
                                 {product.name}
                               </span>
                               {hasVariants && (
-                                <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full ml-2">
+                                <span className="text-xs bg-accent-light dark:bg-accent/20 text-accent px-2 py-0.5 rounded-full ml-2">
                                   {product.variants.length} variants
                                 </span>
                               )}
@@ -1282,7 +1282,7 @@ export default function Products() {
                         </td>
                         <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                           {hasVariants ? (
-                            <span className="text-xs text-purple-600 font-medium">
+                            <span className="text-xs text-accent font-medium">
                               From{" "}
                               {effPrice
                                 ? "Rp " +
@@ -1328,14 +1328,14 @@ export default function Products() {
                                         : [],
                                     );
                                   }}
-                                  className="relative z-10 flex items-center gap-1.5 rounded-xl border border-violet-200 dark:border-violet-800/40 bg-gradient-to-r from-violet-50 dark:from-violet-900/20 to-purple-50 dark:to-purple-900/20 px-4 py-2 text-sm font-medium text-violet-600 dark:text-violet-300 transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
+                                  className="relative z-10 flex items-center gap-1.5 rounded-xl border border-accent bg-gradient-to-r from-violet-50 dark:from-violet-900/20 to-purple-50 dark:to-purple-900/20 px-4 py-2 text-sm font-medium text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
                                 >
                                   <Edit3 className="h-3.5 w-3.5" /> Edit
                                 </button>
                               </DialogTrigger>
                               <DialogContent className="rounded-3xl sm:max-w-4xl p-0 overflow-hidden">
                                 <div className="relative">
-                                  <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
+                                  <div className="h-1 bg-gradient-to-r " style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
                                   <DialogHeader className="px-6 pt-5 pb-0">
                                     <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
                                       Edit Product
@@ -1359,7 +1359,7 @@ export default function Products() {
                                                   sku: e.target.value,
                                                 })
                                               }
-                                              className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                                              className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                                             />
                                             <button
                                               type="button"
@@ -1375,7 +1375,7 @@ export default function Products() {
                                               disabled={
                                                 !editingProduct.name.trim()
                                               }
-                                              className="shrink-0 text-xs px-2 py-1 border border-purple-300 text-purple-600 dark:text-purple-400 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                              className="shrink-0 text-xs px-2 py-1 border border-accent text-accent rounded-md hover:bg-accent-light dark:hover:bg-accent/20 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                             >
                                               Generate
                                             </button>
@@ -1393,7 +1393,7 @@ export default function Products() {
                                                 category: e.target.value,
                                               })
                                             }
-                                            className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 cursor-pointer"
+                                            className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer"
                                           >
                                             {categories.map((cat) => (
                                               <option key={cat} value={cat}>
@@ -1429,7 +1429,7 @@ export default function Products() {
                                           className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
                                             editErrors.name
                                               ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                                              : "border-[#ececf2] dark:border-gray-700 focus:border-violet-400 focus:ring-violet-100"
+                                              : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"
                                           }`}
                                         />
                                         {editErrors.name && (
@@ -1475,7 +1475,7 @@ export default function Products() {
                                             className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
                                               editErrors.stock
                                                 ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                                                : "border-[#ececf2] dark:border-gray-700 focus:border-violet-400 focus:ring-violet-100"
+                                                : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"
                                             } ${editVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
                                           />
                                           {editErrors.stock && (
@@ -1504,7 +1504,7 @@ export default function Products() {
                                                 ).label,
                                               })
                                             }
-                                            className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                                            className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                                           />
                                           <p className="text-xs text-gray-400 dark:text-gray-400 mt-1">
                                             Low stock alert threshold
@@ -1537,7 +1537,7 @@ export default function Products() {
                                                 ),
                                               })
                                             }
-                                            className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                                            className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                                           />
                                         </div>
                                         <div>
@@ -1577,7 +1577,7 @@ export default function Products() {
                                             className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
                                               editErrors.unitPrice
                                                 ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                                                : "border-[#ececf2] dark:border-gray-700 focus:border-violet-400 focus:ring-violet-100"
+                                                : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"
                                             } ${editVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
                                           />
                                           {editErrors.unitPrice && (
@@ -1611,7 +1611,7 @@ export default function Products() {
                                         </button>
                                         <button
                                           onClick={handleUpdateProduct}
-                                          className="flex-1 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md"
+                                          className="flex-1 rounded-lg bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
                                         >
                                           Update Product
                                         </button>
@@ -1713,10 +1713,10 @@ export default function Products() {
       {importModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-2xl rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm max-h-[90vh] overflow-y-auto">
-            <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
+            <div className="h-1 bg-gradient-to-r  rounded-t-3xl -mt-6 -mx-6 mb-6" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
                   <Upload className="h-5 w-5 text-white" />
                 </div>
                 <div>
@@ -1743,7 +1743,7 @@ export default function Products() {
             {/* Download Template */}
             <button
               onClick={handleDownloadTemplate}
-              className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700 dark:text-purple-300 mb-4"
+              className="flex items-center gap-2 text-sm text-accent hover:text-accent dark:text-accent mb-4"
             >
               <FileDown className="h-4 w-4" />
               Download CSV Template
@@ -1760,7 +1760,7 @@ export default function Products() {
             </div>
 
             {/* Upload Area */}
-            <label className="block border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center cursor-pointer hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors mb-4">
+            <label className="block border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center cursor-pointer hover:border-accent hover:bg-accent-light dark:hover:bg-accent/20 transition-colors mb-4">
               <input
                 type="file"
                 accept=".csv"
@@ -1769,8 +1769,8 @@ export default function Products() {
               />
               {csvData.length > 0 ? (
                 <div className="flex flex-col items-center gap-1">
-                  <Upload className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                  <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                  <Upload className="h-5 w-5 text-accent dark:text-accent" />
+                  <span className="text-sm font-medium text-accent dark:text-accent">
                     {csvData.length} rows found
                   </span>
                 </div>
@@ -1898,7 +1898,7 @@ export default function Products() {
                 disabled={validRowCount === 0}
                 className={`flex-1 rounded-2xl py-3 font-semibold shadow-sm transition-all ${
                   validRowCount > 0
-                    ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:shadow-md"
+                    ? "bg-gradient-to-r from-accent to-accent-hover text-white hover:shadow-md"
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}
               >
@@ -1913,9 +1913,9 @@ export default function Products() {
       {manageCatOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm">
-            <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
+            <div className="h-1 bg-gradient-to-r  rounded-t-3xl -mt-6 -mx-6 mb-6" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
                 <Settings2 className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -1938,11 +1938,11 @@ export default function Products() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleAddCategory();
                 }}
-                className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
               <button
                 onClick={handleAddCategory}
-                className="shrink-0 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
+                className="shrink-0 rounded-2xl bg-gradient-to-r px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
               >
                 Add
               </button>
@@ -1958,7 +1958,7 @@ export default function Products() {
                 categories.map((cat) => (
                   <div
                     key={cat}
-                    className="flex items-center justify-between rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 transition-all hover:bg-violet-50 dark:hover:bg-gray-700/50"
+                    className="flex items-center justify-between rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 transition-all hover:bg-accent-light dark:hover:bg-gray-700/50"
                   >
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                       {cat}

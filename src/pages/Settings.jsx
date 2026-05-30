@@ -59,7 +59,7 @@ const Toggle = ({ checked, onChange, label, description }) => (
     <button
       onClick={() => onChange(!checked)}
       className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${
-        checked ? "bg-violet-600" : "bg-gray-200 dark:bg-gray-700"
+        checked ? "bg-accent" : "bg-gray-200 dark:bg-gray-700"
       }`}
     >
       <span
@@ -125,8 +125,8 @@ const ROLE_CARDS = [
   {
     role: "Admin",
     icon: UserCog,
-    color: "from-violet-600 to-purple-600",
-    shadow: "shadow-violet-500/20",
+    color: "from-accent to-accent-hover",
+    shadow: "shadow-accent/20",
     perms: ["Full Access", "Manage Users", "Settings", "Reports", "Delete"],
   },
   {
@@ -147,9 +147,9 @@ const ROLE_CARDS = [
 
 const PERMISSION_BADGE_COLORS = {
   "Full Access":
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200 dark:border-purple-800",
+    "bg-purple-100 text-accent dark:bg-accent/30 dark:text-accent border-purple-200 dark:border-accent",
   "Manage Users":
-    "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 border-violet-200 dark:border-violet-800",
+    "bg-violet-100 text-accent dark:bg-accent/30 dark:text-accent border-accent dark:border-violet-800",
   Settings:
     "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800",
   Reports:
@@ -235,8 +235,8 @@ const categories = [
     icon: Store,
     iconBg:
       "from-violet-50 to-violet-100 dark:from-violet-950/50 dark:to-violet-900/30",
-    iconColor: "text-violet-600 dark:text-violet-400",
-    gradient: "from-violet-500 to-purple-600",
+    iconColor: "text-accent dark:text-accent",
+    gradient: "from-accent to-accent-hover",
   },
   {
     id: "appearance",
@@ -295,8 +295,8 @@ const categories = [
     icon: ShoppingCart,
     iconBg:
       "from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/30",
-    iconColor: "text-purple-600 dark:text-purple-400",
-    gradient: "from-purple-500 to-violet-600",
+    iconColor: "text-accent dark:text-accent",
+    gradient: "from-accent to-accent-hover",
   },
   {
     id: "invoice-numbering",
@@ -376,7 +376,13 @@ function ProfileSidebar() {
         {/* Account Information */}
         <div className="rounded-2xl border border-gray-200/70 dark:border-gray-700/60 bg-white dark:bg-gray-800/90 p-4 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0 shadow-sm">
+            <div
+              className="w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0 shadow-sm"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+              }}
+            >
               <User className="w-4 h-4 text-white" />
             </div>
             <p className="font-semibold text-sm text-gray-900 dark:text-white">
@@ -413,7 +419,7 @@ function ProfileSidebar() {
             </div>
             <div className="flex justify-between items-center pt-1 border-t border-gray-100 dark:border-gray-700/50">
               <span className="text-xs text-gray-400">Plan</span>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/40 text-accent dark:text-accent">
                 Free
               </span>
             </div>
@@ -530,7 +536,13 @@ function ProfileSidebar() {
         {/* Receipt Preview Widget */}
         <div className="rounded-2xl border border-gray-200/70 dark:border-gray-700/60 bg-white dark:bg-gray-800/90 p-4 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0 shadow-sm">
+            <div
+              className="w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0 shadow-sm"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+              }}
+            >
               <FileText className="w-4 h-4 text-white" />
             </div>
             <p className="font-semibold text-sm text-gray-900 dark:text-white">
@@ -577,7 +589,13 @@ function ReceiptPreview({ receiptSettings, storeProfile, previewInvoiceId }) {
   return (
     <div className="relative">
       {/* Live Preview badge */}
-      <div className="absolute -top-2.5 right-4 z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-[10px] font-semibold text-white shadow-sm">
+      <div
+        className="absolute -top-2.5 right-4 z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r text-[10px] font-semibold text-white shadow-sm"
+        style={{
+          background:
+            "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+        }}
+      >
         <span className="relative flex h-1.5 w-1.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
@@ -614,7 +632,13 @@ function ReceiptPreview({ receiptSettings, storeProfile, previewInvoiceId }) {
                       className="w-10 h-10 rounded-lg object-cover border border-gray-100 dark:border-gray-700"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-sm">
+                    <div
+                      className="w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center shadow-sm"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                      }}
+                    >
                       <ShoppingCart size={16} className="text-white" />
                     </div>
                   )}
@@ -641,7 +665,7 @@ function ReceiptPreview({ receiptSettings, storeProfile, previewInvoiceId }) {
               <div className="flex justify-between">
                 <span>Invoice</span>
                 <span className="text-gray-700 dark:text-gray-300 font-medium">
-                  {previewInvoiceId()}
+                  {previewInvoiceId?.() ?? "INV-001"}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -727,9 +751,7 @@ function ReceiptPreview({ receiptSettings, storeProfile, previewInvoiceId }) {
               <div className="border-t-2 border-double border-gray-300 dark:border-gray-600 my-1.5" />
               <div className="flex justify-between text-sm font-bold">
                 <span className="text-gray-900 dark:text-white">TOTAL</span>
-                <span className="text-violet-600 dark:text-violet-400">
-                  Rp 138.750
-                </span>
+                <span className="text-accent dark:text-accent">Rp 138.750</span>
               </div>
               <div className="border-t-2 border-double border-gray-300 dark:border-gray-600 my-1.5" />
               <div className="flex justify-between text-[11px]">
@@ -1246,11 +1268,11 @@ export default function Settings() {
   // ═══════════════════════════════════════════════════════════════════════
 
   const commonInputClass =
-    "w-full rounded-xl border border-gray-200/70 dark:border-gray-700/60 px-4 py-2.5 text-sm outline-none transition-all duration-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:bg-gray-900/80 dark:text-white bg-white";
+    "w-full rounded-xl border border-gray-200/70 dark:border-gray-700/60 px-4 py-2.5 text-sm outline-none transition-all duration-200 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:bg-gray-900/80 dark:text-white bg-white";
   const selectClass =
-    "w-full rounded-xl border border-gray-200/70 dark:border-gray-700/60 px-3 py-2.5 text-sm outline-none transition-all duration-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:bg-gray-900/80 dark:text-white cursor-pointer bg-white";
+    "w-full rounded-xl border border-gray-200/70 dark:border-gray-700/60 px-3 py-2.5 text-sm outline-none transition-all duration-200 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:bg-gray-900/80 dark:text-white cursor-pointer bg-white";
   const saveBtnClass =
-    "flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-violet-500/20 hover:-translate-y-0.5 active:translate-y-0";
+    "flex items-center justify-center gap-2 flex-1 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[var(--color-accent)] hover:bg-[var(--color-accent-dark)] transition-all";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50/80 to-white dark:from-gray-950 dark:to-gray-900">
@@ -1260,14 +1282,21 @@ export default function Settings() {
           {/* Main Content */}
           <div className="flex-1 min-w-0 space-y-6 max-w-full">
             {/* Premium Gradient Hero */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-700 via-purple-600 to-fuchsia-600 p-7 lg:p-9">
+            <div
+              className="relative overflow-hidden rounded-2xl p-7 lg:p-9"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--color-accent-dark, #4c1d95), var(--color-accent, #7c3aed))",
+              }}
+            >
+              {/* Dark overlay to ensure text readability for any accent color */}
+              <div className="absolute inset-0 bg-black/20" />
               {/* Decorative mesh */}
-              <div className="absolute inset-0 opacity-20">
+              <div className="absolute inset-0 opacity-15">
                 <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
-                <div className="absolute -left-8 bottom-8 w-48 h-48 rounded-full bg-fuchsia-300/20 blur-2xl" />
-                <div className="absolute right-1/4 top-1/3 w-32 h-32 rounded-full bg-violet-300/20 blur-xl" />
+                <div className="absolute -left-8 bottom-8 w-48 h-48 rounded-full bg-white/5 blur-2xl" />
+                <div className="absolute right-1/4 top-1/3 w-32 h-32 rounded-full bg-white/5 blur-xl" />
               </div>
-              <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_0%,rgba(255,255,255,0.03)_50%,transparent_100%)]" />
 
               <div className="relative z-10 flex items-center gap-5">
                 <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/10 flex items-center justify-center shrink-0 shadow-lg">
@@ -1277,7 +1306,7 @@ export default function Settings() {
                   <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight">
                     Settings
                   </h1>
-                  <p className="text-sm text-violet-200 mt-1 max-w-xl leading-relaxed">
+                  <p className="text-sm text-neutral-200 mt-1 max-w-xl leading-relaxed">
                     Manage your SwiftPOS system configuration, store identity,
                     receipt, taxes, backup & integrations.
                   </p>
@@ -1305,10 +1334,10 @@ export default function Settings() {
                     <div
                       key={cat.id}
                       onClick={() => setActivePage(cat.id)}
-                      className="group relative flex items-start gap-4 p-5 rounded-2xl border border-gray-200/70 dark:border-gray-700/60 bg-white dark:bg-gray-800/90 hover:border-violet-200 dark:hover:border-violet-700/60 hover:shadow-lg hover:shadow-violet-500/5 dark:hover:shadow-violet-500/5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
+                      className="group relative flex items-start gap-4 p-5 rounded-2xl border border-gray-200/70 dark:border-gray-700/60 bg-white dark:bg-gray-800/90 hover:border-accent/60 hover:shadow-lg hover:shadow-accent/5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
                     >
                       {/* Gradient border glow on hover */}
-                      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-violet-500/5 via-transparent to-purple-500/5 pointer-events-none" />
+                      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-accent/5 via-transparent to-accent-hover/5 pointer-events-none" />
 
                       <div
                         className={`w-11 h-11 rounded-xl bg-gradient-to-br ${cat.iconBg} flex items-center justify-center shrink-0 shadow-sm border border-gray-100/50 dark:border-gray-700/30`}
@@ -1317,10 +1346,10 @@ export default function Settings() {
                       </div>
                       <div className="flex-1 min-w-0 relative z-10">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="font-semibold text-sm text-gray-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                          <p className="font-semibold text-sm text-gray-900 dark:text-white group-hover:text-accent dark:group-hover:text-accent transition-colors">
                             {cat.title}
                           </p>
-                          <ChevronRight className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-violet-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+                          <ChevronRight className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-accent group-hover:translate-x-0.5 transition-all shrink-0" />
                         </div>
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 leading-relaxed">
                           {cat.description}
@@ -1347,17 +1376,17 @@ export default function Settings() {
             <div className="mb-7">
               <button
                 onClick={() => setActivePage("home")}
-                className="flex items-center gap-2 text-sm text-gray-400 dark:text-gray-500 hover:text-violet-600 dark:hover:text-violet-400 transition-colors mb-4 group"
+                className="flex items-center gap-2 text-sm text-gray-400 dark:text-gray-500 hover:text-accent dark:hover:text-accent transition-colors mb-4 group"
               >
                 <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
                 Back to Settings
               </button>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-100 dark:from-violet-950/50 dark:to-purple-900/30 flex items-center justify-center border border-violet-100/50 dark:border-violet-800/30">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br bg-accent-light dark:bg-accent/20 flex items-center justify-center border border-accent/50 dark:border-accent/30">
                   {(() => {
                     const Icon = currentCat.icon;
                     return (
-                      <Icon className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                      <Icon className="w-5 h-5 text-accent dark:text-accent" />
                     );
                   })()}
                 </div>
@@ -1539,7 +1568,7 @@ export default function Settings() {
                     ) : (
                       <div
                         onClick={() => fileInputRef.current?.click()}
-                        className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-6 text-center cursor-pointer hover:border-violet-400 transition-colors"
+                        className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-6 text-center cursor-pointer hover:border-accent transition-colors"
                       >
                         <Image className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                         <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -1609,7 +1638,7 @@ export default function Settings() {
                                   cardRadius: r.value,
                                 })
                               }
-                              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${appearance.cardRadius === r.value ? "bg-violet-600 text-white shadow-sm" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"}`}
+                              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${appearance.cardRadius === r.value ? "bg-accent text-white shadow-sm" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"}`}
                             >
                               {r.label}
                             </button>
@@ -1618,8 +1647,8 @@ export default function Settings() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center shrink-0">
-                        <Grip className="w-4 h-4 text-purple-500" />
+                      <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-accent/20 flex items-center justify-center shrink-0">
+                        <Grip className="w-4 h-4 text-accent" />
                       </div>
                       <div className="flex-1">
                         <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
@@ -1635,7 +1664,7 @@ export default function Settings() {
                                   fontScale: f.value,
                                 })
                               }
-                              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${appearance.fontScale === f.value ? "bg-violet-600 text-white shadow-sm" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"}`}
+                              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${appearance.fontScale === f.value ? "bg-accent text-white shadow-sm" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"}`}
                             >
                               {f.label}
                             </button>
@@ -1663,7 +1692,10 @@ export default function Settings() {
                     />
                   </div>
                   <div className="flex justify-end pt-2">
-                    <button onClick={saveAppearance} className={saveBtnClass}>
+                    <button
+                      onClick={saveAppearance}
+                      className="flex items-center justify-center gap-2 flex-1 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[var(--color-accent)] hover:bg-[var(--color-accent-dark)] transition-all"
+                    >
                       <Save className="h-4 w-4" /> Save Changes
                     </button>
                   </div>
@@ -1750,7 +1782,7 @@ export default function Settings() {
                     </select>
                   </div>
                   <div>
-                    <div className="text-sm font-mono bg-gray-50 dark:bg-gray-900/80 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2 text-violet-600 dark:text-violet-400">
+                    <div className="text-sm font-mono bg-gray-50 dark:bg-gray-900/80 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2 text-accent dark:text-accent">
                       Preview: {previewInvoiceId()}
                     </div>
                   </div>
@@ -1835,7 +1867,7 @@ export default function Settings() {
                         </p>
                         <button
                           onClick={() => togglePaymentMethod(method.id)}
-                          className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${method.enabled ? "bg-violet-600" : "bg-gray-200 dark:bg-gray-700"}`}
+                          className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${method.enabled ? "bg-accent" : "bg-gray-200 dark:bg-gray-700"}`}
                         >
                           <span
                             className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${method.enabled ? "translate-x-5" : "translate-x-0"}`}
@@ -2200,7 +2232,7 @@ export default function Settings() {
                         <span className="font-semibold text-gray-900 dark:text-white">
                           Total
                         </span>
-                        <span className="font-bold text-violet-600">
+                        <span className="font-bold text-accent">
                           Rp{" "}
                           {Math.round(
                             100000 +
@@ -2364,7 +2396,7 @@ export default function Settings() {
                                       {roleData.role}
                                     </p>
                                     {role?.active && (
-                                      <BadgeCheck className="w-3.5 h-3.5 text-violet-500" />
+                                      <BadgeCheck className="w-3.5 h-3.5 text-accent" />
                                     )}
                                   </div>
                                   <p className="text-xs text-gray-400">
@@ -2384,7 +2416,7 @@ export default function Settings() {
                                   }
                                   toggleRole(roleData.role.toLowerCase());
                                 }}
-                                className={`relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 ${role?.active ? "bg-violet-600" : "bg-gray-200 dark:bg-gray-700"}`}
+                                className={`relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 ${role?.active ? "bg-accent" : "bg-gray-200 dark:bg-gray-700"}`}
                               >
                                 <span
                                   className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${role?.active ? "translate-x-5" : "translate-x-0"}`}
@@ -2408,7 +2440,7 @@ export default function Settings() {
                     })}
                   </div>
                   <div className="border-t border-gray-100 dark:border-gray-700/60 pt-4">
-                    <button className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:border-violet-300 dark:hover:border-violet-600 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200 group">
+                    <button className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:border-accent dark:hover:border-accent hover:text-accent dark:hover:text-accent transition-all duration-200 group">
                       <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />{" "}
                       Add New User
                     </button>

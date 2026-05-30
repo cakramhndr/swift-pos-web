@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import AppSidebar from "./components/layout/AppSidebar";
+import useAppearance from "./hooks/useAppearance";
 
 import Dashboard from "./pages/Dashboard.jsx";
 import Products from "./pages/Products";
@@ -15,6 +16,9 @@ import Settings from "./pages/Settings";
 import { Toaster } from "sonner";
 
 export default function App() {
+  // Apply accent color CSS variables on mount
+  useAppearance();
+
   return (
     <div className="flex min-h-screen w-full bg-[#f7f8fa] dark:bg-gray-900">
       <AppSidebar />

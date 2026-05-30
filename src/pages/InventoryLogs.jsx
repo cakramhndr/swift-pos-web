@@ -449,7 +449,7 @@ export default function InventoryLogs() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-md">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br shadow-md" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
               <ClipboardList className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -466,7 +466,7 @@ export default function InventoryLogs() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => exportInventoryLogsPDF(movementData, restockData)}
-            className="relative z-10 flex items-center gap-2 rounded-2xl border border-violet-200 dark:border-violet-800/40 px-4 py-2.5 text-sm font-semibold text-violet-600 dark:text-violet-300 transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 dark:hover:bg-violet-900/30 text-sm"
+            className="relative z-10 flex items-center gap-2 rounded-2xl border border-accent px-4 py-2.5 text-sm font-semibold text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 dark:hover:bg-accent/30 text-sm"
           >
             <Download className="h-4 w-4" />
             Export PDF
@@ -485,8 +485,8 @@ export default function InventoryLogs() {
         <div className="grid gap-5 md:grid-cols-3">
           <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm transition-all duration-200 hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.2)]">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-900/30 border border-violet-200/50 dark:border-violet-800/30 shrink-0">
-                <RotateCcw className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-100 dark:bg-accent/30 border border-accent/50 dark:border-violet-800/30 shrink-0">
+                <RotateCcw className="h-5 w-5 text-accent dark:text-accent" />
               </div>
               <div>
                 <p className="text-xs font-medium text-gray-400 dark:text-gray-400 uppercase tracking-wider">
@@ -554,14 +554,14 @@ export default function InventoryLogs() {
 
           <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm transition-all duration-200 hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_0_16px_-2px_rgba(0,0,0,0.2)]">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-900/30 border border-purple-200/50 dark:border-purple-800/30 shrink-0">
-                <DollarSign className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-light dark:bg-accent/20 border border-accent/30 shrink-0">
+                <DollarSign className="h-5 w-5 text-accent dark:text-accent" />
               </div>
               <div>
                 <p className="text-xs font-medium text-gray-400 dark:text-gray-400 uppercase tracking-wider">
                   Total Pembelian
                 </p>
-                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-0.5">
+                <p className="text-2xl font-bold text-accent dark:text-accent mt-0.5">
                   {formatRp(totalSupplierPembelian)}
                 </p>
               </div>
@@ -599,7 +599,7 @@ export default function InventoryLogs() {
           onClick={() => setActiveTab("movement")}
           className={`flex-1 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
             activeTab === "movement"
-              ? "bg-violet-600 dark:bg-violet-600 text-white dark:text-white shadow-lg shadow-violet-500/20"
+              ? "bg-accent text-white shadow-lg shadow-accent/20"
               : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white"
           }`}
         >
@@ -609,7 +609,7 @@ export default function InventoryLogs() {
           onClick={() => setActiveTab("restock")}
           className={`flex-1 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
             activeTab === "restock"
-              ? "bg-violet-600 dark:bg-violet-600 text-white dark:text-white shadow-lg shadow-violet-500/20"
+              ? "bg-accent text-white shadow-lg shadow-accent/20"
               : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white"
           }`}
         >
@@ -619,7 +619,7 @@ export default function InventoryLogs() {
           onClick={() => setActiveTab("suppliers")}
           className={`flex-1 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
             activeTab === "suppliers"
-              ? "bg-violet-600 dark:bg-violet-600 text-white dark:text-white shadow-lg shadow-violet-500/20"
+              ? "bg-accent text-white shadow-lg shadow-accent/20"
               : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white"
           }`}
         >
@@ -630,7 +630,7 @@ export default function InventoryLogs() {
       {/* ══════════════ TAB: Stock Movement ═════════════════════════════ */}
       {activeTab === "movement" && (
         <div className="overflow-hidden rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r " style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
           <div className="relative p-6">
             <div className="flex flex-wrap items-center gap-3 mb-5">
               <div className="relative flex-1 min-w-[200px]">
@@ -643,14 +643,14 @@ export default function InventoryLogs() {
                   placeholder="Cari produk..."
                   value={movementSearch}
                   onChange={(e) => handleMovementSearch(e.target.value)}
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none dark:text-white dark:placeholder-gray-400 transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none dark:text-white dark:placeholder-gray-400 transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                 />
               </div>
 
               <select
                 value={movementTypeFilter}
                 onChange={(e) => handleMovementTypeFilter(e.target.value)}
-                className="rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm outline-none transition-all duration-200 focus:border-violet-400 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer dark:text-white"
+                className="rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm outline-none transition-all duration-200 focus:border-accent hover:border-accent dark:hover:border-accent hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer dark:text-white"
               >
                 <option value="all">Semua Tipe</option>
                 <option value="sale">Penjualan</option>
@@ -661,7 +661,7 @@ export default function InventoryLogs() {
               <select
                 value={movementTimeFilter}
                 onChange={(e) => handleMovementTimeFilter(e.target.value)}
-                className="rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm outline-none transition-all duration-200 focus:border-violet-400 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer dark:text-white"
+                className="rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm outline-none transition-all duration-200 focus:border-accent hover:border-accent dark:hover:border-accent hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer dark:text-white"
               >
                 <option value="all">Semua Waktu</option>
                 <option value="7">7 Hari Terakhir</option>
@@ -715,7 +715,7 @@ export default function InventoryLogs() {
                     {paginatedMovements.map((movement) => (
                       <TableRow
                         key={movement.id}
-                        className="hover:bg-violet-50 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)] transition-colors"
+                        className="hover:bg-accent-light dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)] transition-colors"
                       >
                         <TableCell className="py-3.5">
                           <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap">
@@ -784,11 +784,11 @@ export default function InventoryLogs() {
                         setMovementPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={movementPage <= 1}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
-                    <span className="flex h-9 min-w-9 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-sm font-bold text-white shadow-sm">
+                    <span className="flex h-9 min-w-9 items-center justify-center rounded-xl bg-gradient-to-r text-sm font-bold text-white shadow-sm" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}>
                       {movementPage}
                     </span>
                     <button
@@ -798,7 +798,7 @@ export default function InventoryLogs() {
                         )
                       }
                       disabled={movementPage >= totalMovementPages}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowRight className="h-4 w-4" />
                     </button>
@@ -813,7 +813,7 @@ export default function InventoryLogs() {
       {/* ══════════════ TAB: Restock Logs ════════════════════════════════ */}
       {activeTab === "restock" && (
         <div className="overflow-hidden rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r " style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
           <div className="relative p-6">
             <div className="flex flex-wrap items-center gap-3 mb-5">
               <div className="relative flex-1 min-w-[200px]">
@@ -826,14 +826,14 @@ export default function InventoryLogs() {
                   placeholder="Cari produk atau supplier..."
                   value={restockSearch}
                   onChange={(e) => handleRestockSearch(e.target.value)}
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:text-white dark:placeholder-gray-400"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-white dark:placeholder-gray-400"
                 />
               </div>
 
               <select
                 value={restockTimeFilter}
                 onChange={(e) => handleRestockTimeFilter(e.target.value)}
-                className="rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm outline-none transition-all duration-200 focus:border-violet-400 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer dark:text-white"
+                className="rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm outline-none transition-all duration-200 focus:border-accent hover:border-accent dark:hover:border-accent hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer dark:text-white"
               >
                 <option value="all">Semua Waktu</option>
                 <option value="7">7 Hari Terakhir</option>
@@ -887,7 +887,7 @@ export default function InventoryLogs() {
                     {paginatedRestocks.map((log) => (
                       <TableRow
                         key={log.id}
-                        className="hover:bg-violet-50 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)] transition-colors"
+                        className="hover:bg-accent-light dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)] transition-colors"
                       >
                         <TableCell className="py-3.5">
                           <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap">
@@ -924,7 +924,7 @@ export default function InventoryLogs() {
                           </span>
                         </TableCell>
                         <TableCell className="py-3.5 text-right">
-                          <span className="text-sm font-bold text-violet-600">
+                          <span className="text-sm font-bold text-accent">
                             {formatRp(log.totalCost)}
                           </span>
                         </TableCell>
@@ -954,11 +954,11 @@ export default function InventoryLogs() {
                         setRestockPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={restockPage <= 1}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
-                    <span className="flex h-9 min-w-9 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-sm font-bold text-white shadow-sm">
+                    <span className="flex h-9 min-w-9 items-center justify-center rounded-xl bg-gradient-to-r text-sm font-bold text-white shadow-sm" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}>
                       {restockPage}
                     </span>
                     <button
@@ -968,7 +968,7 @@ export default function InventoryLogs() {
                         )
                       }
                       disabled={restockPage >= totalRestockPages}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowRight className="h-4 w-4" />
                     </button>
@@ -983,7 +983,7 @@ export default function InventoryLogs() {
       {/* ══════════════ TAB: Suppliers ═══════════════════════════════════ */}
       {activeTab === "suppliers" && (
         <div className="overflow-hidden rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r " style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
           <div className="relative p-6">
             {/* Header + Add Button */}
             <div className="flex items-center justify-between mb-5">
@@ -997,12 +997,12 @@ export default function InventoryLogs() {
                   placeholder="Cari supplier..."
                   value={supplierSearch}
                   onChange={(e) => handleSupplierSearch(e.target.value)}
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:text-white dark:placeholder-gray-400"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-white dark:placeholder-gray-400"
                 />
               </div>
               <button
                 onClick={openAddSupplier}
-                className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
               >
                 <Plus className="h-4 w-4" />
                 Tambah Supplier
@@ -1057,7 +1057,7 @@ export default function InventoryLogs() {
                       <>
                         <TableRow
                           key={supplier.id}
-                          className="hover:bg-violet-50 dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)] transition-colors cursor-pointer"
+                          className="hover:bg-accent-light dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)] transition-colors cursor-pointer"
                           onClick={() =>
                             setExpandedSupplier(
                               expandedSupplier?.id === supplier.id
@@ -1067,7 +1067,7 @@ export default function InventoryLogs() {
                           }
                         >
                           <TableCell className="py-3.5">
-                            <button className="text-gray-400 dark:text-gray-400 hover:text-violet-600">
+                            <button className="text-gray-400 dark:text-gray-400 hover:text-accent">
                               {expandedSupplier?.id === supplier.id ? (
                                 <ChevronDown size={16} />
                               ) : (
@@ -1112,7 +1112,7 @@ export default function InventoryLogs() {
                             </span>
                           </TableCell>
                           <TableCell className="py-3.5 text-right">
-                            <span className="text-sm font-bold text-violet-600 dark:text-violet-400">
+                            <span className="text-sm font-bold text-accent dark:text-accent">
                               {formatRp(supplier.totalPembelian)}
                             </span>
                           </TableCell>
@@ -1123,7 +1123,7 @@ export default function InventoryLogs() {
                                   e.stopPropagation();
                                   openEditSupplier(supplier);
                                 }}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#ececf2] dark:border-gray-700 text-gray-500 dark:text-gray-400 transition-all hover:border-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:text-violet-600"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#ececf2] dark:border-gray-700 text-gray-500 dark:text-gray-400 transition-all hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:text-accent"
                               >
                                 <Pencil className="h-3.5 w-3.5" />
                               </button>
@@ -1145,7 +1145,7 @@ export default function InventoryLogs() {
                           <tr key={`history-${supplier.id}`}>
                             <td
                               colSpan={7}
-                              className="px-6 py-4 bg-purple-50/30"
+                              className="px-6 py-4 bg-accent-light/50"
                             >
                               <div className="pl-10">
                                 <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-3">
@@ -1177,7 +1177,7 @@ export default function InventoryLogs() {
                                       {supplierRestockHistory.map((log) => (
                                         <tr
                                           key={log.id}
-                                          className="hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                                          className="hover:bg-accent-light dark:hover:bg-accent/20 transition-colors"
                                         >
                                           <td className="py-2 pr-4">
                                             <span className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
@@ -1201,7 +1201,7 @@ export default function InventoryLogs() {
                                             </span>
                                           </td>
                                           <td className="py-2 text-right">
-                                            <span className="text-sm font-bold text-violet-600 dark:text-violet-400">
+                                            <span className="text-sm font-bold text-accent dark:text-accent">
                                               {formatRp(log.totalCost)}
                                             </span>
                                           </td>
@@ -1240,11 +1240,11 @@ export default function InventoryLogs() {
                         setSupplierPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={supplierPage <= 1}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
-                    <span className="flex h-9 min-w-9 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-sm font-bold text-white shadow-sm">
+                    <span className="flex h-9 min-w-9 items-center justify-center rounded-xl bg-gradient-to-r text-sm font-bold text-white shadow-sm" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}>
                       {supplierPage}
                     </span>
                     <button
@@ -1254,7 +1254,7 @@ export default function InventoryLogs() {
                         )
                       }
                       disabled={supplierPage >= totalSupplierPages}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowRight className="h-4 w-4" />
                     </button>
@@ -1276,9 +1276,9 @@ export default function InventoryLogs() {
             className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-3xl -mt-6 -mx-6 mb-6" />
+            <div className="h-1 bg-gradient-to-r  rounded-t-3xl -mt-6 -mx-6 mb-6" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
                 <Building2 className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -1305,7 +1305,7 @@ export default function InventoryLogs() {
                   onChange={(e) =>
                     handleSupplierFormChange("name", e.target.value)
                   }
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                 />
               </div>
 
@@ -1320,7 +1320,7 @@ export default function InventoryLogs() {
                   onChange={(e) =>
                     handleSupplierFormChange("phone", e.target.value)
                   }
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                 />
               </div>
 
@@ -1335,7 +1335,7 @@ export default function InventoryLogs() {
                   onChange={(e) =>
                     handleSupplierFormChange("email", e.target.value)
                   }
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
                 />
               </div>
 
@@ -1350,7 +1350,7 @@ export default function InventoryLogs() {
                     handleSupplierFormChange("address", e.target.value)
                   }
                   rows="2"
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 resize-none"
                 />
               </div>
 
@@ -1365,7 +1365,7 @@ export default function InventoryLogs() {
                     handleSupplierFormChange("note", e.target.value)
                   }
                   rows="2"
-                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none"
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 resize-none"
                 />
               </div>
             </div>
@@ -1382,7 +1382,7 @@ export default function InventoryLogs() {
               </button>
               <button
                 onClick={handleSaveSupplier}
-                className="flex-1 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                className="flex-1 rounded-2xl bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
               >
                 {editingSupplier ? "Simpan Perubahan" : "Simpan"}
               </button>
