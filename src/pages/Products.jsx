@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -22,8 +22,16 @@ import {
   X,
   FileDown,
   Download,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { exportProductsPDF } from "@/lib/exportUtils";
+import {
+  getProductsApi,
+  createProductApi,
+  updateProductApi,
+  deleteProductApi,
+} from "@/lib/api";
 
 const DEFAULT_CATEGORIES = [
   "Headset",
@@ -78,7 +86,6 @@ const HEADER_MAP = {
 
 // ─── CSV Parser ──────────────────────────────────────────────────────────────
 function parseCSV(text) {
-  // Remove BOM character and normalize line endings
   const clean = text
     .replace(/^\uFEFF/, "")
     .replace(/\r\n/g, "\n")
@@ -139,85 +146,74 @@ function getEffectivePrice(product) {
   return product.unitPrice;
 }
 
+// ─── Table Row Skeleton ──────────────────────────────────────────────────
+function TableRowSkeleton() {
+  return (
+    <tr className="border-t border-[#ececf2] dark:border-gray-700/60 animate-pulse">
+      <td className="px-4 py-4">
+        <div className="h-4 w-4 rounded bg-gray-200 dark:bg-gray-700" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-gray-200 dark:bg-gray-700" />
+          <div className="space-y-1.5">
+            <div className="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700" />
+            <div className="h-3 w-20 rounded bg-gray-200 dark:bg-gray-700" />
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="h-5 w-20 rounded bg-gray-200 dark:bg-gray-700" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="h-5 w-16 rounded-full bg-gray-200 dark:bg-gray-700" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700 ml-auto" />
+      </td>
+    </tr>
+  );
+}
+
 export default function Products() {
   const navigate = useNavigate();
-  const DEFAULT_PRODUCTS = [
-    {
-      id: 1,
-      sku: "LGC-GPX",
-      name: "Logitech G Pro X",
-      category: "Headset",
-      stock: 24,
-      minStock: 5,
-      unitCost: 1500000,
-      unitPrice: 1899000,
-      status: "In Stock",
-    },
-    {
-      id: 2,
-      sku: "RZR-VM",
-      name: "Razer Viper Mini",
-      category: "Mouse",
-      stock: 5,
-      minStock: 5,
-      unitCost: 450000,
-      unitPrice: 599000,
-      status: "Low Stock",
-    },
-  ];
 
-  const [products, setProducts] = useState(() => {
-    try {
-      const saved = localStorage.getItem("products");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (
-          parsed.length > 0 &&
-          parsed[0].price !== undefined &&
-          parsed[0].unitPrice === undefined
-        ) {
-          localStorage.removeItem("products");
-          localStorage.removeItem("transactions");
-          return DEFAULT_PRODUCTS;
-        }
-        return parsed;
-      }
-    } catch (error) {
-      localStorage.removeItem("products");
-      localStorage.removeItem("transactions");
-    }
+  // ── API state ───────────────────────────────────────────────────────
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
-    return DEFAULT_PRODUCTS;
-  });
+  // ── Pagination ──────────────────────────────────────────────────────
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const getProductDefaults = () => {
-    try {
-      return JSON.parse(
-        localStorage.getItem("swiftpos_product_defaults") || "{}",
-      );
-    } catch {
-      return {};
-    }
-  };
-
-  const [newProduct, setNewProduct] = useState(() => {
-    const d = getProductDefaults();
-    return {
-      sku: "",
-      name: "",
-      category: d.defaultCategory || "",
-      stock: "",
-      minStock: d.defaultMinStock || 5,
-      unitCost: "",
-      unitPrice: "",
-    };
-  });
-
-  const [errors, setErrors] = useState({});
-  const [editErrors, setEditErrors] = useState({});
-
+  // ── Filters ─────────────────────────────────────────────────────────
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All Categories");
+  const debounceRef = useRef(null);
+
+  // ── UI state (unchanged from original) ──────────────────────────────
+  const [newProduct, setNewProduct] = useState({
+    sku: "",
+    name: "",
+    category: "",
+    stock: "",
+    minStock: 5,
+    unitCost: "",
+    unitPrice: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [editErrors, setEditErrors] = useState({});
   const [editingProduct, setEditingProduct] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -226,7 +222,7 @@ export default function Products() {
     try {
       const saved = localStorage.getItem("swiftpos_categories");
       return saved ? JSON.parse(saved) : [...DEFAULT_CATEGORIES];
-    } catch (error) {
+    } catch {
       return [...DEFAULT_CATEGORIES];
     }
   });
@@ -242,7 +238,6 @@ export default function Products() {
   // ─── Variants State ────────────────────────────────────────────────────
   const [addVariants, setAddVariants] = useState([]);
   const [editVariants, setEditVariants] = useState([]);
-  // Track which variant SKUs have been manually edited (so we don't auto-overwrite)
   const [manualSkuIds, setManualSkuIds] = useState(() => new Set());
 
   // ─── Persist categories ──────────────────────────────────────────────
@@ -250,6 +245,63 @@ export default function Products() {
     localStorage.setItem("swiftpos_categories", JSON.stringify(categories));
   }, [categories]);
 
+  // ─── Fetch products from API ──────────────────────────────────────────
+  const fetchProducts = useCallback(
+    async (p, srch, cat) => {
+      setLoading(true);
+      try {
+        const params = { page: p ?? page };
+        const q = srch ?? search;
+        const c = cat ?? categoryFilter;
+        if (q.trim()) params.search = q.trim();
+        if (c && c !== "All Categories") params.category = c;
+
+        const res = await getProductsApi(params);
+        const body = res.data.data ?? res.data;
+
+        // Support both Laravel paginated and flat array responses
+        if (Array.isArray(body)) {
+          setProducts(body);
+          setLastPage(1);
+          setTotal(body.length);
+        } else {
+          setProducts(body.data ?? []);
+          setLastPage(body.last_page ?? 1);
+          setTotal(body.total ?? body.data?.length ?? 0);
+        }
+      } catch (err) {
+        const msg =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          "Failed to load products";
+        toast.error(msg);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, search, categoryFilter],
+  );
+
+  // Initial fetch + re-fetch on page/filter changes
+  useEffect(() => {
+    fetchProducts();
+    // eslint-disable-next-line react-hooks-exhaustive-deps
+  }, [page, categoryFilter]);
+
+  // Debounced search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setPage(1);
+      fetchProducts(1, search, categoryFilter);
+    }, 400);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+    // eslint-disable-next-line react-hooks-exhaustive-deps
+  }, [search]);
+
+  // ── Format helpers ────────────────────────────────────────────────────
   const formatPrice = (value) => {
     const num = Number(value);
     if (isNaN(num)) return "";
@@ -281,7 +333,6 @@ export default function Products() {
   // ─── Validation ──────────────────────────────────────────────────────
   const validateAddForm = () => {
     const newErrors = {};
-
     if (!newProduct.name || newProduct.name.trim().length < 2) {
       newErrors.name = "This field is required";
     }
@@ -301,7 +352,6 @@ export default function Products() {
         newErrors.unitPrice = "This field is required";
       }
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -309,7 +359,6 @@ export default function Products() {
   const validateEditForm = () => {
     const newErrors = {};
     const hasVariants = editVariants.length > 0;
-
     if (!editingProduct.name || editingProduct.name.trim().length < 2) {
       newErrors.name = "This field is required";
     }
@@ -331,7 +380,6 @@ export default function Products() {
         newErrors.unitPrice = "This field is required";
       }
     }
-
     setEditErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -357,7 +405,6 @@ export default function Products() {
     const setter = isEdit ? setEditVariants : setAddVariants;
     const list = isEdit ? editVariants : addVariants;
 
-    // When variant name changes and SKU hasn't been manually edited, auto-generate SKU
     if (field === "name") {
       setter(
         list.map((v) => {
@@ -375,7 +422,6 @@ export default function Products() {
         }),
       );
     } else if (field === "sku") {
-      // Mark this variant as manually edited
       setManualSkuIds((prev) => new Set(prev).add(id));
       setter(list.map((v) => (v.id === id ? { ...v, sku: value } : v)));
     } else {
@@ -389,7 +435,8 @@ export default function Products() {
     setter(list.filter((v) => v.id !== id));
   };
 
-  const handleAddProduct = () => {
+  // ─── CRUD: Create ─────────────────────────────────────────────────────
+  const handleAddProduct = async () => {
     let sku = newProduct.sku;
     if (!sku.trim() && newProduct.name.trim()) {
       sku = generateSku(newProduct.name);
@@ -402,148 +449,152 @@ export default function Products() {
       return;
     }
 
-    const minStock = Number(payload.minStock) || 5;
-    const hasVariants = addVariants.length > 0;
-    let stock, unitPrice;
-
-    if (hasVariants) {
-      stock = addVariants.reduce((sum, v) => sum + Number(v.stock || 0), 0);
-      unitPrice = null;
-    } else {
-      stock = Number(payload.stock);
-      unitPrice = Number(payload.unitPrice);
-    }
-
-    setProducts([
-      ...products,
-      {
-        id: Date.now(),
+    setSubmitting(true);
+    try {
+      const body = {
         sku: payload.sku,
-        name: payload.name,
-        category: payload.category,
-        stock: stock,
-        minStock: minStock,
-        unitCost: Number(payload.unitCost),
-        unitPrice: unitPrice,
-        status: stockStatus(stock, minStock).label,
-        variants: hasVariants ? addVariants : [],
-      },
-    ]);
+        name: payload.name.trim(),
+        category: payload.category || null,
+        min_stock: Number(payload.minStock) || 5,
+        unit_cost: Number(payload.unitCost) || 0,
+        variants:
+          addVariants.length > 0
+            ? addVariants.map((v) => ({
+                name: v.name,
+                sku: v.sku,
+                stock: Number(v.stock) || 0,
+                unit_price: Number(v.unitPrice) || 0,
+                unit_cost: Number(v.unitCost) || 0,
+              }))
+            : undefined,
+      };
 
-    setNewProduct({
-      sku: "",
-      name: "",
-      category: "",
-      stock: "",
-      minStock: 5,
-      unitCost: "",
-      unitPrice: "",
-    });
-    setAddVariants([]);
-    setErrors({});
+      // If no variants, send flat stock/price
+      if (addVariants.length === 0) {
+        body.stock = Number(payload.stock);
+        body.unit_price = Number(payload.unitPrice);
+      }
 
-    toast.success("Product added successfully ✅");
+      await createProductApi(body);
+      toast.success("Product added successfully ✅");
+      setNewProduct({
+        sku: "",
+        name: "",
+        category: "",
+        stock: "",
+        minStock: 5,
+        unitCost: "",
+        unitPrice: "",
+      });
+      setAddVariants([]);
+      setErrors({});
+      fetchProducts(1, search, categoryFilter);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Failed to create product";
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleDeleteProduct = (id) => {
-    const updatedProducts = products.filter((product) => product.id !== id);
-    setProducts(updatedProducts);
-    localStorage.setItem("products", JSON.stringify(updatedProducts));
-    setDeleteConfirm(null);
-    toast.success("Product deleted successfully 🗑️");
-  };
-
-  const handleUpdateProduct = () => {
+  // ─── CRUD: Update ─────────────────────────────────────────────────────
+  const handleUpdateProduct = async () => {
     if (!validateEditForm()) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    const hasVariants = editVariants.length > 0;
-    const updated = { ...editingProduct };
+    setSubmitting(true);
+    try {
+      const body = {
+        sku: editingProduct.sku,
+        name: editingProduct.name.trim(),
+        category: editingProduct.category || null,
+        min_stock: Number(editingProduct.minStock) || 5,
+        unit_cost: Number(editingProduct.unitCost) || 0,
+      };
 
-    if (hasVariants) {
-      updated.stock = editVariants.reduce(
-        (sum, v) => sum + Number(v.stock || 0),
-        0,
-      );
-      updated.unitPrice = null;
-      updated.variants = editVariants;
-    } else {
-      delete updated.variants;
-    }
-
-    setProducts(
-      products.map((product) =>
-        product.id === updated.id ? updated : product,
-      ),
-    );
-    setEditingProduct(null);
-    setEditDialogOpen(false);
-    setEditVariants([]);
-    setEditErrors({});
-    toast.success("Product updated successfully ✏️");
-  };
-
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(search.toLowerCase()) ||
-      product.sku.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory =
-      categoryFilter === "All Categories" ||
-      product.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
-
-  useEffect(() => {
-    localStorage.setItem("products", JSON.stringify(products));
-  }, [products]);
-
-  useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === "products") {
-        try {
-          const updated = JSON.parse(e.newValue);
-          if (updated) {
-            setProducts(updated);
-          }
-        } catch (error) {
-          console.error("Failed to parse products from storage");
-        }
+      const hasVariants = editVariants.length > 0;
+      if (hasVariants) {
+        body.variants = editVariants.map((v) => ({
+          name: v.name,
+          sku: v.sku,
+          stock: Number(v.stock) || 0,
+          unit_price: Number(v.unitPrice) || 0,
+          unit_cost: Number(v.unitCost) || 0,
+        }));
+      } else {
+        body.stock = Number(editingProduct.stock);
+        body.unit_price = Number(editingProduct.unitPrice);
       }
-    };
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  // ─── Bulk Actions ────────────────────────────────────────────────────
-  const handleSelectAll = () => {
-    if (selectedIds.length === filteredProducts.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(filteredProducts.map((p) => p.id));
+      await updateProductApi(editingProduct.id, body);
+      toast.success("Product updated successfully ✏️");
+      setEditingProduct(null);
+      setEditDialogOpen(false);
+      setEditVariants([]);
+      setEditErrors({});
+      fetchProducts(page, search, categoryFilter);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Failed to update product";
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const toggleSelect = (id) => {
-    if (selectedIds.includes(id)) {
-      setSelectedIds(selectedIds.filter((sid) => sid !== id));
-    } else {
-      setSelectedIds([...selectedIds, id]);
+  // ─── CRUD: Delete ─────────────────────────────────────────────────────
+  const handleDeleteProduct = async (id) => {
+    try {
+      await deleteProductApi(id);
+      toast.success("Product deleted successfully 🗑️");
+      setDeleteConfirm(null);
+      fetchProducts(page, search, categoryFilter);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Failed to delete product";
+      toast.error(msg);
+      setDeleteConfirm(null);
     }
   };
 
-  const handleBulkDelete = () => {
-    const updatedProducts = products.filter(
-      (product) => !selectedIds.includes(product.id),
-    );
-    setProducts(updatedProducts);
-    localStorage.setItem("products", JSON.stringify(updatedProducts));
-    const count = selectedIds.length;
+  // ─── Bulk delete (calls individual delete for each) ──────────────────
+  const handleBulkDelete = async () => {
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const id of selectedIds) {
+      try {
+        await deleteProductApi(id);
+        successCount++;
+      } catch {
+        failCount++;
+      }
+    }
+
     setSelectedIds([]);
     setBulkDeleteOpen(false);
-    toast.success(`${count} products deleted successfully 🗑️`);
+
+    if (successCount > 0) {
+      toast.success(
+        `${successCount} product${successCount > 1 ? "s" : ""} deleted successfully 🗑️`,
+      );
+    }
+    if (failCount > 0) {
+      toast.error(
+        `${failCount} product${failCount > 1 ? "s" : ""} failed to delete`,
+      );
+    }
+
+    fetchProducts(page, search, categoryFilter);
   };
 
   // ─── Category Management ─────────────────────────────────────────────
@@ -605,38 +656,67 @@ export default function Products() {
     URL.revokeObjectURL(url);
   };
 
-  const handleImportCSV = () => {
+  const handleImportCSV = async () => {
     const errorRowNums = new Set(csvErrors.map((e) => e.row));
     const validRows = csvData.filter((_, idx) => !errorRowNums.has(idx + 1));
 
-    const newProducts = validRows.map((row) => {
-      const minStock = Number(row.minStock) || 5;
-      const stock = Number(row.stock);
-      return {
-        id: Date.now() + Math.random(),
-        sku: row.sku || generateSku(row.name),
-        name: row.name,
-        category: row.category || "Other",
-        stock: stock,
-        minStock: minStock,
-        unitCost: Number(row.unitCost) || 0,
-        unitPrice: Number(row.unitPrice),
-        status: stockStatus(stock, minStock).label,
-      };
-    });
+    let successCount = 0;
+    let failCount = 0;
 
-    const updated = [...products, ...newProducts];
-    setProducts(updated);
-    localStorage.setItem("products", JSON.stringify(updated));
+    for (const row of validRows) {
+      try {
+        const minStock = Number(row.minStock) || 5;
+        await createProductApi({
+          sku: row.sku || generateSku(row.name),
+          name: row.name,
+          category: row.category || "Other",
+          stock: Number(row.stock),
+          min_stock: minStock,
+          unit_cost: Number(row.unitCost) || 0,
+          unit_price: Number(row.unitPrice),
+        });
+        successCount++;
+      } catch {
+        failCount++;
+      }
+    }
 
     setImportModalOpen(false);
     setCsvData([]);
     setCsvErrors([]);
 
-    toast.success(`Imported ${validRows.length} products successfully ✅`);
+    if (successCount > 0) {
+      toast.success(
+        `Imported ${successCount} product${successCount > 1 ? "s" : ""} successfully ✅`,
+      );
+    }
+    if (failCount > 0) {
+      toast.error(
+        `${failCount} product${failCount > 1 ? "s" : ""} failed to import`,
+      );
+    }
+
+    fetchProducts(1, search, categoryFilter);
   };
 
   const validRowCount = csvData.length - csvErrors.length;
+
+  // ─── Bulk Actions ────────────────────────────────────────────────────
+  const handleSelectAll = () => {
+    if (selectedIds.length === products.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(products.map((p) => p.id));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((sid) => sid !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
 
   // ─── Variants UI helper ──────────────────────────────────────────────
   const renderVariantSection = (variants, setVariants, isEdit = false) => (
@@ -662,7 +742,6 @@ export default function Products() {
         </button>
       </div>
 
-      {/* Scrollable variant list */}
       <div
         className={
           variants.length > 0
@@ -675,7 +754,6 @@ export default function Products() {
             key={variant.id}
             className="rounded-xl border border-[#ececf2] dark:border-gray-700 p-4"
           >
-            {/* Row 1: Variant Name | Variant SKU */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
@@ -716,8 +794,6 @@ export default function Products() {
                 </div>
               </div>
             </div>
-
-            {/* Row 2: Stock | Price | Cost */}
             <div className="grid grid-cols-3 gap-4 mt-4">
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
@@ -777,13 +853,12 @@ export default function Products() {
             </div>
           </div>
         ))}
-
         {variants.length === 0 && (
           <div className="rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 py-7 text-center">
             <p className="text-sm text-gray-400 dark:text-gray-400">
               No variants yet. Click{" "}
-              <span className="text-accent font-semibold">Add Variant</span>{" "}
-              to create product options like size or color.
+              <span className="text-accent font-semibold">Add Variant</span> to
+              create product options like size or color.
             </p>
           </div>
         )}
@@ -797,7 +872,13 @@ export default function Products() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br shadow-md" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
+            <div
+              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br shadow-md"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+              }}
+            >
               <Package className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -812,7 +893,6 @@ export default function Products() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Export PDF Button */}
           <button
             onClick={() => exportProductsPDF(products)}
             className="relative z-10 flex items-center gap-2 rounded-2xl border border-accent px-4 py-2.5 text-sm font-semibold text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
@@ -820,7 +900,6 @@ export default function Products() {
             <Download className="h-4 w-4" />
             Export PDF
           </button>
-          {/* Import CSV Button */}
           <button
             onClick={() => setImportModalOpen(true)}
             className="relative z-10 flex items-center gap-2 rounded-2xl border border-accent dark:border-accent/40 px-5 py-2.5 text-sm font-medium text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
@@ -831,7 +910,13 @@ export default function Products() {
 
           <Dialog>
             <DialogTrigger asChild>
-              <button className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_-2px_rgba(124,58,237,0.4)] hover:-translate-y-0.5" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}>
+              <button
+                className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_-2px_rgba(124,58,237,0.4)] hover:-translate-y-0.5"
+                style={{
+                  background:
+                    "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                }}
+              >
                 <Plus className="h-4 w-4" />
                 Add Product
               </button>
@@ -839,7 +924,13 @@ export default function Products() {
 
             <DialogContent className="rounded-3xl sm:max-w-4xl p-0 overflow-hidden">
               <div className="relative">
-                <div className="h-1 bg-gradient-to-r " style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
+                <div
+                  className="h-1 bg-gradient-to-r "
+                  style={{
+                    background:
+                      "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
+                  }}
+                />
                 <DialogHeader className="px-6 pt-5 pb-0">
                   <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
                     Add Product
@@ -847,7 +938,6 @@ export default function Products() {
                 </DialogHeader>
 
                 <div className="px-6 pb-6 pt-4 space-y-4">
-                  {/* Row 1: SKU + Generate | Category */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
@@ -903,7 +993,7 @@ export default function Products() {
                     </div>
                   </div>
 
-                  {/* Row 2: Product Name (full width) */}
+                  {/* Row 2: Product Name */}
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                       Product Name <span className="text-red-400">*</span>
@@ -916,11 +1006,7 @@ export default function Products() {
                         setNewProduct({ ...newProduct, name: e.target.value });
                         if (errors.name) setErrors({ ...errors, name: "" });
                       }}
-                      className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
-                        errors.name
-                          ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                          : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"
-                      }`}
+                      className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${errors.name ? "border-red-300 focus:border-red-400 focus:ring-red-100" : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"}`}
                     />
                     {errors.name && (
                       <p className="text-xs text-red-500 dark:text-red-400 mt-1">
@@ -951,11 +1037,7 @@ export default function Products() {
                           });
                           if (errors.stock) setErrors({ ...errors, stock: "" });
                         }}
-                        className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
-                          errors.stock
-                            ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                            : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"
-                        } ${addVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
+                        className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${errors.stock ? "border-red-300 focus:border-red-400 focus:ring-red-100" : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"} ${addVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
                       />
                       {errors.stock && (
                         <p className="text-xs text-red-500 mt-1">
@@ -1033,11 +1115,7 @@ export default function Products() {
                           if (errors.unitPrice)
                             setErrors({ ...errors, unitPrice: "" });
                         }}
-                        className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
-                          errors.unitPrice
-                            ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                            : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"
-                        } ${addVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
+                        className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${errors.unitPrice ? "border-red-300 focus:border-red-400 focus:ring-red-100" : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"} ${addVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
                       />
                       {errors.unitPrice && (
                         <p className="text-xs text-red-500 mt-1">
@@ -1073,9 +1151,14 @@ export default function Products() {
                     </button>
                     <button
                       onClick={handleAddProduct}
-                      className="flex-1 rounded-lg bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
+                      disabled={submitting}
+                      className="flex-1 rounded-lg bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60"
+                      style={{
+                        background:
+                          "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                      }}
                     >
-                      Save Product
+                      {submitting ? "Saving…" : "Save Product"}
                     </button>
                   </div>
                 </div>
@@ -1106,7 +1189,10 @@ export default function Products() {
             <div className="relative">
               <select
                 value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
+                onChange={(e) => {
+                  setCategoryFilter(e.target.value);
+                  setPage(1);
+                }}
                 className="appearance-none rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-5 py-3 pr-12 text-sm font-medium text-gray-700 dark:text-white outline-none transition-all duration-200 focus:border-accent focus:ring-2 focus:ring-accent/20 hover:border-accent dark:hover:border-accent hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.15)] dark:hover:shadow-[0_0_12px_-2px_rgba(168,85,247,0.1)] cursor-pointer"
               >
                 <option>All Categories</option>
@@ -1119,7 +1205,6 @@ export default function Products() {
               </div>
             </div>
 
-            {/* Manage Categories Button */}
             <button
               onClick={() => setManageCatOpen(true)}
               className="relative z-10 flex items-center gap-1.5 rounded-2xl border border-accent dark:border-accent/40 px-4 py-3 text-sm font-medium text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5"
@@ -1130,8 +1215,7 @@ export default function Products() {
 
             <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-violet-500/15 dark:bg-violet-500/15 border border-violet-500/30 dark:border-violet-500/30 px-4 py-2 text-sm font-medium text-accent dark:text-accent">
               <Package className="h-4 w-4" />
-              {filteredProducts.length} product
-              {filteredProducts.length !== 1 ? "s" : ""}
+              {total} product{total !== 1 ? "s" : ""}
             </span>
           </div>
 
@@ -1158,7 +1242,33 @@ export default function Products() {
         </div>
 
         <div className="p-6">
-          {filteredProducts.length === 0 ? (
+          {loading ? (
+            <div className="overflow-hidden rounded-2xl border border-[#ececf2] dark:border-gray-700">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/60 text-left text-sm text-gray-500 dark:text-gray-400">
+                    <th className="px-4 py-4 w-10">
+                      <div className="h-4 w-4 rounded border border-gray-300" />
+                    </th>
+                    <th className="px-6 py-4 font-semibold">Product</th>
+                    <th className="px-6 py-4 font-semibold">SKU</th>
+                    <th className="px-6 py-4 font-semibold">Stock</th>
+                    <th className="px-6 py-4 font-semibold">Unit Cost</th>
+                    <th className="px-6 py-4 font-semibold">Unit Price</th>
+                    <th className="px-6 py-4 font-semibold">Status</th>
+                    <th className="px-6 py-4 text-right font-semibold">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <TableRowSkeleton key={i} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : products.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700">
                 <Package className="h-8 w-8 text-gray-400 dark:text-gray-400" />
@@ -1182,8 +1292,8 @@ export default function Products() {
                         type="checkbox"
                         onChange={handleSelectAll}
                         checked={
-                          selectedIds.length === filteredProducts.length &&
-                          filteredProducts.length > 0
+                          selectedIds.length === products.length &&
+                          products.length > 0
                         }
                         className="rounded border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-600 text-accent dark:text-accent focus:ring-accent cursor-pointer"
                       />
@@ -1200,7 +1310,7 @@ export default function Products() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredProducts.map((product) => {
+                  {products.map((product) => {
                     const effStock = getEffectiveStock(product);
                     const effPrice = getEffectivePrice(product);
                     const hasVariants =
@@ -1256,14 +1366,7 @@ export default function Products() {
                           <div className="flex items-center gap-2">
                             <div className="h-2 w-16 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
                               <div
-                                className={`h-full rounded-full transition-all ${
-                                  effStock === 0
-                                    ? "bg-red-400"
-                                    : effStock <=
-                                        (Number(product.minStock) || 5)
-                                      ? "bg-yellow-400"
-                                      : "bg-green-400"
-                                }`}
+                                className={`h-full rounded-full transition-all ${effStock === 0 ? "bg-red-400" : effStock <= (Number(product.minStock) || 5) ? "bg-yellow-400" : "bg-green-400"}`}
                                 style={{
                                   width: `${Math.min((effStock / 30) * 100, 100)}%`,
                                 }}
@@ -1335,7 +1438,13 @@ export default function Products() {
                               </DialogTrigger>
                               <DialogContent className="rounded-3xl sm:max-w-4xl p-0 overflow-hidden">
                                 <div className="relative">
-                                  <div className="h-1 bg-gradient-to-r " style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
+                                  <div
+                                    className="h-1 bg-gradient-to-r "
+                                    style={{
+                                      background:
+                                        "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
+                                    }}
+                                  />
                                   <DialogHeader className="px-6 pt-5 pb-0">
                                     <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
                                       Edit Product
@@ -1343,7 +1452,6 @@ export default function Products() {
                                   </DialogHeader>
                                   {editingProduct && (
                                     <div className="px-6 pb-6 pt-4 space-y-4">
-                                      {/* Row 1: SKU | Category */}
                                       <div className="grid grid-cols-2 gap-4">
                                         <div>
                                           <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
@@ -1403,8 +1511,6 @@ export default function Products() {
                                           </select>
                                         </div>
                                       </div>
-
-                                      {/* Row 2: Product Name (full width) */}
                                       <div>
                                         <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
                                           Product Name{" "}
@@ -1426,11 +1532,7 @@ export default function Products() {
                                                 name: "",
                                               });
                                           }}
-                                          className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
-                                            editErrors.name
-                                              ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                                              : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"
-                                          }`}
+                                          className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${editErrors.name ? "border-red-300 focus:border-red-400 focus:ring-red-100" : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"}`}
                                         />
                                         {editErrors.name && (
                                           <p className="text-xs text-red-500 dark:text-red-400 mt-1">
@@ -1438,8 +1540,6 @@ export default function Products() {
                                           </p>
                                         )}
                                       </div>
-
-                                      {/* Row 3: Stock | Min Stock */}
                                       <div className="grid grid-cols-2 gap-4">
                                         <div>
                                           <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
@@ -1459,12 +1559,6 @@ export default function Products() {
                                               setEditingProduct({
                                                 ...editingProduct,
                                                 stock: Number(e.target.value),
-                                                status: stockStatus(
-                                                  Number(e.target.value),
-                                                  Number(
-                                                    editingProduct.minStock,
-                                                  ) || 5,
-                                                ).label,
                                               });
                                               if (editErrors.stock)
                                                 setEditErrors({
@@ -1472,11 +1566,7 @@ export default function Products() {
                                                   stock: "",
                                                 });
                                             }}
-                                            className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
-                                              editErrors.stock
-                                                ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                                                : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"
-                                            } ${editVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
+                                            className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${editErrors.stock ? "border-red-300 focus:border-red-400 focus:ring-red-100" : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"} ${editVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
                                           />
                                           {editErrors.stock && (
                                             <p className="text-xs text-red-500 mt-1">
@@ -1498,10 +1588,6 @@ export default function Products() {
                                                 minStock: Number(
                                                   e.target.value,
                                                 ),
-                                                status: stockStatus(
-                                                  Number(editingProduct.stock),
-                                                  Number(e.target.value) || 5,
-                                                ).label,
                                               })
                                             }
                                             className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
@@ -1511,8 +1597,6 @@ export default function Products() {
                                           </p>
                                         </div>
                                       </div>
-
-                                      {/* Row 4: Unit Cost | Unit Price */}
                                       <div className="grid grid-cols-2 gap-4">
                                         <div>
                                           <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
@@ -1574,11 +1658,7 @@ export default function Products() {
                                                   unitPrice: "",
                                                 });
                                             }}
-                                            className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${
-                                              editErrors.unitPrice
-                                                ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                                                : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"
-                                            } ${editVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
+                                            className={`w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:ring-2 ${editErrors.unitPrice ? "border-red-300 focus:border-red-400 focus:ring-red-100" : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"} ${editVariants.length > 0 ? "bg-gray-50 text-gray-400 dark:text-gray-400" : ""}`}
                                           />
                                           {editErrors.unitPrice && (
                                             <p className="text-xs text-red-500 mt-1">
@@ -1587,15 +1667,11 @@ export default function Products() {
                                           )}
                                         </div>
                                       </div>
-
-                                      {/* Variants Section */}
                                       {renderVariantSection(
                                         editVariants,
                                         setEditVariants,
                                         true,
                                       )}
-
-                                      {/* Cancel + Update buttons */}
                                       <div className="flex gap-3 mt-2">
                                         <button
                                           type="button"
@@ -1611,9 +1687,16 @@ export default function Products() {
                                         </button>
                                         <button
                                           onClick={handleUpdateProduct}
-                                          className="flex-1 rounded-lg bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
+                                          disabled={submitting}
+                                          className="flex-1 rounded-lg bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60"
+                                          style={{
+                                            background:
+                                              "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                                          }}
                                         >
-                                          Update Product
+                                          {submitting
+                                            ? "Saving…"
+                                            : "Update Product"}
                                         </button>
                                       </div>
                                     </div>
@@ -1634,6 +1717,31 @@ export default function Products() {
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* ─── Pagination ──────────────────────────────────────────── */}
+          {!loading && lastPage > 1 && (
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-gray-700/40">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Page {page} of {lastPage} ({total} total)
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="flex items-center gap-1 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" /> Prev
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(lastPage, p + 1))}
+                  disabled={page >= lastPage}
+                  className="flex items-center gap-1 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  Next <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -1713,10 +1821,22 @@ export default function Products() {
       {importModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-2xl rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm max-h-[90vh] overflow-y-auto">
-            <div className="h-1 bg-gradient-to-r  rounded-t-3xl -mt-6 -mx-6 mb-6" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
+            <div
+              className="h-1 bg-gradient-to-r  rounded-t-3xl -mt-6 -mx-6 mb-6"
+              style={{
+                background:
+                  "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
+              }}
+            />
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                  }}
+                >
                   <Upload className="h-5 w-5 text-white" />
                 </div>
                 <div>
@@ -1739,17 +1859,12 @@ export default function Products() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-
-            {/* Download Template */}
             <button
               onClick={handleDownloadTemplate}
               className="flex items-center gap-2 text-sm text-accent hover:text-accent dark:text-accent mb-4"
             >
-              <FileDown className="h-4 w-4" />
-              Download CSV Template
+              <FileDown className="h-4 w-4" /> Download CSV Template
             </button>
-
-            {/* Format Info */}
             <div className="rounded-2xl bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/60 p-4 mb-4 text-sm text-gray-600 dark:text-gray-300">
               <p className="font-semibold text-gray-700 mb-1">
                 Required: name, sku, category, stock, unitPrice
@@ -1758,8 +1873,6 @@ export default function Products() {
                 Optional: unitCost, minStock (default: 5)
               </p>
             </div>
-
-            {/* Upload Area */}
             <label className="block border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center cursor-pointer hover:border-accent hover:bg-accent-light dark:hover:bg-accent/20 transition-colors mb-4">
               <input
                 type="file"
@@ -1784,8 +1897,6 @@ export default function Products() {
                 </div>
               )}
             </label>
-
-            {/* Preview Table */}
             {csvData.length > 0 && (
               <div className="overflow-hidden rounded-2xl border border-[#ececf2] dark:border-gray-700 mb-4">
                 <div className="overflow-x-auto max-h-64 overflow-y-auto">
@@ -1809,9 +1920,7 @@ export default function Products() {
                         return (
                           <tr
                             key={idx}
-                            className={`border-t border-[#ececf2] dark:border-gray-700/60 ${
-                              hasError ? "bg-red-50" : ""
-                            }`}
+                            className={`border-t border-[#ececf2] dark:border-gray-700/60 ${hasError ? "bg-red-50" : ""}`}
                           >
                             <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
                               {row.name || "—"}
@@ -1857,8 +1966,6 @@ export default function Products() {
                 </div>
               </div>
             )}
-
-            {/* Error Summary */}
             {csvErrors.length > 0 && (
               <div className="rounded-2xl bg-red-50 border border-red-200 p-3 mb-4">
                 <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">
@@ -1880,8 +1987,6 @@ export default function Products() {
                 )}
               </div>
             )}
-
-            {/* Buttons */}
             <div className="flex gap-3">
               <button
                 onClick={() => {
@@ -1896,11 +2001,7 @@ export default function Products() {
               <button
                 onClick={handleImportCSV}
                 disabled={validRowCount === 0}
-                className={`flex-1 rounded-2xl py-3 font-semibold shadow-sm transition-all ${
-                  validRowCount > 0
-                    ? "bg-gradient-to-r from-accent to-accent-hover text-white hover:shadow-md"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                }`}
+                className={`flex-1 rounded-2xl py-3 font-semibold shadow-sm transition-all ${validRowCount > 0 ? "bg-gradient-to-r from-accent to-accent-hover text-white hover:shadow-md" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
               >
                 Import {validRowCount} Product{validRowCount !== 1 ? "s" : ""}
               </button>
@@ -1913,9 +2014,21 @@ export default function Products() {
       {manageCatOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl backdrop-blur-sm">
-            <div className="h-1 bg-gradient-to-r  rounded-t-3xl -mt-6 -mx-6 mb-6" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))"}} />
+            <div
+              className="h-1 bg-gradient-to-r  rounded-t-3xl -mt-6 -mx-6 mb-6"
+              style={{
+                background:
+                  "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
+              }}
+            />
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm"
+                style={{
+                  background:
+                    "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                }}
+              >
                 <Settings2 className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -1927,8 +2040,6 @@ export default function Products() {
                 </p>
               </div>
             </div>
-
-            {/* Add Category */}
             <div className="flex gap-2 mb-6">
               <input
                 type="text"
@@ -1942,13 +2053,15 @@ export default function Products() {
               />
               <button
                 onClick={handleAddCategory}
-                className="shrink-0 rounded-2xl bg-gradient-to-r px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
+                className="shrink-0 rounded-2xl bg-gradient-to-r px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
+                style={{
+                  background:
+                    "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                }}
               >
                 Add
               </button>
             </div>
-
-            {/* Category List */}
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {categories.length === 0 ? (
                 <p className="text-sm text-gray-400 dark:text-gray-400 text-center py-4">
@@ -1967,14 +2080,12 @@ export default function Products() {
                       onClick={() => handleDeleteCategory(cat)}
                       className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-red-500 transition-all hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
-                      <Trash2 className="h-3 w-3" />
-                      Delete
+                      <Trash2 className="h-3 w-3" /> Delete
                     </button>
                   </div>
                 ))
               )}
             </div>
-
             <div className="mt-6">
               <button
                 onClick={() => setManageCatOpen(false)}

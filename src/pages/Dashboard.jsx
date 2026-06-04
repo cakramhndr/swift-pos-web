@@ -1,5 +1,8 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { exportDashboardPDF } from "@/lib/exportUtils";
+import { getDashboardApi } from "@/lib/api";
+import { toast } from "sonner";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -28,71 +31,182 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 
+// ── Skeleton component (matches card layout) ─────────────────────────
+function CardSkeleton() {
+  return (
+    <div className="rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] animate-pulse">
+      <div className="flex items-start justify-between">
+        <div className="space-y-3">
+          <div className="h-3 w-24 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="h-7 w-32 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="h-5 w-20 rounded bg-gray-200 dark:bg-gray-700" />
+        </div>
+        <div className="h-12 w-12 rounded-xl bg-gray-200 dark:bg-gray-700" />
+      </div>
+      <div className="mt-5 space-y-2">
+        <div className="flex justify-between">
+          <div className="h-3 w-16 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="h-3 w-16 rounded bg-gray-200 dark:bg-gray-700" />
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-700" />
+      </div>
+    </div>
+  );
+}
+
+function ChartSkeleton() {
+  return (
+    <div className="rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] animate-pulse p-7">
+      <div className="flex items-center gap-3.5 mb-6">
+        <div className="h-10 w-10 rounded-xl bg-gray-200 dark:bg-gray-700" />
+        <div className="space-y-1.5">
+          <div className="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="h-3 w-20 rounded bg-gray-200 dark:bg-gray-700" />
+        </div>
+      </div>
+      <div className="h-[280px] rounded-xl bg-gray-100 dark:bg-gray-700/50" />
+    </div>
+  );
+}
+
+function TableSkeleton() {
+  return (
+    <div className="rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] animate-pulse p-7">
+      <div className="flex items-center gap-3.5 mb-6">
+        <div className="h-10 w-10 rounded-xl bg-gray-200 dark:bg-gray-700" />
+        <div className="space-y-1.5">
+          <div className="h-4 w-28 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="h-3 w-24 rounded bg-gray-200 dark:bg-gray-700" />
+        </div>
+      </div>
+      <div className="space-y-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center gap-4">
+            <div className="h-8 w-12 rounded-lg bg-gray-200 dark:bg-gray-700" />
+            <div className="flex-1 h-4 rounded bg-gray-200 dark:bg-gray-700" />
+            <div className="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700" />
+            <div className="h-6 w-24 rounded-full bg-gray-200 dark:bg-gray-700" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Format helpers ───────────────────────────────────────────────────
+function formatCurrency(value) {
+  return (value ?? 0).toLocaleString("id-ID");
+}
+
+// ── Dashboard page ──────────────────────────────────────────────────
 export default function Dashboard() {
   const navigate = useNavigate();
-  const transactions = JSON.parse(localStorage.getItem("transactions") || "[]");
 
-  const products = JSON.parse(localStorage.getItem("products") || "[]");
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const totalRevenue = transactions.reduce(
-    (total, transaction) => total + transaction.total,
-    0,
-  );
+  // ── Fetch dashboard data from API ────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
 
-  const totalTransactions = transactions.length;
-
-  const totalProductsSold = transactions.reduce(
-    (total, transaction) =>
-      total + transaction.items.reduce((sum, item) => sum + item.qty, 0),
-    0,
-  );
-
-  const lowStockProducts = products.filter(
-    (product) => product.stock <= 10,
-  ).length;
-
-  const recentTransactions = [...transactions].reverse().slice(0, 5);
-
-  const productSales = {};
-
-  transactions.forEach((transaction) => {
-    transaction.items.forEach((item) => {
-      if (!productSales[item.name]) {
-        productSales[item.name] = 0;
+    async function fetchDashboard() {
+      try {
+        const res = await getDashboardApi();
+        // Support both flat data and nested "data" key
+        const d = res.data.data ?? res.data;
+        if (!cancelled) setData(d);
+      } catch (err) {
+        const msg =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          "Failed to load dashboard data";
+        toast.error(msg);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
+    }
 
-      productSales[item.name] += item.qty;
-    });
-  });
+    fetchDashboard();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const topProducts = Object.entries(productSales)
-    .map(([name, sold]) => ({
-      name,
-      sold,
-    }))
-    .sort((a, b) => b.sold - a.sold)
-    .slice(0, 5);
+  // ── Derive values from API data (with safe fallbacks) ─────────────
+  const todaySales = data?.today_sales ?? 0;
+  const todayTransactions = data?.today_transactions ?? 0;
+  const todayCustomers = data?.today_customers ?? 0;
+  const totalProducts = data?.total_products ?? 0;
+  const totalCustomers = data?.total_customers ?? 0;
+  const lowStockProducts = data?.low_stock_products ?? 0;
+  const outOfStockProducts = data?.out_of_stock_products ?? 0;
 
-  const weeklyData = [
-    { day: "Mon", total: 0 },
-    { day: "Tue", total: 0 },
-    { day: "Wed", total: 0 },
-    { day: "Thu", total: 0 },
-    { day: "Fri", total: 0 },
-    { day: "Sat", total: 0 },
-    { day: "Sun", total: 0 },
-  ];
+  const salesChart = data?.sales_chart ?? [];
+  const topProducts = data?.top_products ?? [];
+  const recentTransactions = data?.recent_transactions ?? [];
 
-  transactions.forEach((transaction) => {
-    const date = new Date(transaction.date);
+  // ── Loading state ────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="space-y-8 dark:bg-gray-900">
+        {/* Header skeleton */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div className="space-y-2">
+            <div className="h-8 w-40 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+            <div className="h-4 w-60 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          </div>
+          <div className="flex gap-3">
+            <div className="h-10 w-24 rounded-2xl bg-gray-200 dark:bg-gray-700 animate-pulse" />
+            <div className="h-10 w-32 rounded-2xl bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          </div>
+        </div>
 
-    const dayIndex = date.getDay() === 0 ? 6 : date.getDay() - 1;
+        {/* Quick actions skeleton */}
+        <div className="flex gap-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="h-9 w-28 rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse"
+            />
+          ))}
+        </div>
 
-    weeklyData[dayIndex].total += transaction.total;
-  });
+        {/* Stat cards skeleton */}
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
 
-  const revenueChange = totalRevenue > 0 ? 12.5 : 0;
+        {/* Charts row skeleton */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <ChartSkeleton />
+          </div>
+          <ChartSkeleton />
+        </div>
 
+        {/* Bottom grid skeleton */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <TableSkeleton />
+          </div>
+          <div className="space-y-6">
+            <ChartSkeleton />
+            <ChartSkeleton />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Computed values for "Summary" card ─────────────────────────────
+  const chartTotal = salesChart.reduce((s, d) => s + (d.total ?? 0), 0);
+  const avgOrderValue =
+    todayTransactions > 0 ? Math.round(todaySales / todayTransactions) : 0;
+
+  // ── Render page ──────────────────────────────────────────────────
   return (
     <div className="space-y-8 dark:bg-gray-900">
       {/* ══════════════ Page Header ═══════════════════════════════════════ */}
@@ -109,9 +223,9 @@ export default function Dashboard() {
           <button
             onClick={() =>
               exportDashboardPDF({
-                revenue: totalRevenue,
-                orders: totalTransactions,
-                productsSold: totalProductsSold,
+                revenue: todaySales,
+                orders: todayTransactions,
+                productsSold: data?.total_products_sold ?? 0,
                 topProducts,
                 recentOrders: recentTransactions,
               })
@@ -123,7 +237,11 @@ export default function Dashboard() {
           </button>
           <button
             onClick={() => navigate("/transactions")}
-            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+            style={{
+              background:
+                "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+            }}
           >
             <Plus className="h-4 w-4" />
             New Order
@@ -158,43 +276,49 @@ export default function Dashboard() {
           <TrendingUp size={16} /> View Reports
         </button>
         <button
-          onClick={() => navigate("/crm")}
+          onClick={() => navigate("/customers")}
           className="relative z-10 flex items-center gap-2 px-4 py-2 text-sm font-medium border border-pink-200 dark:border-pink-800/40 text-pink-700 dark:text-pink-300 rounded-lg hover:bg-pink-50 dark:hover:bg-pink-900/30 hover:shadow-[0_0_20px_-2px_rgba(236,72,153,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(236,72,153,0.15)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
         >
-          <Users size={16} /> CRM
+          <Users size={16} /> Customers
         </button>
       </div>
 
       {/* ══════════════ Stat Cards ════════════════════════════════════════ */}
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-        {/* ─── Total Revenue ─────────────────────────────────────────── */}
+        {/* ─── Today's Revenue ────────────────────────────────────────── */}
         <div className="group relative rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_-4px_rgba(124,58,237,0.12)] hover:border-accent/80 transition-all duration-300">
           <div className="flex items-start justify-between">
             <div className="space-y-2.5">
               <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400 tracking-wide">
-                Total Revenue
+                Today's Revenue
               </p>
               <h2 className="text-[28px] font-semibold tracking-tight text-gray-900 dark:text-white leading-none">
-                Rp {totalRevenue.toLocaleString("id-ID")}
+                Rp {formatCurrency(todaySales)}
               </h2>
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-300 border border-emerald-500/30">
                   <ArrowUpRight className="h-3 w-3" />
-                  {revenueChange}%
+                  {data?.sales_change != null ? data.sales_change : 0}%
                 </span>
                 <span className="text-[12px] text-gray-500 dark:text-gray-400">
-                  vs last week
+                  vs yesterday
                 </span>
               </div>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20 shrink-0" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
+            <div
+              className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20 shrink-0"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+              }}
+            >
               <DollarSign className="h-6 w-6 text-white" />
             </div>
           </div>
           <div className="mt-5 space-y-1.5">
             <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span>Minggu ini</span>
-              <span>Minggu lalu</span>
+              <span>Today</span>
+              <span>Yesterday</span>
             </div>
             <div className="flex gap-2 items-center">
               <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -206,38 +330,46 @@ export default function Dashboard() {
               <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full bg-accent-light"
-                  style={{ width: "89%" }}
+                  style={{
+                    width:
+                      data?.yesterday_sales_percent != null
+                        ? `${data.yesterday_sales_percent}%`
+                        : "89%",
+                  }}
                 />
               </div>
             </div>
             <div className="flex justify-between text-xs font-medium">
               <span className="text-accent dark:text-accent">
-                Rp 62.361.000
+                Rp {formatCurrency(todaySales)}
               </span>
               <span className="text-accent/50">
-                Rp 55.432.000
+                Rp {formatCurrency(data?.yesterday_sales ?? 0)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* ─── Orders ───────────────────────────────────────────────── */}
+        {/* ─── Today's Transactions ─────────────────────────────────── */}
         <div className="group relative rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_-4px_rgba(59,130,246,0.12)] hover:border-blue-200/80 transition-all duration-300">
           <div className="flex items-start justify-between">
             <div className="space-y-2.5">
               <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400 tracking-wide">
-                Orders
+                Today's Transactions
               </p>
               <h2 className="text-[28px] font-semibold tracking-tight text-gray-900 dark:text-white leading-none">
-                {totalTransactions}
+                {todayTransactions}
               </h2>
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-300 border border-emerald-500/30">
                   <ArrowUpRight className="h-3 w-3" />
-                  8.2%
+                  {data?.transactions_change != null
+                    ? data.transactions_change
+                    : 0}
+                  %
                 </span>
                 <span className="text-[12px] text-gray-500 dark:text-gray-400">
-                  vs last week
+                  vs yesterday
                 </span>
               </div>
             </div>
@@ -247,8 +379,8 @@ export default function Dashboard() {
           </div>
           <div className="mt-5 space-y-1.5">
             <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span>Minggu ini</span>
-              <span>Minggu lalu</span>
+              <span>Today</span>
+              <span>Yesterday</span>
             </div>
             <div className="flex gap-2 items-center">
               <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -260,45 +392,54 @@ export default function Dashboard() {
               <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full bg-blue-200"
-                  style={{ width: "91%" }}
+                  style={{
+                    width:
+                      data?.yesterday_transactions_percent != null
+                        ? `${data.yesterday_transactions_percent}%`
+                        : "91%",
+                  }}
                 />
               </div>
             </div>
             <div className="flex justify-between text-xs font-medium">
-              <span className="text-blue-600 dark:text-blue-400">11</span>
-              <span className="text-blue-600 dark:text-blue-400">10</span>
+              <span className="text-blue-600 dark:text-blue-400">
+                {todayTransactions}
+              </span>
+              <span className="text-blue-600 dark:text-blue-400">
+                {data?.yesterday_transactions ?? 0}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* ─── Products Sold ────────────────────────────────────────── */}
+        {/* ─── Today's Customers ────────────────────────────────────── */}
         <div className="group relative rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_-4px_rgba(16,185,129,0.12)] hover:border-emerald-200/80 transition-all duration-300">
           <div className="flex items-start justify-between">
             <div className="space-y-2.5">
               <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400 tracking-wide">
-                Products Sold
+                Today's Customers
               </p>
               <h2 className="text-[28px] font-semibold tracking-tight text-gray-900 dark:text-white leading-none">
-                {totalProductsSold}
+                {todayCustomers}
               </h2>
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-300 border border-emerald-500/30">
                   <ArrowUpRight className="h-3 w-3" />
-                  3.1%
+                  {data?.customers_change != null ? data.customers_change : 0}%
                 </span>
                 <span className="text-[12px] text-gray-500 dark:text-gray-400">
-                  vs last week
+                  vs yesterday
                 </span>
               </div>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-500/20 shrink-0">
-              <Package className="h-6 w-6 text-white" />
+              <Users className="h-6 w-6 text-white" />
             </div>
           </div>
           <div className="mt-5 space-y-1.5">
             <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span>Minggu ini</span>
-              <span>Minggu lalu</span>
+              <span>Today</span>
+              <span>Yesterday</span>
             </div>
             <div className="flex gap-2 items-center">
               <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -310,52 +451,63 @@ export default function Dashboard() {
               <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full bg-green-200"
-                  style={{ width: "97%" }}
+                  style={{
+                    width:
+                      data?.yesterday_customers_percent != null
+                        ? `${data.yesterday_customers_percent}%`
+                        : "97%",
+                  }}
                 />
               </div>
             </div>
             <div className="flex justify-between text-xs font-medium">
-              <span className="text-green-600 dark:text-green-400">39</span>
-              <span className="text-green-600 dark:text-green-400">38</span>
+              <span className="text-green-600 dark:text-green-400">
+                {todayCustomers}
+              </span>
+              <span className="text-green-600 dark:text-green-400">
+                {data?.yesterday_customers ?? 0}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* ─── Low Stock ────────────────────────────────────────────── */}
+        {/* ─── Low / Out of Stock ───────────────────────────────────── */}
         <div className="group relative rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_-4px_rgba(239,68,68,0.12)] hover:border-red-200/80 transition-all duration-300">
           <div className="flex items-start justify-between">
             <div className="space-y-2.5">
               <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400 tracking-wide">
-                Low Stock
+                Low / Out of Stock
               </p>
               <h2
-                className={`text-[28px] font-semibold tracking-tight leading-none ${lowStockProducts > 0 ? "text-red-600 dark:text-red-400" : "text-gray-900 dark:text-white"}`}
+                className={`text-[28px] font-semibold tracking-tight leading-none ${lowStockProducts + outOfStockProducts > 0 ? "text-red-600 dark:text-red-400" : "text-gray-900 dark:text-white"}`}
               >
-                {lowStockProducts}
+                {lowStockProducts + outOfStockProducts}
               </h2>
               <div className="flex items-center gap-2">
                 <span
-                  className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold ${lowStockProducts > 0 ? "bg-red-500/15 text-red-300 border border-red-500/30" : "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"}`}
+                  className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold ${lowStockProducts + outOfStockProducts > 0 ? "bg-red-500/15 text-red-300 border border-red-500/30" : "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"}`}
                 >
-                  {lowStockProducts > 0 ? (
+                  {lowStockProducts + outOfStockProducts > 0 ? (
                     <ArrowDownRight className="h-3 w-3" />
                   ) : (
                     <CheckCircle2 className="h-3 w-3" />
                   )}
-                  {lowStockProducts > 0 ? "Needs attention" : "All stocked"}
+                  {lowStockProducts + outOfStockProducts > 0
+                    ? "Needs attention"
+                    : "All stocked"}
                 </span>
               </div>
             </div>
             <div
-              className={`flex h-12 w-12 items-center justify-center rounded-xl shadow-lg shrink-0 ${lowStockProducts > 0 ? "bg-gradient-to-br from-red-500 to-rose-600 shadow-red-500/20" : "bg-gradient-to-br from-gray-400 to-gray-300 shadow-gray-400/20"}`}
+              className={`flex h-12 w-12 items-center justify-center rounded-xl shadow-lg shrink-0 ${lowStockProducts + outOfStockProducts > 0 ? "bg-gradient-to-br from-red-500 to-rose-600 shadow-red-500/20" : "bg-gradient-to-br from-gray-400 to-gray-300 shadow-gray-400/20"}`}
             >
               <AlertTriangle className="h-6 w-6 text-white" />
             </div>
           </div>
           <div className="mt-5 space-y-1.5">
             <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span>Minggu ini</span>
-              <span>Minggu lalu</span>
+              <span>Low stock</span>
+              <span>Out of stock</span>
             </div>
             <div className="flex gap-2 items-center">
               <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -367,14 +519,16 @@ export default function Dashboard() {
               <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full bg-red-200"
-                  style={{ width: "0%" }}
+                  style={{ width: outOfStockProducts > 0 ? "100%" : "0%" }}
                 />
               </div>
             </div>
             <div className="flex justify-between text-xs font-medium">
-              <span className="text-red-600 dark:text-red-400">2</span>
               <span className="text-red-600 dark:text-red-400">
-                Butuh perhatian
+                {lowStockProducts}
+              </span>
+              <span className="text-red-600 dark:text-red-400">
+                {outOfStockProducts}
               </span>
             </div>
           </div>
@@ -383,12 +537,18 @@ export default function Dashboard() {
 
       {/* ══════════════ Charts Row ════════════════════════════════════ */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* ─── Weekly Sales Chart ────────────────────────────────────── */}
+        {/* ─── Sales Chart ────────────────────────────────────────────── */}
         <div className="lg:col-span-2 rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] transition-all duration-300">
           <div className="flex items-center justify-between px-7 pt-7 pb-5">
             <div>
               <div className="flex items-center gap-3.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                  }}
+                >
                   <TrendingUp className="h-5 w-5 text-white" />
                 </div>
                 <div className="space-y-0.5">
@@ -396,7 +556,7 @@ export default function Dashboard() {
                     Sales Overview
                   </h2>
                   <p className="text-[13px] text-gray-500 dark:text-gray-400">
-                    Weekly revenue performance
+                    {data?.chart_label ?? "Weekly revenue performance"}
                   </p>
                 </div>
               </div>
@@ -404,13 +564,10 @@ export default function Dashboard() {
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
                 <p className="text-[12px] text-gray-500 dark:text-gray-400">
-                  This week total
+                  {data?.chart_period_label ?? "This week total"}
                 </p>
                 <p className="text-[18px] font-semibold text-gray-900 dark:text-white leading-tight">
-                  Rp{" "}
-                  {weeklyData
-                    .reduce((sum, d) => sum + d.total, 0)
-                    .toLocaleString("id-ID")}
+                  Rp {formatCurrency(chartTotal)}
                 </p>
               </div>
               <button className="rounded-lg border border-gray-200/70 p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all duration-200 hover:text-gray-600 dark:text-gray-300 transition-all duration-200">
@@ -420,86 +577,104 @@ export default function Dashboard() {
           </div>
           <div className="px-4 pb-4">
             <div className="h-[280px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={weeklyData}
-                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="salesGradient"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="#7c3aed"
-                        stopOpacity={0.35}
-                      />
-                      <stop
-                        offset="50%"
-                        stopColor="#7c3aed"
-                        stopOpacity={0.12}
-                      />
-                      <stop offset="100%" stopColor="#7c3aed" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
+              {salesChart.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center px-6">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700 ring-1 ring-gray-200/50">
+                    <TrendingUp className="h-6 w-6 text-gray-400 dark:text-gray-400" />
+                  </div>
+                  <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                    No sales data yet
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Sales chart will appear once transactions are recorded
+                  </p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={salesChart}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient
+                        id="salesGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#7c3aed"
+                          stopOpacity={0.35}
+                        />
+                        <stop
+                          offset="50%"
+                          stopColor="#7c3aed"
+                          stopOpacity={0.12}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#7c3aed"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
 
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#f0f0f5"
-                  />
-                  <XAxis
-                    dataKey="day"
-                    tickLine={false}
-                    axisLine={false}
-                    tick={{ fill: "#9ca3af", fontSize: 12, fontWeight: 500 }}
-                    tickMargin={8}
-                  />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="#f0f0f5"
+                    />
+                    <XAxis
+                      dataKey="day"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: "#9ca3af", fontSize: 12, fontWeight: 500 }}
+                      tickMargin={8}
+                    />
 
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: "12px",
-                      border: "1px solid #e5e7eb",
-                      boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
-                      padding: "10px 14px",
-                      background: "rgba(255,255,255,0.98)",
-                    }}
-                    labelStyle={{
-                      fontWeight: 600,
-                      fontSize: 13,
-                      color: "#374151",
-                      marginBottom: 2,
-                    }}
-                    formatter={(value) => [
-                      `Rp ${value.toLocaleString("id-ID")}`,
-                      "Revenue",
-                    ]}
-                    cursor={{
-                      stroke: "#7c3aed",
-                      strokeWidth: 1,
-                      strokeDasharray: "3 3",
-                    }}
-                  />
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: "12px",
+                        border: "1px solid #e5e7eb",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                        padding: "10px 14px",
+                        background: "rgba(255,255,255,0.98)",
+                      }}
+                      labelStyle={{
+                        fontWeight: 600,
+                        fontSize: 13,
+                        color: "#374151",
+                        marginBottom: 2,
+                      }}
+                      formatter={(value) => [
+                        `Rp ${value.toLocaleString("id-ID")}`,
+                        "Revenue",
+                      ]}
+                      cursor={{
+                        stroke: "#7c3aed",
+                        strokeWidth: 1,
+                        strokeDasharray: "3 3",
+                      }}
+                    />
 
-                  <Area
-                    type="monotone"
-                    dataKey="total"
-                    stroke="#7c3aed"
-                    strokeWidth={2.5}
-                    fill="url(#salesGradient)"
-                    activeDot={{
-                      r: 5,
-                      fill: "#7c3aed",
-                      stroke: "white",
-                      strokeWidth: 2,
-                    }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+                    <Area
+                      type="monotone"
+                      dataKey="total"
+                      stroke="#7c3aed"
+                      strokeWidth={2.5}
+                      fill="url(#salesGradient)"
+                      activeDot={{
+                        r: 5,
+                        fill: "#7c3aed",
+                        stroke: "white",
+                        strokeWidth: 2,
+                      }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>
@@ -575,7 +750,10 @@ export default function Dashboard() {
                         fontSize: 13,
                         color: "#f3f4f6",
                       }}
-                      formatter={(value) => [`${value} units`, "Sold"]}
+                      formatter={(value, name) => [
+                        `${value} units`,
+                        name === "sold" ? "Sold" : "Revenue",
+                      ]}
                     />
                     <Bar dataKey="sold" fill="#7c3aed" radius={[0, 6, 6, 0]} />
                   </BarChart>
@@ -588,12 +766,18 @@ export default function Dashboard() {
 
       {/* ══════════════ Bottom Grid ════════════════════════════════════ */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* ─── Recent Orders ─────────────────────────────────────────── */}
+        {/* ─── Recent Transactions ─────────────────────────────────────── */}
         <div className="lg:col-span-2 rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] transition-all duration-300">
           <div className="px-7 pt-7 pb-5">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                  }}
+                >
                   <Clock className="h-5 w-5 text-white" />
                 </div>
                 <div className="space-y-0.5">
@@ -656,7 +840,13 @@ export default function Dashboard() {
                       >
                         <td className="py-4 pr-4">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br text-xs font-bold text-white shadow-sm" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
+                            <div
+                              className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br text-xs font-bold text-white shadow-sm"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                              }}
+                            >
                               #{String(transaction.id).slice(-3)}
                             </div>
                             <span className="font-medium text-gray-900 text-sm">
@@ -671,12 +861,12 @@ export default function Dashboard() {
                           </div>
                         </td>
                         <td className="py-4 text-right font-semibold text-gray-900 dark:text-white text-sm">
-                          Rp {transaction.total.toLocaleString("id-ID")}
+                          Rp {(transaction.total ?? 0).toLocaleString("id-ID")}
                         </td>
                         <td className="py-4 text-right">
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-medium text-emerald-300 border border-emerald-500/30">
                             <CheckCircle2 className="h-3 w-3" />
-                            Completed
+                            {transaction.status ?? "Completed"}
                           </span>
                         </td>
                       </tr>
@@ -688,13 +878,13 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* ─── Low Stock Alert + Quick Summary ───────────────────────── */}
+        {/* ─── Right Column: Stock Alerts + Summary ───────────────────── */}
         <div className="space-y-6">
-          {/* Low Stock Widget */}
+          {/* Low / Out of Stock Widget */}
           <div className="rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 p-7">
             <div className="flex items-center gap-3.5 mb-5">
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-lg ${lowStockProducts > 0 ? "bg-gradient-to-br from-red-500 to-rose-600 shadow-red-500/20" : "bg-gradient-to-br from-gray-400 to-gray-300 shadow-gray-400/20"}`}
+                className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-lg ${lowStockProducts + outOfStockProducts > 0 ? "bg-gradient-to-br from-red-500 to-rose-600 shadow-red-500/20" : "bg-gradient-to-br from-gray-400 to-gray-300 shadow-gray-400/20"}`}
               >
                 <AlertTriangle className="h-5 w-5 text-white" />
               </div>
@@ -703,33 +893,34 @@ export default function Dashboard() {
                   Stock Alerts
                 </h3>
                 <p className="text-[13px] text-gray-500 dark:text-gray-400">
-                  {lowStockProducts > 0
-                    ? `${lowStockProducts} product${lowStockProducts > 1 ? "s" : ""} running low`
+                  {lowStockProducts + outOfStockProducts > 0
+                    ? `${lowStockProducts + outOfStockProducts} product${lowStockProducts + outOfStockProducts > 1 ? "s" : ""} need${lowStockProducts + outOfStockProducts > 1 ? "" : "s"} attention`
                     : "All products stocked"}
                 </p>
               </div>
             </div>
 
-            {lowStockProducts > 0 ? (
+            {lowStockProducts + outOfStockProducts > 0 ? (
               <div className="space-y-2.5">
-                {products
-                  .filter((p) => p.stock <= 10)
-                  .slice(0, 4)
-                  .map((product) => (
+                {/* Low stock items from API */}
+                {(data?.low_stock_items ?? []).length > 0 ? (
+                  data.low_stock_items.slice(0, 4).map((product) => (
                     <div
-                      key={product.id}
+                      key={product.id ?? product.name}
                       className="flex items-center justify-between rounded-xl bg-red-500/15 border border-red-500/30 dark:bg-red-500/15 dark:border-red-500/30 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-xs font-bold text-red-600 dark:text-red-400 ring-1 ring-red-200/50">
-                          {product.stock}
+                          {product.stock ?? product.quantity}
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">
                             {product.name}
                           </p>
                           <p className="text-xs text-red-300">
-                            Only {product.stock} left
+                            {(product.stock ?? product.quantity) > 0
+                              ? `Only ${product.stock ?? product.quantity} left`
+                              : "Out of stock"}
                           </p>
                         </div>
                       </div>
@@ -740,8 +931,30 @@ export default function Dashboard() {
                         Restock
                       </button>
                     </div>
-                  ))}
-                {products.filter((p) => p.stock <= 10).length > 4 && (
+                  ))
+                ) : (
+                  /* Fallback inline stats when no detail items */
+                  <div className="space-y-3 px-2">
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700/40">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        Low stock
+                      </span>
+                      <span className="text-sm font-semibold text-red-600 dark:text-red-400">
+                        {lowStockProducts}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        Out of stock
+                      </span>
+                      <span className="text-sm font-semibold text-red-600 dark:text-red-400">
+                        {outOfStockProducts}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {(data?.low_stock_items ?? []).length > 4 && (
                   <button
                     onClick={() => navigate("/inventory")}
                     className="w-full text-center text-sm font-medium text-accent hover:text-accent dark:text-accent hover:underline pt-1 transition-all"
@@ -768,7 +981,13 @@ export default function Dashboard() {
           {/* Quick Summary Card */}
           <div className="rounded-2xl border border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 p-7">
             <div className="flex items-center gap-3.5 mb-5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20"
+                style={{
+                  background:
+                    "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                }}
+              >
                 <TrendingUp className="h-5 w-5 text-white" />
               </div>
               <div className="space-y-0.5">
@@ -787,7 +1006,15 @@ export default function Dashboard() {
                   Total Products
                 </span>
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {products.length}
+                  {totalProducts}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-3 border-b border-gray-50 dark:border-gray-700/50">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Total Customers
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {totalCustomers}
                 </span>
               </div>
               <div className="flex items-center justify-between py-3 border-b border-gray-50 dark:border-gray-700/50">
@@ -795,30 +1022,15 @@ export default function Dashboard() {
                   Avg Order Value
                 </span>
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Rp{" "}
-                  {totalTransactions > 0
-                    ? Math.round(
-                        totalRevenue / totalTransactions,
-                      ).toLocaleString("id-ID")
-                    : "0"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-3 border-b border-gray-50 dark:border-gray-700/50">
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Items per Order
-                </span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {totalTransactions > 0
-                    ? (totalProductsSold / totalTransactions).toFixed(1)
-                    : "0"}
+                  Rp {formatCurrency(avgOrderValue)}
                 </span>
               </div>
               <div className="flex items-center justify-between py-3">
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Active Products
+                  Low / Out of Stock
                 </span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {products.filter((p) => p.stock > 0).length}
+                <span className="text-sm font-semibold text-red-600 dark:text-red-400">
+                  {lowStockProducts + outOfStockProducts}
                 </span>
               </div>
             </div>
