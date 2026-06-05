@@ -18,3 +18,19 @@ export function getProductsReport(params = {}) {
 export function getCustomersReport(params = {}) {
   return client.get("/reports/customers", { params });
 }
+
+export function getTrendsReport(params = {}) {
+  return client.get("/reports/trends", { params });
+}
+
+export function getCategoriesReport(params = {}) {
+  return client.get("/reports/categories", { params });
+}
+
+export function getPaymentMethodsReport(params = {}) {
+  return client.get("/reports/payment-methods", { params });
+}
+
+export function getOverviewReport(params = {}) {
+  return client.get("/reports/overview", { params });
+}

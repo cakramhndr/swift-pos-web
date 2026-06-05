@@ -576,7 +576,7 @@ export default function Products() {
   };
 
   const handleDeleteCategory = (catToDelete) => {
-    const usedBy = products.find((p) => p.category === catToDelete);
+    const usedBy = products.find((p) => (p.category?.name ?? p.category) === catToDelete);
     if (usedBy) {
       toast.error(
         `Cannot delete "${catToDelete}" – it is used by product "${usedBy.name}"`,
@@ -1314,7 +1314,7 @@ export default function Products() {
                                 </span>
                               )}
                               <p className="text-xs text-gray-400 dark:text-gray-400">
-                                {product.category}
+                                {product.category?.name ?? product.category ?? "-"}
                               </p>
                             </div>
                           </div>
