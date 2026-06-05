@@ -5,15 +5,15 @@ import {
   useEffect,
   useCallback,
 } from "react";
+
 import { loginApi, logoutApi, getMeApi, isAuthenticated } from "../lib/api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // true while we check existing token
+  const [loading, setLoading] = useState(true);
 
-  // ── Fetch current user (called on mount & after login) ──
   const fetchUser = useCallback(async () => {
     if (!isAuthenticated()) {
       setUser(null);
@@ -23,9 +23,9 @@ export function AuthProvider({ children }) {
 
     try {
       const res = await getMeApi();
-      setUser(res.data.data ?? res.data.user ?? res.data);
-    } catch {
-      // Token invalid / expired → clear
+
+      setUser(res.data?.data ?? res.data?.user ?? res.data);
+    } catch (error) {
       localStorage.removeItem("token");
       setUser(null);
     } finally {
@@ -33,47 +33,68 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Check for existing token on mount
   useEffect(() => {
-    // eslint-disable-next-line react-hooks-exhaustive-deps
     fetchUser();
-  }, []);
+  }, [fetchUser]);
 
-  // ── Login ──────────────────────────────────────────────────────
   const login = async (email, password) => {
     const res = await loginApi(email, password);
-    const token = res.data.token ?? res.data.access_token;
+
+    console.log("FULL RESPONSE =", res);
+    console.log("DATA =", res.data);
+
+    const token = res.data?.data?.token;
 
     if (!token) {
-      throw new Error("No token returned from server");
+      throw new Error("Token tidak ditemukan di response login");
     }
 
     localStorage.setItem("token", token);
-    await fetchUser(); // re-fetch user after storing token
+
+    console.log("TOKEN SAVED =", localStorage.getItem("token"));
+
+    const user = res.data?.data?.user;
+
+    if (user) {
+      setUser(user);
+      setLoading(false);
+    }
+
     return res.data;
   };
 
-  // ── Logout ─────────────────────────────────────────────────────
   const logout = async () => {
     try {
       await logoutApi();
-    } catch {
-      // Even if server fails, clear local state
+    } catch (error) {
+      console.error(error);
     } finally {
       localStorage.removeItem("token");
       setUser(null);
     }
   };
 
-  const value = { user, loading, login, logout, fetchUser };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        fetchUser,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
+  const context = useContext(AuthContext);
+
+  if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
-  return ctx;
+
+  return context;
 }
