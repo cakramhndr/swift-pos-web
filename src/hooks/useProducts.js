@@ -50,9 +50,18 @@ export default function useProducts({ perPage = 15 } = {}) {
         }
 
         const res = await getProducts(params);
-        const body = res.data.data ?? res.data;
+        const body = res.data;
 
-        if (Array.isArray(body)) {
+        if (body.data && Array.isArray(body.data) && body.meta) {
+          // Laravel paginated resource collection: { data: [...], meta: { current_page, last_page, per_page, total } }
+          setData(body.data);
+          setMeta({
+            current_page: body.meta.current_page ?? filters.page,
+            last_page: body.meta.last_page ?? 1,
+            per_page: body.meta.per_page ?? perPage,
+            total: body.meta.total ?? 0,
+          });
+        } else if (Array.isArray(body)) {
           setData(body);
           setMeta((prev) => ({
             ...prev,
@@ -60,14 +69,18 @@ export default function useProducts({ perPage = 15 } = {}) {
             last_page: 1,
             total: body.length,
           }));
+        } else if (Array.isArray(body.data)) {
+          // Handle { data: [...] } without meta
+          setData(body.data);
+          setMeta((prev) => ({
+            ...prev,
+            current_page: 1,
+            last_page: 1,
+            total: body.data.length,
+          }));
         } else {
-          setData(body.data ?? []);
-          setMeta({
-            current_page: body.current_page ?? filters.page,
-            last_page: body.last_page ?? 1,
-            per_page: body.per_page ?? perPage,
-            total: body.total ?? 0,
-          });
+          setData([]);
+          setMeta((prev) => ({ ...prev, last_page: 1, total: 0 }));
         }
       } catch (err) {
         if (err.name !== "CanceledError") {

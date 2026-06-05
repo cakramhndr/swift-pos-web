@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { exportDashboardPDF } from "@/lib/exportUtils";
-import { getDashboardApi } from "@/lib/api";
-import { toast } from "sonner";
+import useDashboard from "@/hooks/useDashboard";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -102,35 +100,7 @@ function formatCurrency(value) {
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // ── Fetch dashboard data from API ────────────────────────────────
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchDashboard() {
-      try {
-        const res = await getDashboardApi();
-        // Support both flat data and nested "data" key
-        const d = res.data.data ?? res.data;
-        if (!cancelled) setData(d);
-      } catch (err) {
-        const msg =
-          err?.response?.data?.message ||
-          err?.response?.data?.error ||
-          "Failed to load dashboard data";
-        toast.error(msg);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    fetchDashboard();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { data, loading } = useDashboard();
 
   // ── Derive values from API data (with safe fallbacks) ─────────────
   const todaySales = data?.today_sales ?? 0;
