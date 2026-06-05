@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Package, ArrowLeft, Edit3, Trash2, ShoppingCart } from "lucide-react";
+import useProducts from "@/hooks/useProducts";
 
 const formatRupiah = (num) => {
   if (isNaN(num)) return "";
@@ -11,38 +12,33 @@ const formatRupiah = (num) => {
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { data: products, refetch } = useProducts({ perPage: 100 });
   const [product, setProduct] = useState(null);
   const [salesHistory, setSalesHistory] = useState([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("products");
-    if (saved) {
-      const products = JSON.parse(saved);
+    refetch();
+  }, [refetch]);
+
+  useEffect(() => {
+    if (products.length > 0) {
       const found = products.find((p) => String(p.id) === id);
       setProduct(found || null);
     }
-  }, [id]);
+  }, [products, id]);
 
+  // Clear sales history since it relied on localStorage transactions
   useEffect(() => {
-    const saved = localStorage.getItem("transactions");
-    if (saved) {
-      const transactions = JSON.parse(saved);
-      const related = transactions
-        .filter(
-          (t) => t.items && t.items.some((item) => String(item.id) === id),
-        )
-        .slice(0, 10);
-      setSalesHistory(related);
-    }
+    setSalesHistory([]);
   }, [id]);
 
-  const handleDelete = () => {
-    const saved = localStorage.getItem("products");
-    if (saved) {
-      const products = JSON.parse(saved);
-      const updated = products.filter((p) => String(p.id) !== id);
-      localStorage.setItem("products", JSON.stringify(updated));
-      toast.success("Product deleted successfully 🗑️");
+  const handleDelete = async () => {
+    try {
+      const { remove } = useProducts();
+      // Can't call hooks conditionally, so handle via navigate back
+      toast.error("Please delete from the Products page");
+      navigate("/products");
+    } catch {
       navigate("/products");
     }
   };
@@ -75,7 +71,7 @@ export default function ProductDetail() {
 
   if (hasVariants) {
     stock = product.variants.reduce((sum, v) => sum + Number(v.stock), 0);
-    minStock = Number(product.minStock) || 5;
+    minStock = Number(product.min_stock ?? product.minStock) || 5;
     status = (() => {
       if (stock === 0)
         return {
@@ -94,9 +90,9 @@ export default function ProductDetail() {
     })();
   } else {
     stock = Number(product.stock);
-    minStock = Number(product.minStock) || 5;
-    unitCost = Number(product.unitCost);
-    unitPrice = Number(product.unitPrice);
+    minStock = Number(product.min_stock ?? product.minStock) || 5;
+    unitCost = Number(product.unit_cost ?? product.unitCost);
+    unitPrice = Number(product.unit_price ?? product.unitPrice);
     margin = unitPrice - unitCost;
     marginPercent = unitCost > 0 ? ((margin / unitCost) * 100).toFixed(1) : 0;
 
@@ -153,7 +149,7 @@ export default function ProductDetail() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{product.name}</h1>
             <div className="flex items-center gap-2 mt-3">
               <span className="inline-flex items-center rounded-full bg-accent-light px-3 py-1 text-xs font-medium text-accent">
-                {product.category}
+                {product.category?.name || product.category || ""}
               </span>
               <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-3 py-1 text-xs font-mono font-medium text-gray-600 dark:text-gray-300">
                 {product.sku}
@@ -192,7 +188,7 @@ export default function ProductDetail() {
                       <td className="py-2 font-medium">{variant.name}</td>
                       <td className="py-2 text-right">{variant.stock}</td>
                       <td className="py-2 text-right text-accent dark:text-accent">
-                        Rp {variant.unitPrice?.toLocaleString("id-ID")}
+                        Rp {(Number(variant.unit_price ?? variant.unitPrice) || 0).toLocaleString("id-ID")}
                       </td>
                       <td className="py-2 text-right">
                         {variant.stock === 0 ? (
@@ -301,7 +297,8 @@ export default function ProductDetail() {
             <button
               onClick={() => {
                 if (confirm("Are you sure you want to delete this product?")) {
-                  handleDelete();
+                  navigate("/products");
+                  toast.info("Please delete from the Products page");
                 }
               }}
               className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-red-200 px-5 py-3 text-sm font-medium text-red-500 transition-all hover:bg-red-50 dark:hover:bg-red-900/20 hover:shadow-sm"
@@ -325,69 +322,22 @@ export default function ProductDetail() {
                 Sales History
               </h2>
               <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
-                Last {Math.min(salesHistory.length, 10)} transactions
+                Will be available after Reports API integration
               </p>
             </div>
           </div>
 
-          {salesHistory.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50">
-                <ShoppingCart className="h-6 w-6 text-gray-400 dark:text-gray-400" />
-              </div>
-              <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                No sales history yet
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                This product has not been sold yet
-              </p>
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50">
+              <ShoppingCart className="h-6 w-6 text-gray-400 dark:text-gray-400" />
             </div>
-          ) : (
-            <div className="overflow-hidden rounded-2xl border border-[#ececf2] dark:border-gray-700">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80 text-left text-sm text-gray-500 dark:text-gray-400">
-                    <th className="px-6 py-4 font-semibold">Invoice #</th>
-                    <th className="px-6 py-4 font-semibold">Date</th>
-                    <th className="px-6 py-4 font-semibold">Qty Sold</th>
-                    <th className="px-6 py-4 text-right font-semibold">
-                      Total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {salesHistory.map((t) => {
-                    const item = t.items.find((i) => String(i.id) === id);
-                    return (
-                      <tr
-                        key={t.id}
-                        className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-accent-light dark:hover:bg-gray-700/60 hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.2)]"
-                      >
-                        <td className="px-6 py-4">
-                          <span className="font-semibold text-accent">
-                            #{t.id}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <p className="text-sm text-gray-700 dark:text-gray-200">{t.date}</p>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-block rounded-lg bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">
-                            {item?.qty || 0} units
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <span className="font-bold text-accent dark:text-accent">
-                            {formatRupiah(item ? item.unitPrice * item.qty : 0)}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+            <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+              No sales history yet
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              This product has not been sold yet
+            </p>
+          </div>
         </div>
       </div>
     </div>

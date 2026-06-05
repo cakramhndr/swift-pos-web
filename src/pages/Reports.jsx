@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import {
   FileText,
@@ -15,8 +15,22 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { exportReportsPDF } from "@/lib/exportUtils";
+import useReports from "@/hooks/useReports";
 
 export default function Reports() {
+  // ─── Reports hook (API layer) ──────────────────────────────────────────
+  const {
+    sales: _sales,
+    products: _reportProducts,
+    customers: _reportCustomers,
+    loading: _loading,
+    error: _error,
+    dateRange: _dateRange,
+    setDateRange: _setDateRange,
+    refetch: _refetch,
+    formatIDR: _formatIDR,
+  } = useReports();
+
   // ─── State ──────────────────────────────────────────────────────────────
   const [transactions] = useState(() => {
     const savedTransactions = localStorage.getItem("transactions");

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
+import useCustomers from "@/hooks/useCustomers";
 import { toast } from "sonner";
 import {
   Users,
@@ -24,15 +25,15 @@ import { exportCustomersPDF } from "@/lib/exportUtils";
 
 export default function Customers() {
   // ─── State ──────────────────────────────────────────────────────────────
-  const [customers, setCustomers] = useState(() => {
-    const savedCustomers = localStorage.getItem("swiftpos_customers");
-    return savedCustomers ? JSON.parse(savedCustomers) : [];
-  });
-
-  const [transactions] = useState(() => {
-    const savedTransactions = localStorage.getItem("transactions");
-    return savedTransactions ? JSON.parse(savedTransactions) : [];
-  });
+  const {
+    data: customers,
+    loading: _loading,
+    error: _error,
+    refetch,
+    create,
+    remove,
+    setSearch: setCustomersSearch,
+  } = useCustomers();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -48,70 +49,32 @@ export default function Customers() {
     address: "",
   });
 
-  // ─── Effects ────────────────────────────────────────────────────────────
+  // ─── Load customers on mount ────────────────────────────────────────────
   useEffect(() => {
-    localStorage.setItem("swiftpos_customers", JSON.stringify(customers));
-  }, [customers]);
-
-  // ─── Generate Customers from Transactions ───────────────────────────────
-  const generateCustomersFromTransactions = () => {
-    const customerMap = new Map();
-
-    transactions.forEach((transaction) => {
-      // Generate a customer name from transaction ID if no customer info exists
-      const customerName = `Customer #${String(transaction.id).slice(-4)}`;
-      const customerId = `cust_${transaction.id}`;
-
-      if (!customerMap.has(customerId)) {
-        customerMap.set(customerId, {
-          id: customerId,
-          fullName: customerName,
-          email: `${customerName.toLowerCase().replace(/\s+/g, ".")}@example.com`,
-          phone: `08${Math.floor(Math.random() * 9000000000 + 1000000000)}`,
-          address: "",
-          createdAt: transaction.date,
-        });
-      }
-    });
-
-    const newCustomers = Array.from(customerMap.values());
-    setCustomers(newCustomers);
-    toast.info(`Generated ${newCustomers.length} customers from transactions`);
-  };
-
-  // Auto-generate customers from transactions on initial load
-  if (customers.length === 0 && transactions.length > 0) {
-    generateCustomersFromTransactions();
-  }
+    refetch();
+  }, [refetch]);
 
   // ─── Computed Data ──────────────────────────────────────────────────────
   const customerStats = useMemo(() => {
     const totalCustomers = customers.length;
 
-    // Calculate active customers (at least 1 transaction)
-    const customerTransactionCounts = new Map();
-    let totalRevenue = 0;
-    let totalOrders = 0;
+    // Active: customers with at least 1 transaction (from API data)
+    const activeCustomers = customers.filter(
+      (c) => (c.total_transactions || 0) > 0,
+    ).length;
 
-    transactions.forEach((transaction) => {
-      totalRevenue += transaction.total || 0;
-      totalOrders += 1;
+    // Total revenue: sum of all customers' total_spent
+    const totalRevenue = customers.reduce(
+      (sum, c) => sum + (c.total_spent || 0),
+      0,
+    );
 
-      // Try to match transaction to customer
-      customers.forEach((customer) => {
-        if (
-          transaction.customerName === customer.fullName ||
-          transaction.customerId === customer.id
-        ) {
-          customerTransactionCounts.set(
-            customer.id,
-            (customerTransactionCounts.get(customer.id) || 0) + 1,
-          );
-        }
-      });
-    });
+    // Total orders: sum of all customers' total_transactions
+    const totalOrders = customers.reduce(
+      (sum, c) => sum + (c.total_transactions || 0),
+      0,
+    );
 
-    const activeCustomers = customerTransactionCounts.size;
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
     return {
@@ -120,61 +83,25 @@ export default function Customers() {
       totalRevenue,
       avgOrderValue,
     };
-  }, [customers, transactions]);
+  }, [customers]);
 
-  const getCustomerStatus = useCallback(
-    (customer) => {
-      const customerTransactions = transactions.filter(
-        (t) =>
-          t.customerId === customer.id || t.customerName === customer.fullName,
-      );
-
-      if (customerTransactions.length === 0) {
-        return "New";
-      }
-
-      const lastTransaction = customerTransactions.sort(
-        (a, b) => new Date(b.date) - new Date(a.date),
-      )[0];
-
-      if (lastTransaction) {
-        const daysSinceLastPurchase =
-          (new Date() - new Date(lastTransaction.date)) / (1000 * 60 * 60 * 24);
-        return daysSinceLastPurchase <= 30 ? "Active" : "Inactive";
-      }
-
-      return "New";
-    },
-    [transactions],
-  );
+  const getCustomerStatus = useCallback((customer) => {
+    const orderCount = customer.total_transactions || 0;
+    if (orderCount === 0) return "New";
+    return "Active";
+  }, []);
 
   const getCustomerMetrics = (customer) => {
-    const customerTransactions = transactions.filter(
-      (t) =>
-        t.customerId === customer.id || t.customerName === customer.fullName,
-    );
-
-    const totalOrders = customerTransactions.length;
-    const totalSpent = customerTransactions.reduce(
-      (sum, t) => sum + (t.total || 0),
-      0,
-    );
+    const totalOrders = customer.total_transactions || 0;
+    const totalSpent = customer.total_spent || 0;
     const avgOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
-
-    const lastTransaction = customerTransactions.sort(
-      (a, b) => new Date(b.date) - new Date(a.date),
-    )[0];
-
-    const lastPurchase = lastTransaction
-      ? new Date(lastTransaction.date)
-      : null;
 
     return {
       totalOrders,
       totalSpent,
       avgOrderValue,
-      lastPurchase,
-      lastTransaction,
+      lastPurchase: null,
+      lastTransaction: null,
     };
   };
 
@@ -187,8 +114,10 @@ export default function Customers() {
     return customers.filter((customer) => {
       // Search filter
       const matchesSearch =
-        customer.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        customer.email.toLowerCase().includes(searchQuery.toLowerCase());
+        (customer.fullName || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (customer.email || "").toLowerCase().includes(searchQuery.toLowerCase());
 
       // Status filter
       const status = getCustomerStatus(customer);
@@ -201,40 +130,48 @@ export default function Customers() {
   }, [customers, searchQuery, statusFilter, getCustomerStatus]);
 
   // ─── Handlers ───────────────────────────────────────────────────────────
-  const handleAddCustomer = () => {
-    if (!newCustomer.fullName || !newCustomer.email) {
-      toast.error("Please fill in required fields");
+  const handleAddCustomer = async () => {
+    if (!newCustomer.fullName.trim()) {
+      toast.error("Name is required");
       return;
     }
 
-    const customer = {
-      id: `cust_${Date.now()}`,
-      fullName: newCustomer.fullName,
-      email: newCustomer.email,
-      phone: newCustomer.phone || "",
-      address: newCustomer.address || "",
-      createdAt: new Date().toISOString(),
-    };
-
-    setCustomers((prev) => [...prev, customer]);
-    setNewCustomer({
-      fullName: "",
-      email: "",
-      phone: "",
-      address: "",
-    });
-    setShowAddModal(false);
-    toast.success("Customer added");
+    try {
+      await create({
+        name: newCustomer.fullName,
+        email: newCustomer.email || null,
+        phone: newCustomer.phone || null,
+        address: newCustomer.address || null,
+      });
+      setNewCustomer({
+        fullName: "",
+        email: "",
+        phone: "",
+        address: "",
+      });
+      setShowAddModal(false);
+      toast.success("Customer added");
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message || "Failed to add customer",
+      );
+    }
   };
 
   const handleDeleteCustomer = (customerId) => {
     setDeleteConfirm(customerId);
   };
 
-  const confirmDeleteCustomer = () => {
-    setCustomers((prev) => prev.filter((c) => c.id !== deleteConfirm));
-    setDeleteConfirm(null);
-    toast.success("Customer deleted");
+  const confirmDeleteCustomer = async () => {
+    try {
+      await remove(deleteConfirm);
+      setDeleteConfirm(null);
+      toast.success("Customer deleted");
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message || "Failed to delete customer",
+      );
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -248,6 +185,7 @@ export default function Customers() {
   };
 
   const getInitials = (name) => {
+    if (!name) return "?";
     return name
       .split(" ")
       .map((n) => n[0])
@@ -291,13 +229,22 @@ export default function Customers() {
           </div>
         </div>
 
-        <button
-          onClick={() => exportCustomersPDF(customers)}
-          className="relative z-10 flex items-center gap-2 rounded-2xl border border-accent px-4 py-2.5 text-sm font-semibold text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 dark:hover:bg-accent/30 text-sm"
-        >
-          <Download className="h-4 w-4" />
-          Export PDF
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="relative z-10 flex items-center gap-2 rounded-2xl bg-gradient-to-r px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5" style={{background:"linear-gradient(to right, var(--color-accent), var(--color-accent-hover))"}}
+          >
+            <Users className="h-4 w-4" />
+            Add Customer
+          </button>
+          <button
+            onClick={() => exportCustomersPDF(customers)}
+            className="relative z-10 flex items-center gap-2 rounded-2xl border border-accent px-4 py-2.5 text-sm font-semibold text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 dark:hover:bg-accent/30 text-sm"
+          >
+            <Download className="h-4 w-4" />
+            Export PDF
+          </button>
+        </div>
       </div>
 
       {/* ══════════════ Summary Cards ══════════════════════════════════════ */}
@@ -453,14 +400,14 @@ export default function Customers() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br text-white text-sm font-bold" style={{background:"linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))"}}>
-                          {getInitials(customer.fullName)}
+                          {getInitials(customer.full_name ?? customer.name)}
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900 dark:text-white">
-                            {customer.fullName}
+                            {customer.full_name ?? customer.name ?? "Unknown"}
                           </p>
                           <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
-                            {customer.email}
+                            {customer.email ?? "-"}
                           </p>
                           {metrics.lastTransaction && (
                             <p className="text-xs text-gray-400 dark:text-gray-400">
@@ -712,74 +659,18 @@ export default function Customers() {
               );
             })()}
 
-            {/* Recent Transactions */}
-            {(() => {
-              const customerTransactions = transactions
-                .filter(
-                  (t) =>
-                    t.customerId === selectedCustomer.id ||
-                    t.customerName === selectedCustomer.fullName,
-                )
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .slice(0, 5);
-
-              if (customerTransactions.length > 0) {
-                return (
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                      Recent Transactions
-                    </h3>
-                    <div className="space-y-2">
-                      {customerTransactions.map((transaction) => (
-                        <div
-                          key={transaction.id}
-                          className="flex items-center justify-between rounded-2xl border border-[#ececf2] dark:border-gray-700 p-4 transition-all hover:border-accent"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200">
-                              <ShoppingBag className="h-5 w-5 text-accent" />
-                            </div>
-                            <div>
-                              <button
-                                onClick={() => handleViewInvoice(transaction)}
-                                className="text-accent dark:text-accent hover:underline cursor-pointer font-medium text-sm text-left"
-                              >
-                                #{transaction.id}
-                              </button>
-                              <p className="text-xs text-gray-400 dark:text-gray-400">
-                                {transaction.date}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-accent">
-                              {formatCurrency(transaction.total)}
-                            </p>
-                            <p className="text-xs text-gray-400 dark:text-gray-400">
-                              {transaction.items?.length || 0} items
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div className="text-center py-8">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50 mx-auto">
-                    <ShoppingBag className="h-6 w-6 text-gray-400 dark:text-gray-400" />
-                  </div>
-                  <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    No transactions yet
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    This customer hasn't made any purchases
-                  </p>
-                </div>
-              );
-            })()}
+            {/* Recent Transactions — will be integrated with transactions API later */}
+            <div className="text-center py-8">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50 mx-auto">
+                <ShoppingBag className="h-6 w-6 text-gray-400 dark:text-gray-400" />
+              </div>
+              <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                No transactions yet
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Transactions will appear here after integration
+              </p>
+            </div>
           </div>
         </div>
       )}

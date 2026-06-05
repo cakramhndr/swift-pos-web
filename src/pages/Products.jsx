@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import useProducts from "@/hooks/useProducts";
 
 import {
   Dialog,
@@ -26,12 +27,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { exportProductsPDF } from "@/lib/exportUtils";
-import {
-  getProductsApi,
-  createProductApi,
-  updateProductApi,
-  deleteProductApi,
-} from "@/lib/api";
 
 const DEFAULT_CATEGORIES = [
   "Headset",
@@ -141,9 +136,9 @@ function getEffectiveStock(product) {
 // ─── Helper: get effective price (from first variant or single price) ────
 function getEffectivePrice(product) {
   if (product.variants && product.variants.length > 0) {
-    return product.variants[0].unitPrice;
+    return product.variants[0].unit_price ?? product.variants[0].unitPrice ?? 0;
   }
-  return product.unitPrice;
+  return product.unit_price ?? product.unitPrice ?? 0;
 }
 
 // ─── Table Row Skeleton ──────────────────────────────────────────────────
@@ -187,20 +182,29 @@ function TableRowSkeleton() {
 export default function Products() {
   const navigate = useNavigate();
 
-  // ── API state ───────────────────────────────────────────────────────
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // ── Product hook ──────────────────────────────────────────────────
+  const {
+    data: products,
+    loading,
+    meta,
+    refetch,
+    create: createProductApiHook,
+    update: updateProductApiHook,
+    remove: deleteProductApiHook,
+  } = useProducts();
   const [submitting, setSubmitting] = useState(false);
 
-  // ── Pagination ──────────────────────────────────────────────────────
-  const [page, setPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
-  const [total, setTotal] = useState(0);
-
-  // ── Filters ─────────────────────────────────────────────────────────
+  // ── Local filter/UI state ───────────────────────────────────────
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [categoryFilter, setCategoryFilter] = useState("All Categories");
   const debounceRef = useRef(null);
+
+  // Derived pagination from hook meta
+  const lastPage = meta.last_page;
+  const total = meta.total;
+
+  void meta.current_page; // consumed by refetch
 
   // ── UI state (unchanged from original) ──────────────────────────────
   const [newProduct, setNewProduct] = useState({
@@ -245,61 +249,22 @@ export default function Products() {
     localStorage.setItem("swiftpos_categories", JSON.stringify(categories));
   }, [categories]);
 
-  // ─── Fetch products from API ──────────────────────────────────────────
-  const fetchProducts = useCallback(
-    async (p, srch, cat) => {
-      setLoading(true);
-      try {
-        const params = { page: p ?? page };
-        const q = srch ?? search;
-        const c = cat ?? categoryFilter;
-        if (q.trim()) params.search = q.trim();
-        if (c && c !== "All Categories") params.category = c;
-
-        const res = await getProductsApi(params);
-        const body = res.data.data ?? res.data;
-
-        // Support both Laravel paginated and flat array responses
-        if (Array.isArray(body)) {
-          setProducts(body);
-          setLastPage(1);
-          setTotal(body.length);
-        } else {
-          setProducts(body.data ?? []);
-          setLastPage(body.last_page ?? 1);
-          setTotal(body.total ?? body.data?.length ?? 0);
-        }
-      } catch (err) {
-        const msg =
-          err?.response?.data?.message ||
-          err?.response?.data?.error ||
-          "Failed to load products";
-        toast.error(msg);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, search, categoryFilter],
-  );
-
-  // Initial fetch + re-fetch on page/filter changes
+  // ─── Page/filter change → re-fetch ───────────────────────────────────
   useEffect(() => {
-    fetchProducts();
-    // eslint-disable-next-line react-hooks-exhaustive-deps
-  }, [page, categoryFilter]);
+    refetch({ page, category: categoryFilter });
+  }, [page, categoryFilter, refetch]);
 
-  // Debounced search
+  // ─── Debounced search ────────────────────────────────────────────────
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       setPage(1);
-      fetchProducts(1, search, categoryFilter);
+      refetch({ search, page: 1, category: categoryFilter });
     }, 400);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-    // eslint-disable-next-line react-hooks-exhaustive-deps
-  }, [search]);
+  }, [search, categoryFilter, refetch]);
 
   // ── Format helpers ────────────────────────────────────────────────────
   const formatPrice = (value) => {
@@ -475,7 +440,7 @@ export default function Products() {
         body.unit_price = Number(payload.unitPrice);
       }
 
-      await createProductApi(body);
+      await createProductApiHook(body);
       toast.success("Product added successfully ✅");
       setNewProduct({
         sku: "",
@@ -488,7 +453,6 @@ export default function Products() {
       });
       setAddVariants([]);
       setErrors({});
-      fetchProducts(1, search, categoryFilter);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -531,13 +495,12 @@ export default function Products() {
         body.unit_price = Number(editingProduct.unitPrice);
       }
 
-      await updateProductApi(editingProduct.id, body);
+      await updateProductApiHook(editingProduct.id, body);
       toast.success("Product updated successfully ✏️");
       setEditingProduct(null);
       setEditDialogOpen(false);
       setEditVariants([]);
       setEditErrors({});
-      fetchProducts(page, search, categoryFilter);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -552,10 +515,9 @@ export default function Products() {
   // ─── CRUD: Delete ─────────────────────────────────────────────────────
   const handleDeleteProduct = async (id) => {
     try {
-      await deleteProductApi(id);
+      await deleteProductApiHook(id);
       toast.success("Product deleted successfully 🗑️");
       setDeleteConfirm(null);
-      fetchProducts(page, search, categoryFilter);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -573,7 +535,7 @@ export default function Products() {
 
     for (const id of selectedIds) {
       try {
-        await deleteProductApi(id);
+        await deleteProductApiHook(id);
         successCount++;
       } catch {
         failCount++;
@@ -594,7 +556,7 @@ export default function Products() {
       );
     }
 
-    fetchProducts(page, search, categoryFilter);
+    refetch();
   };
 
   // ─── Category Management ─────────────────────────────────────────────
@@ -666,7 +628,7 @@ export default function Products() {
     for (const row of validRows) {
       try {
         const minStock = Number(row.minStock) || 5;
-        await createProductApi({
+        await createProductApiHook({
           sku: row.sku || generateSku(row.name),
           name: row.name,
           category: row.category || "Other",
@@ -696,7 +658,7 @@ export default function Products() {
       );
     }
 
-    fetchProducts(1, search, categoryFilter);
+    refetch();
   };
 
   const validRowCount = csvData.length - csvErrors.length;
@@ -1379,7 +1341,7 @@ export default function Products() {
                         </td>
                         <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                           Rp{" "}
-                          {(Number(product.unitCost) || 0).toLocaleString(
+                          {(Number(product.unit_cost ?? product.unitCost) || 0).toLocaleString(
                             "id-ID",
                           )}
                         </td>
@@ -1394,7 +1356,7 @@ export default function Products() {
                             </span>
                           ) : (
                             "Rp " +
-                            Number(product.unitPrice).toLocaleString("id-ID")
+                            (Number(product.unit_price ?? product.unitPrice) || 0).toLocaleString("id-ID")
                           )}
                         </td>
                         <td className="px-6 py-4">
@@ -2001,7 +1963,8 @@ export default function Products() {
               <button
                 onClick={handleImportCSV}
                 disabled={validRowCount === 0}
-                className={`flex-1 rounded-2xl py-3 font-semibold shadow-sm transition-all ${validRowCount > 0 ? "bg-gradient-to-r from-accent to-accent-hover text-white hover:shadow-md" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+                className={`flex-1 rounded-2xl py-3 font-semibold text-white shadow-sm transition-all ${validRowCount > 0 ? "hover:shadow-md" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+                style={validRowCount > 0 ? { background: "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))" } : undefined}
               >
                 Import {validRowCount} Product{validRowCount !== 1 ? "s" : ""}
               </button>
