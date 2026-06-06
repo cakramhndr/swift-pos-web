@@ -12,6 +12,7 @@ import Customers from "./pages/Customers";
 import Inventory from "./pages/Inventory";
 import InventoryLogs from "./pages/InventoryLogs";
 import Reports from "./pages/Reports";
+import PurchaseOrders from "./pages/PurchaseOrders";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 
@@ -43,6 +44,7 @@ export default function App() {
                   <Route path="/inventory" element={<Inventory />} />
                   <Route path="/inventory-logs" element={<InventoryLogs />} />
                   <Route path="/reports" element={<Reports />} />
+                  <Route path="/purchase-orders" element={<PurchaseOrders />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/settings" element={<Settings />} />
                 </Routes>

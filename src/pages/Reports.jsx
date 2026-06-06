@@ -25,6 +25,7 @@ import {
   ShoppingCart,
   XCircle,
   RotateCcw,
+  Crown,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -40,12 +41,9 @@ import {
 } from "recharts";
 import useReports from "@/hooks/useReports";
 import { getSummary } from "@/api/inventory";
+import InvoiceModal from "@/components/InvoiceModal";
 
 // ─── Color palette ────────────────────────────────────────────────────
-const CHART_COLORS = [
-  "#7C3AED", "#3B82F6", "#10B981", "#F59E0B", "#EF4444",
-  "#EC4899", "#8B5CF6", "#06B6D4", "#84CC16", "#F97316",
-];
 
 // Format a Date object to YYYY-MM-DD string using local timezone (timezone-safe)
 function formatDateString(date) {
@@ -84,7 +82,10 @@ function TableSkeleton() {
       <div className="h-4 w-40 bg-gray-200 dark:bg-gray-700 rounded mb-6" />
       <div className="space-y-3">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-10 bg-gray-100 dark:bg-gray-700/50 rounded-lg" />
+          <div
+            key={i}
+            className="h-10 bg-gray-100 dark:bg-gray-700/50 rounded-lg"
+          />
         ))}
       </div>
     </div>
@@ -109,15 +110,22 @@ const formatCompactRp = (v) => {
 const formatDateShort = (ds) => {
   if (!ds) return "-";
   const d = new Date(ds);
-  return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 };
 
 const formatDateTime = (ds) => {
   if (!ds) return "-";
   const d = new Date(ds);
   return d.toLocaleDateString("id-ID", {
-    day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
@@ -138,7 +146,8 @@ function GrowthBadge({ value, suffix = "" }) {
       ) : (
         <ArrowDownRight className="h-3 w-3" />
       )}
-      {isPositive ? "+" : ""}{num.toFixed(1)}%{suffix}
+      {isPositive ? "+" : ""}
+      {num.toFixed(1)}%{suffix}
     </span>
   );
 }
@@ -169,13 +178,44 @@ export default function Reports() {
   const [trendGroupBy, setTrendGroupBy] = useState("day");
   const [lowStockItems, setLowStockItems] = useState([]);
   const [loadingStock, setLoadingStock] = useState(false);
+  const [topN, setTopN] = useState(10);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const ITEMS_PER_PAGE = 10;
   const initialFetchDone = useRef(false);
+
+  // ─── Read accent color from CSS variable (once at mount) ─────────
+  const [CHART_COLORS] = useState(() => {
+    let accent = "#7c3aed";
+    try {
+      const val = getComputedStyle(document.documentElement)
+        .getPropertyValue("--color-accent")
+        .trim();
+      if (val && val.startsWith("#")) accent = val;
+    } catch {
+      /* fallback */
+    }
+    return [
+      accent,
+      "#3B82F6",
+      "#10B981",
+      "#F59E0B",
+      "#EF4444",
+      "#EC4899",
+      "#8B5CF6",
+      "#06B6D4",
+      "#84CC16",
+      "#F97316",
+    ];
+  });
 
   // ─── Compute date string for a period ─────────────────────────────
   const getDateStringsForPeriod = useCallback((period) => {
     const now = new Date();
-    const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayLocal = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
     let start;
     switch (period) {
       case "today":
@@ -193,7 +233,10 @@ export default function Reports() {
       default:
         return null;
     }
-    return { date_from: formatDateString(start), date_to: formatDateString(todayLocal) };
+    return {
+      date_from: formatDateString(start),
+      date_to: formatDateString(todayLocal),
+    };
   }, []);
 
   const getPeriodLabel = useCallback(() => {
@@ -221,7 +264,14 @@ export default function Reports() {
       fetchAll(ds.date_from, ds.date_to);
       initialFetchDone.current = true;
     }
-  }, [selectedPeriod, customDateFrom, customDateTo, setDateRange, fetchAll, getDateStringsForPeriod]);
+  }, [
+    selectedPeriod,
+    customDateFrom,
+    customDateTo,
+    setDateRange,
+    fetchAll,
+    getDateStringsForPeriod,
+  ]);
 
   // ─── Fetch trends when group_by changes ───────────────────────────
   useEffect(() => {
@@ -267,7 +317,9 @@ export default function Reports() {
   // ─── Paginated Transactions ───────────────────────────────────────
   const paginatedTransactions = useMemo(() => {
     const txns = sales.transactions || [];
-    const sorted = [...txns].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const sorted = [...txns].sort(
+      (a, b) => new Date(b.date) - new Date(a.date),
+    );
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
     return {
@@ -283,10 +335,7 @@ export default function Reports() {
     return [...list]
       .map((p) => ({
         ...p,
-        margin_pct:
-          p.revenue > 0
-            ? ((p.profit || 0) / p.revenue) * 100
-            : 0,
+        margin_pct: p.revenue > 0 ? ((p.profit || 0) / p.revenue) * 100 : 0,
       }))
       .sort((a, b) => b.margin_pct - a.margin_pct)
       .slice(0, 10);
@@ -296,7 +345,11 @@ export default function Reports() {
   const topCustomers = useMemo(() => {
     const list = Array.isArray(customers) ? customers : [];
     return [...list]
-      .sort((a, b) => (b.total_spent || 0) - (a.total_spent || 0))
+      .sort(
+        (a, b) =>
+          (b.total_spent || b.total_revenue || 0) -
+          (a.total_spent || a.total_revenue || 0),
+      )
       .slice(0, 5);
   }, [customers]);
 
@@ -308,7 +361,13 @@ export default function Reports() {
   // ─── Export handlers ──────────────────────────────────────────────
   const handleExportCSV = () => {
     const headers = [
-      "Invoice", "Tanggal", "Customer", "Items", "Total", "Metode Bayar", "Status",
+      "Invoice",
+      "Tanggal",
+      "Customer",
+      "Items",
+      "Total",
+      "Metode Bayar",
+      "Status",
     ];
     const rows = (sales.transactions || []).map((t) => [
       `#${t.invoice_number || t.id}`,
@@ -323,7 +382,9 @@ export default function Reports() {
       headers.join(","),
       ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
     ].join("\n");
-    const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob(["\ufeff" + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
     const link = document.createElement("a");
     link.setAttribute("href", URL.createObjectURL(blob));
     link.setAttribute("download", `swiftpos-report-${selectedPeriod}.csv`);
@@ -393,13 +454,20 @@ export default function Reports() {
         <div className="flex items-center gap-3">
           <div
             className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br shadow-md"
-            style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))" }}
+            style={{
+              background:
+                "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+            }}
           >
             <FileText className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Reports</h1>
-            <p className="text-sm text-gray-400 dark:text-gray-400 mt-0.5">Laporan penjualan & transaksi</p>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+              Reports
+            </h1>
+            <p className="text-sm text-gray-400 dark:text-gray-400 mt-0.5">
+              Laporan penjualan & transaksi
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -413,7 +481,10 @@ export default function Reports() {
           <button
             onClick={handleExportCSV}
             className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-[0_0_20px_-2px_rgba(124,58,237,0.4)] hover:-translate-y-0.5"
-            style={{ background: "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))" }}
+            style={{
+              background:
+                "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+            }}
           >
             <FileSpreadsheet className="h-4 w-4" />
             Export CSV
@@ -427,11 +498,14 @@ export default function Reports() {
           {periods.map((p) => (
             <button
               key={p.key}
-              onClick={() => { setSelectedPeriod(p.key); setCurrentPage(1); }}
+              onClick={() => {
+                setSelectedPeriod(p.key);
+                setCurrentPage(1);
+              }}
               className={`relative z-10 flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] ${
                 selectedPeriod === p.key
-                  ? "bg-purple-600 text-white border border-purple-600 hover:bg-purple-700"
-                  : "border border-purple-200 dark:border-accent/40 text-accent dark:text-accent hover:bg-accent-light dark:hover:bg-accent/30"
+                  ? "bg-accent text-white border border-accent hover:bg-accent-dark"
+                  : "border border-accent/30 dark:border-accent/40 text-accent dark:text-accent hover:bg-accent-light dark:hover:bg-accent/30"
               }`}
             >
               {p.label}
@@ -446,14 +520,20 @@ export default function Reports() {
               <input
                 type="date"
                 value={customDateFrom}
-                onChange={(e) => { setCustomDateFrom(e.target.value); setCurrentPage(1); }}
+                onChange={(e) => {
+                  setCustomDateFrom(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="rounded-xl border border-[#ececf2] dark:border-gray-600 px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 dark:bg-gray-700 dark:text-white"
               />
               <span className="text-gray-400">-</span>
               <input
                 type="date"
                 value={customDateTo}
-                onChange={(e) => { setCustomDateTo(e.target.value); setCurrentPage(1); }}
+                onChange={(e) => {
+                  setCustomDateTo(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="rounded-xl border border-[#ececf2] dark:border-gray-600 px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 dark:bg-gray-700 dark:text-white"
               />
             </div>
@@ -468,10 +548,14 @@ export default function Reports() {
       {loading ? (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => <Skeleton key={i} />)}
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} />
+            ))}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => <Skeleton key={i} />)}
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} />
+            ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ChartSkeleton />
@@ -502,7 +586,9 @@ export default function Reports() {
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-4 transition-all hover:border-accent dark:hover:border-accent">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Revenue Growth</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Revenue Growth
+                  </p>
                   <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
                     {overview.insights.revenue_growth || 0}%
                   </p>
@@ -511,14 +597,19 @@ export default function Reports() {
                   <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
               </div>
-              <GrowthBadge value={overview.insights.revenue_growth} suffix=" vs prev" />
+              <GrowthBadge
+                value={overview.insights.revenue_growth}
+                suffix=" vs prev"
+              />
             </div>
 
             {/* Top Product */}
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-4 transition-all hover:border-accent dark:hover:border-accent">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Top Product</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Top Product
+                  </p>
                   <p className="mt-1 text-lg font-bold text-gray-900 dark:text-white truncate max-w-[160px]">
                     {overview.insights.top_product?.name || "-"}
                   </p>
@@ -528,7 +619,11 @@ export default function Reports() {
                 </div>
               </div>
               <p className="mt-1 text-xs text-gray-400">
-                Menyumbang {Number(overview.insights.top_product?.percentage || 0).toFixed(1)}% dari total
+                Menyumbang{" "}
+                {Number(overview.insights.top_product?.percentage || 0).toFixed(
+                  1,
+                )}
+                % dari total
               </p>
             </div>
 
@@ -536,23 +631,29 @@ export default function Reports() {
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-4 transition-all hover:border-accent dark:hover:border-accent">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Metode Bayar Teratas</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Metode Bayar Teratas
+                  </p>
                   <p className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
                     {overview.insights.top_payment_method || "-"}
                   </p>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/30">
-                  <CreditCard className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-light dark:bg-accent/20">
+                  <CreditCard className="h-5 w-5 text-accent" />
                 </div>
               </div>
-              <p className="mt-1 text-xs text-gray-400">Metode pembayaran paling sering digunakan</p>
+              <p className="mt-1 text-xs text-gray-400">
+                Metode pembayaran paling sering digunakan
+              </p>
             </div>
 
             {/* Highest Margin Product */}
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-4 transition-all hover:border-accent dark:hover:border-accent">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Produk Margin Tertinggi</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Produk Margin Tertinggi
+                  </p>
                   <p className="mt-1 text-lg font-bold text-gray-900 dark:text-white truncate max-w-[160px]">
                     {overview.insights.highest_margin_product?.name || "-"}
                   </p>
@@ -562,7 +663,12 @@ export default function Reports() {
                 </div>
               </div>
               <p className="mt-1 text-xs text-gray-400">
-                Margin {Number(overview.insights.highest_margin_product?.margin_percentage || 0).toFixed(1)}%
+                Margin{" "}
+                {Number(
+                  overview.insights.highest_margin_product?.margin_percentage ||
+                    0,
+                ).toFixed(1)}
+                %
               </p>
             </div>
           </div>
@@ -572,12 +678,16 @@ export default function Reports() {
             {/* Revenue */}
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 transition-all hover:border-accent dark:hover:border-accent">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Revenue</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Revenue
+                </p>
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-light dark:bg-accent/20">
                   <DollarSign className="h-5 w-5 text-accent" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{formatRp(sales.total_revenue)}</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+                {formatRp(sales.total_revenue)}
+              </p>
               <div className="flex items-center gap-2 mt-2">
                 <GrowthBadge value={overview.insights.revenue_growth} />
               </div>
@@ -586,7 +696,13 @@ export default function Reports() {
                 <div className="mt-3 h-8">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={trends.revenue_trend}>
-                      <Line type="monotone" dataKey="revenue" stroke="#7C3AED" strokeWidth={1.5} dot={false} />
+                      <Line
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke={CHART_COLORS[0]}
+                        strokeWidth={1.5}
+                        dot={false}
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -596,78 +712,106 @@ export default function Reports() {
             {/* Gross Profit */}
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 transition-all hover:border-accent dark:hover:border-accent">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Gross Profit</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Gross Profit
+                </p>
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
                   <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatRp(sales.profit)}</p>
+              <p className="mt-2 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                {formatRp(sales.profit)}
+              </p>
             </div>
 
             {/* Margin % */}
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 transition-all hover:border-accent dark:hover:border-accent">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Margin %</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Margin %
+                </p>
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30">
                   <Percent className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-blue-600 dark:text-blue-400">{marginPercent.toFixed(1)}%</p>
+              <p className="mt-2 text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {marginPercent.toFixed(1)}%
+              </p>
             </div>
 
             {/* Transactions */}
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 transition-all hover:border-accent dark:hover:border-accent">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Transactions</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Transactions
+                </p>
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-100 dark:bg-cyan-900/30">
                   <ShoppingCart className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{sales.total_transactions}</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+                {sales.total_transactions}
+              </p>
             </div>
 
             {/* COGS/HPP */}
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 transition-all hover:border-accent dark:hover:border-accent">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">COGS / HPP</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  COGS / HPP
+                </p>
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-900/30">
                   <BarChart3 className="h-5 w-5 text-rose-600 dark:text-rose-400" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-rose-600 dark:text-rose-400">{formatRp(sales.hpp)}</p>
+              <p className="mt-2 text-2xl font-bold text-rose-600 dark:text-rose-400">
+                {formatRp(sales.hpp)}
+              </p>
             </div>
 
             {/* Avg Order Value */}
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 transition-all hover:border-accent dark:hover:border-accent">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Avg Order Value</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Avg Order Value
+                </p>
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 dark:bg-orange-900/30">
                   <Layers className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-orange-600 dark:text-orange-400">{formatRp(sales.avg_order_value)}</p>
+              <p className="mt-2 text-2xl font-bold text-orange-600 dark:text-orange-400">
+                {formatRp(sales.avg_order_value)}
+              </p>
             </div>
 
             {/* Products Sold */}
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 transition-all hover:border-accent dark:hover:border-accent">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Products Sold</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Products Sold
+                </p>
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30">
                   <Package className="h-5 w-5 text-green-600 dark:text-green-400" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-green-600 dark:text-green-400">{products.products_sold}</p>
+              <p className="mt-2 text-2xl font-bold text-green-600 dark:text-green-400">
+                {products.products_sold}
+              </p>
             </div>
 
             {/* Items per Order */}
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 transition-all hover:border-accent dark:hover:border-accent">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Items per Order</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Items per Order
+                </p>
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
                   <ShoppingBag className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-indigo-600 dark:text-indigo-400">{itemsPerOrder}</p>
+              <p className="mt-2 text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                {itemsPerOrder}
+              </p>
             </div>
           </div>
 
@@ -679,13 +823,20 @@ export default function Reports() {
                 <div className="flex items-center gap-3">
                   <div
                     className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-accent/20"
-                    style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))" }}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                    }}
                   >
                     <TrendingUp className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold text-gray-900 dark:text-white">Revenue Trend</h2>
-                    <p className="text-xs text-gray-400">Pendapatan periode ini</p>
+                    <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+                      Revenue Trend
+                    </h2>
+                    <p className="text-xs text-gray-400">
+                      Pendapatan periode ini
+                    </p>
                   </div>
                 </div>
                 <select
@@ -702,28 +853,93 @@ export default function Reports() {
                 {(trends.revenue_trend || []).length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full">
                     <TrendingUp className="h-8 w-8 text-gray-300 dark:text-gray-600" />
-                    <p className="mt-2 text-sm text-gray-400">No trend data yet</p>
+                    <p className="mt-2 text-sm text-gray-400">
+                      No trend data yet
+                    </p>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trends.revenue_trend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <LineChart
+                      data={trends.revenue_trend}
+                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                    >
                       <defs>
-                        <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#7C3AED" stopOpacity={0.35} />
-                          <stop offset="50%" stopColor="#7C3AED" stopOpacity={0.12} />
-                          <stop offset="100%" stopColor="#7C3AED" stopOpacity={0} />
+                        <linearGradient
+                          id="revGrad"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="0%"
+                            stopColor={CHART_COLORS[0]}
+                            stopOpacity={0.35}
+                          />
+                          <stop
+                            offset="50%"
+                            stopColor={CHART_COLORS[0]}
+                            stopOpacity={0.12}
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor={CHART_COLORS[0]}
+                            stopOpacity={0}
+                          />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f5" />
-                      <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fill: "#9ca3af", fontSize: 12 }} tickMargin={8} />
-                      <YAxis tickLine={false} axisLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} tickFormatter={(v) => formatCompactRp(v)} />
-                      <Tooltip
-                        contentStyle={{ borderRadius: "12px", border: "1px solid #e5e7eb", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", padding: "10px 14px", background: "rgba(255,255,255,0.98)" }}
-                        labelStyle={{ fontWeight: 600, fontSize: 13, color: "#374151", marginBottom: 2 }}
-                        formatter={(value) => [formatRp(value), "Revenue"]}
-                        cursor={{ stroke: "#7C3AED", strokeWidth: 1, strokeDasharray: "3 3" }}
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="#f0f0f5"
                       />
-                      <Line type="monotone" dataKey="revenue" stroke="#7C3AED" strokeWidth={2.5} fill="url(#revGrad)" activeDot={{ r: 5, fill: "#7C3AED", stroke: "white", strokeWidth: 2 }} />
+                      <XAxis
+                        dataKey="date"
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: "#9ca3af", fontSize: 12 }}
+                        tickMargin={8}
+                      />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: "#9ca3af", fontSize: 11 }}
+                        tickFormatter={(v) => formatCompactRp(v)}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "12px",
+                          border: "1px solid #e5e7eb",
+                          boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                          padding: "10px 14px",
+                          background: "rgba(255,255,255,0.98)",
+                        }}
+                        labelStyle={{
+                          fontWeight: 600,
+                          fontSize: 13,
+                          color: "#374151",
+                          marginBottom: 2,
+                        }}
+                        formatter={(value) => [formatRp(value), "Revenue"]}
+                        cursor={{
+                          stroke: CHART_COLORS[0],
+                          strokeWidth: 1,
+                          strokeDasharray: "3 3",
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke={CHART_COLORS[0]}
+                        strokeWidth={2.5}
+                        fill="url(#revGrad)"
+                        activeDot={{
+                          r: 5,
+                          fill: CHART_COLORS[0],
+                          stroke: "white",
+                          strokeWidth: 2,
+                        }}
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 )}
@@ -738,8 +954,12 @@ export default function Reports() {
                     <BarChart3 className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold text-gray-900 dark:text-white">Profit Trend</h2>
-                    <p className="text-xs text-gray-400">Keuntungan periode ini</p>
+                    <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+                      Profit Trend
+                    </h2>
+                    <p className="text-xs text-gray-400">
+                      Keuntungan periode ini
+                    </p>
                   </div>
                 </div>
                 <select
@@ -756,28 +976,93 @@ export default function Reports() {
                 {(trends.revenue_trend || []).length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full">
                     <BarChart3 className="h-8 w-8 text-gray-300 dark:text-gray-600" />
-                    <p className="mt-2 text-sm text-gray-400">No profit data yet</p>
+                    <p className="mt-2 text-sm text-gray-400">
+                      No profit data yet
+                    </p>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trends.revenue_trend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <LineChart
+                      data={trends.revenue_trend}
+                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                    >
                       <defs>
-                        <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#10B981" stopOpacity={0.35} />
-                          <stop offset="50%" stopColor="#10B981" stopOpacity={0.12} />
-                          <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
+                        <linearGradient
+                          id="profitGrad"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="0%"
+                            stopColor="#10B981"
+                            stopOpacity={0.35}
+                          />
+                          <stop
+                            offset="50%"
+                            stopColor="#10B981"
+                            stopOpacity={0.12}
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor="#10B981"
+                            stopOpacity={0}
+                          />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f5" />
-                      <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fill: "#9ca3af", fontSize: 12 }} tickMargin={8} />
-                      <YAxis tickLine={false} axisLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} tickFormatter={(v) => formatCompactRp(v)} />
-                      <Tooltip
-                        contentStyle={{ borderRadius: "12px", border: "1px solid #e5e7eb", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", padding: "10px 14px", background: "rgba(255,255,255,0.98)" }}
-                        labelStyle={{ fontWeight: 600, fontSize: 13, color: "#374151", marginBottom: 2 }}
-                        formatter={(value) => [formatRp(value), "Profit"]}
-                        cursor={{ stroke: "#10B981", strokeWidth: 1, strokeDasharray: "3 3" }}
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="#f0f0f5"
                       />
-                      <Line type="monotone" dataKey="profit" stroke="#10B981" strokeWidth={2.5} fill="url(#profitGrad)" activeDot={{ r: 5, fill: "#10B981", stroke: "white", strokeWidth: 2 }} />
+                      <XAxis
+                        dataKey="date"
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: "#9ca3af", fontSize: 12 }}
+                        tickMargin={8}
+                      />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: "#9ca3af", fontSize: 11 }}
+                        tickFormatter={(v) => formatCompactRp(v)}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "12px",
+                          border: "1px solid #e5e7eb",
+                          boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                          padding: "10px 14px",
+                          background: "rgba(255,255,255,0.98)",
+                        }}
+                        labelStyle={{
+                          fontWeight: 600,
+                          fontSize: 13,
+                          color: "#374151",
+                          marginBottom: 2,
+                        }}
+                        formatter={(value) => [formatRp(value), "Profit"]}
+                        cursor={{
+                          stroke: "#10B981",
+                          strokeWidth: 1,
+                          strokeDasharray: "3 3",
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="profit"
+                        stroke="#10B981"
+                        strokeWidth={2.5}
+                        fill="url(#profitGrad)"
+                        activeDot={{
+                          r: 5,
+                          fill: "#10B981",
+                          stroke: "white",
+                          strokeWidth: 2,
+                        }}
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 )}
@@ -811,7 +1096,10 @@ export default function Reports() {
                           paddingAngle={3}
                         >
                           {(categories.categories || []).map((_, idx) => (
-                            <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                            <Cell
+                              key={idx}
+                              fill={CHART_COLORS[idx % CHART_COLORS.length]}
+                            />
                           ))}
                         </Pie>
                         <Tooltip
@@ -822,17 +1110,28 @@ export default function Reports() {
                     </ResponsiveContainer>
                   </div>
                   <div className="flex-1 space-y-1.5">
-                    {(categories.categories || []).slice(0, 5).map((cat, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-xs">
-                        <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
-                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }} />
-                          {cat.category_name}
-                        </span>
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {Number(cat.percentage || 0).toFixed(1)}%
-                        </span>
-                      </div>
-                    ))}
+                    {(categories.categories || [])
+                      .slice(0, 5)
+                      .map((cat, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between text-xs"
+                        >
+                          <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
+                            <span
+                              className="h-2.5 w-2.5 rounded-full"
+                              style={{
+                                backgroundColor:
+                                  CHART_COLORS[idx % CHART_COLORS.length],
+                              }}
+                            />
+                            {cat.category_name}
+                          </span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {Number(cat.percentage || 0).toFixed(1)}%
+                          </span>
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}
@@ -861,9 +1160,16 @@ export default function Reports() {
                           outerRadius={75}
                           paddingAngle={3}
                         >
-                          {(paymentMethods.payment_methods || []).map((_, idx) => (
-                            <Cell key={idx} fill={CHART_COLORS[(idx + 3) % CHART_COLORS.length]} />
-                          ))}
+                          {(paymentMethods.payment_methods || []).map(
+                            (_, idx) => (
+                              <Cell
+                                key={idx}
+                                fill={
+                                  CHART_COLORS[(idx + 3) % CHART_COLORS.length]
+                                }
+                              />
+                            ),
+                          )}
                         </Pie>
                         <Tooltip
                           formatter={(value) => [formatRp(value), "Total"]}
@@ -873,17 +1179,28 @@ export default function Reports() {
                     </ResponsiveContainer>
                   </div>
                   <div className="flex-1 space-y-1.5">
-                    {(paymentMethods.payment_methods || []).slice(0, 5).map((pm, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-xs">
-                        <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
-                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[(idx + 3) % CHART_COLORS.length] }} />
-                          {pm.method}
-                        </span>
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {Number(pm.percentage || 0).toFixed(1)}%
-                        </span>
-                      </div>
-                    ))}
+                    {(paymentMethods.payment_methods || [])
+                      .slice(0, 5)
+                      .map((pm, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between text-xs"
+                        >
+                          <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
+                            <span
+                              className="h-2.5 w-2.5 rounded-full"
+                              style={{
+                                backgroundColor:
+                                  CHART_COLORS[(idx + 3) % CHART_COLORS.length],
+                              }}
+                            />
+                            {pm.method}
+                          </span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {Number(pm.percentage || 0).toFixed(1)}%
+                          </span>
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}
@@ -899,36 +1216,55 @@ export default function Reports() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">Total Customers</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">{overview.customer_analytics.total_customers}</span>
-                    <GrowthBadge value={overview.customer_analytics.growth_total} />
+                    <span className="text-sm font-bold text-gray-900 dark:text-white">
+                      {overview.customer_analytics.total_customers}
+                    </span>
+                    <GrowthBadge
+                      value={overview.customer_analytics.growth_total}
+                    />
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">Customer Baru</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">{overview.customer_analytics.new_customers}</span>
-                    <GrowthBadge value={overview.customer_analytics.growth_new} />
+                    <span className="text-sm font-bold text-gray-900 dark:text-white">
+                      {overview.customer_analytics.new_customers}
+                    </span>
+                    <GrowthBadge
+                      value={overview.customer_analytics.growth_new}
+                    />
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">Repeat Customers</span>
+                  <span className="text-xs text-gray-500">
+                    Repeat Customers
+                  </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">{overview.customer_analytics.repeat_customers}</span>
-                    <GrowthBadge value={overview.customer_analytics.growth_repeat} />
+                    <span className="text-sm font-bold text-gray-900 dark:text-white">
+                      {overview.customer_analytics.repeat_customers}
+                    </span>
+                    <GrowthBadge
+                      value={overview.customer_analytics.growth_repeat}
+                    />
                   </div>
                 </div>
                 <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">Repeat Rate</span>
-                    <span className="text-sm font-bold text-accent">{Number(overview.customer_analytics.repeat_rate || 0).toFixed(1)}%</span>
+                    <span className="text-sm font-bold text-accent">
+                      {Number(
+                        overview.customer_analytics.repeat_rate || 0,
+                      ).toFixed(1)}
+                      %
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Top Customers */}
-            <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-3">
+            <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 p-5 hover:shadow-md transition-shadow">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
                 <Users className="h-4 w-4 text-accent" />
                 Top Customers
               </h3>
@@ -938,18 +1274,67 @@ export default function Reports() {
                   <p className="mt-1 text-xs text-gray-400">No customer data</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {topCustomers.map((c, idx) => {
-                    const initials = (c.full_name || c.name || "?").split(" ").map((s) => s[0]).join("").toUpperCase().slice(0, 2);
+                    const name =
+                      c.customer_name ||
+                      c.full_name ||
+                      c.name ||
+                      "Walk-in Customer";
+                    const rank = idx + 1;
+
+                    // Determine rank color styling
+                    let rankColor = "";
+                    let rankBgColor = "";
+                    let iconComponent = null;
+
+                    switch (rank) {
+                      case 1:
+                        rankColor = "text-amber-500 dark:text-amber-400";
+                        rankBgColor = "bg-amber-50 dark:bg-amber-500/10";
+                        iconComponent = (
+                          <Crown className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
+                        );
+                        break;
+                      case 2:
+                        rankColor = "text-slate-400 dark:text-slate-500";
+                        rankBgColor = "bg-slate-50 dark:bg-slate-500/5";
+                        break;
+                      case 3:
+                        rankColor = "text-orange-500 dark:text-orange-400";
+                        rankBgColor = "bg-orange-50 dark:bg-orange-500/10";
+                        break;
+                      default:
+                        rankColor = "text-gray-400 dark:text-gray-500";
+                        rankBgColor = "bg-gray-50 dark:bg-gray-500/5";
+                    }
+
                     return (
-                      <div key={idx} className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light dark:bg-accent/20 text-xs font-bold text-accent">
-                          {initials}
+                      <div
+                        key={idx}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg ${rankBgColor} hover:shadow-sm transition-shadow`}
+                      >
+                        {/* Rank Badge */}
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <span className={`text-xs font-bold ${rankColor}`}>
+                            #{rank}
+                          </span>
+                          {iconComponent && iconComponent}
                         </div>
+
+                        {/* Customer Name */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{c.full_name || c.name || "-"}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                            {name}
+                          </p>
                         </div>
-                        <span className="text-sm font-semibold text-accent">{formatRp(c.total_spent || 0)}</span>
+
+                        {/* Revenue */}
+                        <span
+                          className={`text-sm font-semibold ${rankColor} flex-shrink-0`}
+                        >
+                          {formatRp(c.total_spent || c.total_revenue || 0)}
+                        </span>
                       </div>
                     );
                   })}
@@ -960,17 +1345,17 @@ export default function Reports() {
 
           {/* ─── 7. TABLES ROW (2 tables side by side) ──────────────── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Produk Terlaris */}
+            {/* Produk Terlaris — focus: sales volume */}
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
-              <div className="px-6 py-4 border-b border-[#ececf2] dark:border-gray-700/60">
-                <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Package className="h-5 w-5 text-accent" />
-                  Produk Terlaris
-                </h2>
+              <div className="px-6 py-4 border-b border-[#ececf2] dark:border-gray-700/60 flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100">
+                  <TrendingUp className="h-4 w-4 text-red-600" />
+                </div>
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">Produk Terlaris</h2>
               </div>
               {(products.top_products || []).length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <Package className="h-7 w-7 text-gray-300 dark:text-gray-600" />
+                  <TrendingUp className="h-7 w-7 text-gray-300 dark:text-gray-600" />
                   <p className="mt-2 text-sm text-gray-400">No product data</p>
                 </div>
               ) : (
@@ -978,59 +1363,51 @@ export default function Reports() {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80 text-left text-xs text-gray-500 dark:text-gray-400">
-                        <th className="px-4 py-3 font-semibold">#</th>
-                        <th className="px-4 py-3 font-semibold">Produk</th>
-                        <th className="px-4 py-3 font-semibold">SKU</th>
-                        <th className="px-4 py-3 font-semibold text-center">Qty</th>
-                        <th className="px-4 py-3 font-semibold text-right">Revenue</th>
-                        <th className="px-4 py-3 font-semibold">%</th>
-                        <th className="px-4 py-3 font-semibold text-right">Profit</th>
+                        <th className="px-3 py-3 font-semibold text-center">#</th>
+                        <th className="px-3 py-3 font-semibold">Produk</th>
+                        <th className="px-3 py-3 font-semibold text-center">Qty</th>
+                        <th className="px-3 py-3 font-semibold text-right">Revenue</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {(products.top_products || []).slice(0, 10).map((p, idx) => {
-                        const totalRevenue = sales.total_revenue || 1;
-                        const pct = ((p.revenue || 0) / totalRevenue) * 100;
-                        return (
-                          <tr key={p.product_id || idx} className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60">
-                            <td className="px-4 py-3 text-xs text-gray-500">{idx + 1}</td>
-                            <td className="px-4 py-3">
-                              <span className="text-sm font-semibold text-gray-900 dark:text-white">{p.product_name}</span>
-                            </td>
-                            <td className="px-4 py-3 text-xs text-gray-500">{p.product_sku || "-"}</td>
-                            <td className="px-4 py-3 text-center">
-                              <span className="inline-flex items-center justify-center rounded-lg bg-gray-500/10 px-2.5 py-1 text-xs font-semibold text-gray-500">{p.quantity_sold}</span>
-                            </td>
-                            <td className="px-4 py-3 text-right text-sm font-bold text-accent">{formatRp(p.revenue)}</td>
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-2">
-                                <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                                  <div className="h-full rounded-full bg-accent" style={{ width: `${Math.min(pct, 100)}%` }} />
-                                </div>
-                                <span className="text-xs text-gray-500 w-10 text-right">{pct.toFixed(1)}%</span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-right text-sm font-semibold text-emerald-600 dark:text-emerald-400">{formatRp(p.profit)}</td>
-                          </tr>
-                        );
-                      })}
+                      {(products.top_products || []).slice(0, 10).map((p, idx) => (
+                        <tr key={p.product_id || idx} className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60">
+                          <td className="px-3 py-3 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {idx === 0 && <span className="text-amber-500 text-xs">👑</span>}
+                              <span className="text-xs font-bold text-gray-500">#{idx + 1}</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{p.product_name}</p>
+                          </td>
+                          <td className="px-3 py-3 text-center">
+                            <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                              {p.quantity_sold}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 text-right">
+                            <span className="text-sm font-medium text-red-600">{formatRp(p.revenue)}</span>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
               )}
             </div>
 
-            {/* Produk Margin Tertinggi */}
+            {/* Produk Margin Tertinggi — focus: profitability */}
             <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
-              <div className="px-6 py-4 border-b border-[#ececf2] dark:border-gray-700/60">
-                <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Percent className="h-5 w-5 text-accent" />
-                  Produk Margin Tertinggi
-                </h2>
+              <div className="px-6 py-4 border-b border-[#ececf2] dark:border-gray-700/60 flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                </div>
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">Produk Margin Tertinggi</h2>
               </div>
               {topMarginProducts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <Percent className="h-7 w-7 text-gray-300 dark:text-gray-600" />
+                  <TrendingUp className="h-7 w-7 text-gray-300 dark:text-gray-600" />
                   <p className="mt-2 text-sm text-gray-400">No product data</p>
                 </div>
               ) : (
@@ -1038,25 +1415,32 @@ export default function Reports() {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80 text-left text-xs text-gray-500 dark:text-gray-400">
-                        <th className="px-4 py-3 font-semibold">#</th>
-                        <th className="px-4 py-3 font-semibold">Produk</th>
-                        <th className="px-4 py-3 font-semibold text-right">Margin %</th>
-                        <th className="px-4 py-3 font-semibold text-right">Profit</th>
-                        <th className="px-4 py-3 font-semibold text-right">Revenue</th>
+                        <th className="px-3 py-3 font-semibold text-center">#</th>
+                        <th className="px-3 py-3 font-semibold">Produk</th>
+                        <th className="px-3 py-3 font-semibold text-center">Margin %</th>
+                        <th className="px-3 py-3 font-semibold text-right">Profit</th>
                       </tr>
                     </thead>
                     <tbody>
                       {topMarginProducts.map((p, idx) => (
                         <tr key={p.product_id || idx} className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60">
-                          <td className="px-4 py-3 text-xs text-gray-500">{idx + 1}</td>
-                          <td className="px-4 py-3">
-                            <span className="text-sm font-semibold text-gray-900 dark:text-white">{p.product_name}</span>
+                          <td className="px-3 py-3 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {idx === 0 && <span className="text-amber-500 text-xs">👑</span>}
+                              <span className="text-xs font-bold text-gray-500">#{idx + 1}</span>
+                            </div>
                           </td>
-                          <td className="px-4 py-3 text-right">
-                            <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{p.margin_pct.toFixed(1)}%</span>
+                          <td className="px-3 py-3">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{p.product_name}</p>
                           </td>
-                          <td className="px-4 py-3 text-right text-sm font-semibold text-accent">{formatRp(p.profit)}</td>
-                          <td className="px-4 py-3 text-right text-sm text-gray-600 dark:text-gray-300">{formatRp(p.revenue)}</td>
+                          <td className="px-3 py-3 text-center">
+                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${p.margin_pct >= 21 ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-800"}`}>
+                              {p.margin_pct.toFixed(1)}%
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 text-right">
+                            <span className="text-sm font-medium text-green-600">{formatRp(p.profit)}</span>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -1077,7 +1461,10 @@ export default function Reports() {
               {loadingStock ? (
                 <div className="space-y-3 animate-pulse">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-12 bg-gray-100 dark:bg-gray-700/50 rounded-xl" />
+                    <div
+                      key={i}
+                      className="h-12 bg-gray-100 dark:bg-gray-700/50 rounded-xl"
+                    />
                   ))}
                 </div>
               ) : lowStockItems.length === 0 ? (
@@ -1088,15 +1475,24 @@ export default function Reports() {
               ) : (
                 <div className="space-y-2.5">
                   {lowStockItems.slice(0, 5).map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2.5">
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2.5"
+                    >
                       <div className="flex items-center gap-2.5">
                         <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</p>
-                          <p className="text-xs text-amber-600 dark:text-amber-400">Sisa {item.stock || item.quantity} unit</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {item.name}
+                          </p>
+                          <p className="text-xs text-amber-600 dark:text-amber-400">
+                            Sisa {item.stock || item.quantity} unit
+                          </p>
                         </div>
                       </div>
-                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{item.stock || item.quantity}</span>
+                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                        {item.stock || item.quantity}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1112,16 +1508,22 @@ export default function Reports() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Total Refund</span>
-                  <span className="text-lg font-bold text-red-600 dark:text-red-400">{formatRp(0)}</span>
+                  <span className="text-lg font-bold text-red-600 dark:text-red-400">
+                    {formatRp(0)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Jumlah Retur</span>
-                  <span className="text-lg font-bold text-gray-900 dark:text-white">{overview.transaction_summary.cancelled || 0}</span>
+                  <span className="text-lg font-bold text-gray-900 dark:text-white">
+                    {overview.transaction_summary.cancelled || 0}
+                  </span>
                 </div>
                 <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500">Refund Rate</span>
-                    <span className="text-lg font-bold text-accent">{refundRate}%</span>
+                    <span className="text-lg font-bold text-accent">
+                      {refundRate}%
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1136,7 +1538,9 @@ export default function Reports() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Total Transaksi</span>
-                  <span className="text-lg font-bold text-gray-900 dark:text-white">{overview.transaction_summary.total_transactions}</span>
+                  <span className="text-lg font-bold text-gray-900 dark:text-white">
+                    {overview.transaction_summary.total_transactions}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -1144,7 +1548,11 @@ export default function Reports() {
                     <span className="text-sm text-gray-500">Selesai</span>
                   </div>
                   <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                    {overview.transaction_summary.completed} ({Number(overview.transaction_summary.completion_rate || 0).toFixed(1)}%)
+                    {overview.transaction_summary.completed} (
+                    {Number(
+                      overview.transaction_summary.completion_rate || 0,
+                    ).toFixed(1)}
+                    %)
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -1153,83 +1561,106 @@ export default function Reports() {
                     <span className="text-sm text-gray-500">Batal</span>
                   </div>
                   <span className="text-sm font-semibold text-red-600 dark:text-red-400">
-                    {overview.transaction_summary.cancelled} ({(overview.transaction_summary.total_transactions > 0 ? ((overview.transaction_summary.cancelled / overview.transaction_summary.total_transactions) * 100) : 0).toFixed(1)}%)
+                    {overview.transaction_summary.cancelled} (
+                    {(overview.transaction_summary.total_transactions > 0
+                      ? (overview.transaction_summary.cancelled /
+                          overview.transaction_summary.total_transactions) *
+                        100
+                      : 0
+                    ).toFixed(1)}
+                    %)
                   </span>
                 </div>
                 <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500">Total Items</span>
-                    <span className="text-lg font-bold text-gray-900 dark:text-white">{overview.transaction_summary.total_items}</span>
+                    <span className="text-lg font-bold text-gray-900 dark:text-white">
+                      {overview.transaction_summary.total_items}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ─── 9. RINCIAN TRANSAKSI (full width table) ───────────── */}
+          {/* ─── 9. RINCIAN TRANSAKSI ──────────────────────────────── */}
           <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#ececf2] dark:border-gray-700/60">
+            <div className="px-6 py-4 border-b border-[#ececf2] dark:border-gray-700/60 flex items-center justify-between">
               <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <Receipt className="h-5 w-5 text-accent" />
                 Rincian Transaksi
               </h2>
+              <select
+                value={topN}
+                onChange={(e) => setTopN(Number(e.target.value))}
+                className="rounded-lg border border-[#ececf2] dark:border-gray-600 px-3 py-1.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 dark:bg-gray-700 dark:text-white"
+              >
+                <option value={5}>Top 5</option>
+                <option value={10}>Top 10</option>
+              </select>
             </div>
 
-            {paginatedTransactions.data.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Receipt className="h-8 w-8 text-gray-300 dark:text-gray-600" />
-                <p className="mt-2 text-sm text-gray-400">No transactions for this period</p>
-              </div>
-            ) : (
-              <>
+            {(() => {
+              const sorted = [...(sales.transactions || [])].sort((a, b) => (b.total || 0) - (a.total || 0)).slice(0, topN);
+              if (sorted.length === 0) {
+                return (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Receipt className="h-8 w-8 text-gray-300 dark:text-gray-600" />
+                    <p className="mt-2 text-sm text-gray-400">No transactions for this period</p>
+                  </div>
+                );
+              }
+              return (
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80 text-left text-xs text-gray-500 dark:text-gray-400">
-                        <th className="px-6 py-4 font-semibold">Invoice</th>
-                        <th className="px-6 py-4 font-semibold">Tanggal</th>
-                        <th className="px-6 py-4 font-semibold">Customer</th>
-                        <th className="px-6 py-4 font-semibold">Items</th>
-                        <th className="px-6 py-4 font-semibold text-right">Total</th>
-                        <th className="px-6 py-4 font-semibold">Metode Bayar</th>
-                        <th className="px-6 py-4 font-semibold text-center">Status</th>
+                        <th className="px-4 py-4 font-semibold w-10">#</th>
+                        <th className="px-4 py-4 font-semibold">Invoice</th>
+                        <th className="px-4 py-4 font-semibold">Tanggal</th>
+                        <th className="px-4 py-4 font-semibold">Customer</th>
+                        <th className="px-4 py-4 font-semibold text-center">Items</th>
+                        <th className="px-4 py-4 font-semibold text-right">Total</th>
+                        <th className="px-4 py-4 font-semibold">Metode Bayar</th>
+                        <th className="px-4 py-4 font-semibold text-center">Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {paginatedTransactions.data.map((txn) => (
+                      {sorted.map((txn, idx) => (
                         <tr key={txn.id} className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60">
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-4 text-xs font-bold text-accent flex items-center gap-1">
+                            {idx === 0 && <span className="text-amber-500">👑</span>}
+                            #{idx + 1}
+                          </td>
+                          <td className="px-4 py-4">
                             <button
-                              onClick={() => handleViewInvoice(txn)}
-                              className="text-accent font-semibold text-sm hover:underline cursor-pointer"
+                              onClick={() => setSelectedInvoice(txn)}
+                              className="text-red-600 underline font-semibold text-sm hover:text-accent cursor-pointer"
                             >
                               #{txn.invoice_number || txn.id}
                             </button>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-200">{formatDateTime(txn.date)}</td>
-                          <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-200">{txn.customer_name || "Walk-in Customer"}</td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              {(txn.items || []).slice(0, 2).map((item, idx) => (
-                                <span key={idx} className="inline-block rounded-lg bg-gray-500/10 border border-gray-400/20 px-2.5 py-1 text-xs font-medium text-gray-500">
-                                  {item.name} x{item.qty}
-                                </span>
-                              ))}
-                              {(txn.items || []).length > 2 && (
-                                <span className="inline-block rounded-lg bg-accent-light px-2.5 py-1 text-xs font-medium text-accent">
-                                  +{(txn.items || []).length - 2} more
-                                </span>
-                              )}
-                            </div>
+                          <td className="px-4 py-4 text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap">
+                            {formatDateTime(txn.date)}
                           </td>
-                          <td className="px-6 py-4 text-right text-sm font-bold text-accent">{formatRp(txn.total)}</td>
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-4 text-sm text-gray-700 dark:text-gray-200">
+                            {txn.customer_name || "Walk-in Customer"}
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <span className="inline-flex items-center rounded-lg bg-gray-500/10 border border-gray-400/20 px-2.5 py-1 text-xs font-medium text-gray-500">
+                              {(txn.items || []).length} items
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 text-right text-sm font-bold text-accent">
+                            {formatRp(txn.total)}
+                          </td>
+                          <td className="px-4 py-4">
                             <span className="inline-flex items-center gap-1 rounded-lg bg-gray-500/10 border border-gray-400/20 px-3 py-1 text-xs font-medium text-gray-500">
                               <CreditCard className="h-3 w-3" />
                               {txn.payment_method || "Cash"}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-4 py-4 text-center">
                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                               <CheckCircle className="h-3 w-3" />
                               Completed
@@ -1240,48 +1671,18 @@ export default function Reports() {
                     </tbody>
                   </table>
                 </div>
-
-                {/* Pagination */}
-                {paginatedTransactions.totalPages > 1 && (
-                  <div className="flex items-center justify-between px-6 py-4 border-t border-[#ececf2] dark:border-gray-700/60">
-                    <p className="text-sm text-gray-400">
-                      Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, paginatedTransactions.total)} of {paginatedTransactions.total}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                      </button>
-                      {Array.from({ length: paginatedTransactions.totalPages }, (_, i) => i + 1).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold transition-all ${
-                            page === currentPage
-                              ? "bg-gradient-to-r from-accent to-accent-hover text-white shadow-lg shadow-accent/20"
-                              : "border border-[#ececf2] dark:border-gray-700 text-gray-600 hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:text-accent"
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
-                      <button
-                        onClick={() => setCurrentPage((p) => Math.min(p + 1, paginatedTransactions.totalPages))}
-                        disabled={currentPage === paginatedTransactions.totalPages}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all hover:border-accent dark:hover:border-accent hover:bg-accent-light dark:hover:bg-accent/30 hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+              );
+            })()}
           </div>
         </>
+      )}
+
+      {/* ─── Invoice Modal ─────────────────────────────────────────── */}
+      {selectedInvoice && (
+        <InvoiceModal
+          transaction={selectedInvoice}
+          onClose={() => setSelectedInvoice(null)}
+        />
       )}
 
       {/* ─── Print Styles ───────────────────────────────────────────── */}

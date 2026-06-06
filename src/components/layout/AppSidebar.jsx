@@ -26,6 +26,7 @@ const mainNav = [
   { to: "/customers", icon: Users, label: "Customers" },
   { to: "/inventory", icon: Warehouse, label: "Inventory" },
   { to: "/inventory-logs", icon: ClipboardList, label: "Inventory Logs" },
+  { to: "/purchase-orders", icon: ShoppingCart, label: "Purchase Orders" },
 ];
 
 const analyticsNav = [

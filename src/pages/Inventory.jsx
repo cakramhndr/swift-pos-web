@@ -613,7 +613,7 @@ export default function Inventory() {
             >
               ‹
             </button>
-            <span className="flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-bold text-white shadow-sm" style={{ background: "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))" }}>
+            <span className="flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-bold text-white shadow-sm bg-accent">
               {meta.current_page}
             </span>
             <button
