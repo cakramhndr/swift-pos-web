@@ -14,6 +14,8 @@ import InventoryLogs from "./pages/InventoryLogs";
 import Reports from "./pages/Reports";
 import Suppliers from "./pages/Suppliers";
 import PurchaseOrders from "./pages/PurchaseOrders";
+import PurchaseOrderDetail from "./pages/PurchaseOrderDetail";
+import SupplierDetail from "./pages/SupplierDetail";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 
@@ -47,6 +49,8 @@ export default function App() {
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/suppliers" element={<Suppliers />} />
                   <Route path="/purchase-orders" element={<PurchaseOrders />} />
+                  <Route path="/purchase-orders/:id" element={<PurchaseOrderDetail />} />
+                  <Route path="/suppliers/:id" element={<SupplierDetail />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/settings" element={<Settings />} />
                 </Routes>
