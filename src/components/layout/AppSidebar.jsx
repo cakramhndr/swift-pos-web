@@ -7,6 +7,7 @@ import {
   Users,
   Warehouse,
   ClipboardList,
+  Building2,
   BarChart2,
   Users2,
   Settings,
@@ -26,6 +27,7 @@ const mainNav = [
   { to: "/customers", icon: Users, label: "Customers" },
   { to: "/inventory", icon: Warehouse, label: "Inventory" },
   { to: "/inventory-logs", icon: ClipboardList, label: "Inventory Logs" },
+  { to: "/suppliers", icon: Building2, label: "Suppliers" },
   { to: "/purchase-orders", icon: ShoppingCart, label: "Purchase Orders" },
 ];
 
