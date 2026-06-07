@@ -7,6 +7,7 @@ import useAppearance from "./hooks/useAppearance";
 import Dashboard from "./pages/Dashboard.jsx";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
+import ProductEdit from "./pages/ProductEdit";
 import Transactions from "./pages/Transactions";
 import Customers from "./pages/Customers";
 import Inventory from "./pages/Inventory";
@@ -14,6 +15,7 @@ import InventoryLogs from "./pages/InventoryLogs";
 import Reports from "./pages/Reports";
 import Suppliers from "./pages/Suppliers";
 import PurchaseOrders from "./pages/PurchaseOrders";
+import PurchaseOrderEdit from "./pages/PurchaseOrderEdit";
 import PurchaseOrderDetail from "./pages/PurchaseOrderDetail";
 import SupplierDetail from "./pages/SupplierDetail";
 import Analytics from "./pages/Analytics";
@@ -41,6 +43,8 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/products" element={<Products />} />
+                  {/* Specific product routes BEFORE /products/:id */}
+                  <Route path="/products/:id/edit" element={<ProductEdit />} />
                   <Route path="/products/:id" element={<ProductDetail />} />
                   <Route path="/transactions" element={<Transactions />} />
                   <Route path="/customers" element={<Customers />} />
@@ -49,6 +53,8 @@ export default function App() {
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/suppliers" element={<Suppliers />} />
                   <Route path="/purchase-orders" element={<PurchaseOrders />} />
+                  {/* Specific purchase-order routes BEFORE /purchase-orders/:id */}
+                  <Route path="/purchase-orders/:id/edit" element={<PurchaseOrderEdit />} />
                   <Route path="/purchase-orders/:id" element={<PurchaseOrderDetail />} />
                   <Route path="/suppliers/:id" element={<SupplierDetail />} />
                   <Route path="/analytics" element={<Analytics />} />

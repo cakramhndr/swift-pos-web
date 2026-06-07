@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import usePurchaseOrders from "@/hooks/usePurchaseOrders";
 import { getSuppliers } from "@/api/suppliers";
@@ -103,6 +103,7 @@ const STATUS_LIST = ["draft", "pending", "partial", "completed", "cancelled"];
 // ── Main Purchase Orders Page ─────────────────────────────────────────
 export default function PurchaseOrders() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: orders, loading, fetchAll } = usePurchaseOrders();
 
   // ── Filters ────────────────────────────────────────────────────────
@@ -139,6 +140,23 @@ export default function PurchaseOrders() {
   const poTotal = useMemo(() => {
     return poItems.reduce((sum, item) => sum + ((Number(item.quantity_ordered) || 0) * (Number(item.unit_cost) || 0)), 0);
   }, [poItems]);
+
+  // ── Handle navigation prefill (from Product Detail "Create Purchase Order") ──
+  const prefilledRef = useRef(false);
+  useEffect(() => {
+    if (prefilledRef.current) return;
+    const state = location.state;
+    if (state?.openCreatePo && state?.prefillProduct) {
+      const p = state.prefillProduct;
+      const timer = setTimeout(() => {
+        setPoItems([{ id: 1, product_id: String(p.id), quantity_ordered: 1, unit_cost: p.unit_cost || 0 }]);
+        setPoDialogOpen(true);
+      }, 0);
+      prefilledRef.current = true;
+      window.history.replaceState({}, document.title);
+      return () => clearTimeout(timer);
+    }
+  }, []); // only on mount
 
   // ── Fetch data on mount ───────────────────────────────────────────
   useEffect(() => { fetchAll(); }, [fetchAll]);
