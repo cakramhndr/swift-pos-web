@@ -15,6 +15,8 @@ import InventoryLogs from "./pages/InventoryLogs";
 import Reports from "./pages/Reports";
 import Suppliers from "./pages/Suppliers";
 import PurchaseOrders from "./pages/PurchaseOrders";
+import StockOpnames from "./pages/StockOpnames";
+import StockOpnameDetail from "./pages/StockOpnameDetail";
 import PurchaseOrderEdit from "./pages/PurchaseOrderEdit";
 import PurchaseOrderDetail from "./pages/PurchaseOrderDetail";
 import SupplierDetail from "./pages/SupplierDetail";
@@ -58,6 +60,8 @@ export default function App() {
                   <Route path="/purchase-orders/:id" element={<PurchaseOrderDetail />} />
                   <Route path="/suppliers/:id" element={<SupplierDetail />} />
                   <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/stock-opnames" element={<StockOpnames />} />
+                  <Route path="/stock-opnames/:id" element={<StockOpnameDetail />} />
                   <Route path="/settings" element={<Settings />} />
                 </Routes>
                 <Toaster richColors position="top-center" />
