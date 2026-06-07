@@ -99,13 +99,27 @@ export default function useInventory({ perPage = 15 } = {}) {
     }
   }, []);
 
+  const [logsMeta, setLogsMeta] = useState({
+    current_page: 1,
+    last_page: 1,
+    per_page: 20,
+    total: 0,
+  });
+
   // ── Fetch logs (independent) ───────────────────────────────────────
   const fetchLogs = useCallback(
     async (params = {}) => {
       try {
         const res = await getInventoryLogs(params);
-        const body = res.data.data ?? res.data;
-        setLogs(Array.isArray(body) ? body : body.data ?? []);
+        const body = res.data;
+        const items = body.data ?? body;
+        setLogs(Array.isArray(items) ? items : items?.data ?? []);
+        setLogsMeta({
+          current_page: body.meta?.current_page ?? body.current_page ?? 1,
+          last_page: body.meta?.last_page ?? body.last_page ?? 1,
+          per_page: body.meta?.per_page ?? body.per_page ?? 20,
+          total: body.meta?.total ?? body.total ?? (Array.isArray(items) ? items.length : 0),
+        });
       } catch {
         // silently fail — logs are optional
       }
@@ -159,6 +173,7 @@ export default function useInventory({ perPage = 15 } = {}) {
     meta,
     summary,
     logs,
+    logsMeta,
     refetch,
     adjust,
     setSearch,

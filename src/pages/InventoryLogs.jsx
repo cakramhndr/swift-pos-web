@@ -1,18 +1,17 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import useInventory from "@/hooks/useInventory";
 
 import {
   ClipboardList,
-  Package,
   TrendingUp,
   TrendingDown,
   Search,
-  ArrowLeft,
-  ArrowRight,
   Plus,
   Minus,
   Loader2,
   Download,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { exportInventoryLogsPDF } from "@/lib/exportUtils";
 
@@ -26,11 +25,6 @@ import {
 } from "@/components/ui/table";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────
-const formatRp = (num) => {
-  if (isNaN(num)) return "";
-  return "Rp " + Number(num || 0).toLocaleString("id-ID");
-};
-
 const formatDate = (isoString) => {
   if (!isoString) return "-";
   const d = new Date(isoString);
@@ -43,7 +37,7 @@ const formatDate = (isoString) => {
   });
 };
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 20;
 
 // ─── Type Badge ──────────────────────────────────────────────────────────
 const typeBadge = (type) => {
@@ -64,6 +58,18 @@ const typeBadge = (type) => {
       return (
         <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 text-xs font-medium text-amber-300">
           Adjustment
+        </span>
+      );
+    case "stock_opname":
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/15 border border-purple-500/30 px-2.5 py-0.5 text-xs font-medium text-purple-600 dark:text-purple-300">
+          Stock Opname
+        </span>
+      );
+    case "stock_in":
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/15 border border-blue-500/30 px-2.5 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-300">
+          Stock In
         </span>
       );
     default:
@@ -114,7 +120,7 @@ const getTimeRangeStart = (range) => {
 };
 
 export default function InventoryLogs() {
-  const { logs, fetchLogs } = useInventory();
+  const { logs, logsMeta, fetchLogs } = useInventory();
 
   const [activeTab, setActiveTab] = useState("movement");
 
@@ -125,17 +131,28 @@ export default function InventoryLogs() {
   const [movementPage, setMovementPage] = useState(1);
 
   // ─── Loading state ────────────────────────────────────────────────────
-  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsLoading, setLogsLoading] = useState(true);
 
-  // ─── Fetch logs on mount ──────────────────────────────────────────────
-  useEffect(() => {
+  // ─── Compute server-side page count from API response ────────────────
+  const totalMovementPages = logsMeta?.last_page ?? 1;
+  const totalMovements = logsMeta?.total ?? logs.length;
+
+  // ─── Fetch logs on mount & on page change ─────────────────────────────
+  const fetchLogsPage = useCallback((page = 1) => {
     setLogsLoading(true);
-    fetchLogs().finally(() => setLogsLoading(false));
+    const params = { page, per_page: ITEMS_PER_PAGE };
+    setMovementPage(page);
+    fetchLogs(params).finally(() => setLogsLoading(false));
   }, [fetchLogs]);
 
-  // ─── Compute stats from API logs ─────────────────────────────────────
-  const totalMovements = logs.length;
+  // Fetch logs on mount
+  useEffect(() => {
+    const params = { page: 1, per_page: ITEMS_PER_PAGE };
+    fetchLogs(params).finally(() => setLogsLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // ─── Compute stats from API logs ─────────────────────────────────────
   const thisMonthMovements = useMemo(() => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -161,7 +178,7 @@ export default function InventoryLogs() {
     [thisMonthMovements],
   );
 
-  // ─── Filter movement logs ─────────────────────────────────────────────
+  // ─── Client-side filter (only search & type filter on current page data) ─
   const filteredMovements = useMemo(() => {
     const timeStart = getTimeRangeStart(movementTimeFilter);
     return logs.filter((m) => {
@@ -178,11 +195,25 @@ export default function InventoryLogs() {
     });
   }, [logs, movementSearch, movementTypeFilter, movementTimeFilter]);
 
-  const totalMovementPages = Math.ceil(filteredMovements.length / ITEMS_PER_PAGE);
-  const paginatedMovements = filteredMovements.slice(
-    (movementPage - 1) * ITEMS_PER_PAGE,
-    movementPage * ITEMS_PER_PAGE,
-  );
+  // ─── Handle page change ─────────────────────────────────────────────
+  const goToPage = (page) => {
+    if (page < 1 || page > totalMovementPages) return;
+    fetchLogsPage(page);
+  };
+
+  // ─── Generate page numbers (matching Products.jsx pattern) ──────────
+  const pageNumbers = useMemo(() => {
+    const pages = [];
+    const maxVisible = 5;
+    const start = Math.max(1, Math.min(movementPage - 2, totalMovementPages - maxVisible + 1));
+    for (let i = 0; i < Math.min(maxVisible, totalMovementPages); i++) {
+      const p = start + i;
+      if (p <= totalMovementPages) pages.push(p);
+    }
+    return pages;
+  }, [movementPage, totalMovementPages]);
+
+  const totalRecords = logsMeta?.total ?? logs.length;
 
   return (
     <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm dark:bg-gray-800 dark:shadow-none">
@@ -290,7 +321,6 @@ export default function InventoryLogs() {
                 value={movementSearch}
                 onChange={(e) => {
                   setMovementSearch(e.target.value);
-                  setMovementPage(1);
                 }}
                 className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-white dark:placeholder-gray-400"
               />
@@ -299,7 +329,7 @@ export default function InventoryLogs() {
               value={movementTypeFilter}
               onChange={(e) => {
                 setMovementTypeFilter(e.target.value);
-                setMovementPage(1);
+                goToPage(1);
               }}
               className="rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none focus:border-accent cursor-pointer dark:bg-gray-700 dark:text-white"
             >
@@ -307,12 +337,14 @@ export default function InventoryLogs() {
               <option value="sale">Penjualan</option>
               <option value="restock">Restock</option>
               <option value="adjustment">Adjustment</option>
+              <option value="stock_in">Stock In</option>
+              <option value="stock_opname">Stock Opname</option>
             </select>
             <select
               value={movementTimeFilter}
               onChange={(e) => {
                 setMovementTimeFilter(e.target.value);
-                setMovementPage(1);
+                goToPage(1);
               }}
               className="rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none focus:border-accent cursor-pointer dark:bg-gray-700 dark:text-white"
             >
@@ -352,7 +384,7 @@ export default function InventoryLogs() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedMovements.length === 0 ? (
+                {filteredMovements.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={7}
@@ -362,7 +394,7 @@ export default function InventoryLogs() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedMovements.map((log) => {
+                  filteredMovements.map((log) => {
                     const productName =
                       log.product?.name || log.product_name || "—";
                     return (
@@ -406,34 +438,41 @@ export default function InventoryLogs() {
             </Table>
           </div>
 
-          {/* Pagination */}
+          {/* Pagination — matches Products.jsx styling */}
           {totalMovementPages > 1 && (
-            <div className="flex items-center justify-between pt-2">
-              <p className="text-sm text-gray-400">
-                Menampilkan{" "}
-                {Math.min((movementPage - 1) * ITEMS_PER_PAGE + 1, filteredMovements.length)}–
-                {Math.min(movementPage * ITEMS_PER_PAGE, filteredMovements.length)}{" "}
-                dari {filteredMovements.length}
-              </p>
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-gray-700/40">
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-500">
+                  Page {movementPage} of {totalMovementPages} ({totalRecords} total)
+                </span>
+              </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setMovementPage((p) => Math.max(p - 1, 1))}
+                  onClick={() => goToPage(1)}
                   disabled={movementPage <= 1}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-accent hover:text-accent disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 disabled:opacity-40"
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3.5 w-3.5" />
                 </button>
-                <span className="flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-bold text-white shadow-sm bg-accent">
-                  {movementPage}
-                </span>
+                {pageNumbers.map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => goToPage(p)}
+                    className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold transition-all ${
+                      p === movementPage
+                        ? "bg-accent text-white shadow-sm"
+                        : "border border-gray-200 dark:border-gray-700 text-gray-600 hover:border-accent hover:text-accent"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
                 <button
-                  onClick={() =>
-                    setMovementPage((p) => Math.min(p + 1, totalMovementPages))
-                  }
+                  onClick={() => goToPage(totalMovementPages)}
                   disabled={movementPage >= totalMovementPages}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ececf2] dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-accent hover:text-accent disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 disabled:opacity-40"
                 >
-                  <ArrowRight className="h-4 w-4" />
+                  <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>

@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   ClipboardList,
   Package,
-  TrendingUp,
   DollarSign,
   AlertTriangle,
   CheckCircle2,
@@ -20,6 +19,10 @@ import {
   Ban,
   BarChart3,
   Activity,
+  Filter,
+  Clock,
+  ListChecks,
+  Layers,
 } from "lucide-react";
 import {
   getStockOpnameById,
@@ -30,7 +33,6 @@ import {
 } from "@/api/stockOpnames";
 import KpiCard from "@/components/product-detail/KpiCard";
 import TabNavigation from "@/components/product-detail/TabNavigation";
-import StockOpnameProgress from "@/components/stock-opname/StockOpnameProgress";
 import StockOpnameCompleteModal from "@/components/stock-opname/StockOpnameCompleteModal";
 import { formatRp, formatDateShort } from "@/lib/purchaseUtils";
 
@@ -40,6 +42,23 @@ const TABS = [
   { key: "counting", label: "Counting", icon: Activity },
   { key: "activity-logs", label: "Activity Logs", icon: ClipboardList },
 ];
+
+// ── Helper: format date+time ────────────────────────────────────────────
+function formatDateTime(ds) {
+  if (!ds) return null;
+  try {
+    const d = new Date(ds);
+    return d.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return ds;
+  }
+}
 
 // ── Status badge ────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -67,7 +86,6 @@ function DiffBadge({ value }) {
 // ── Item Status Badge ───────────────────────────────────────────────────
 function ItemStatusBadge({ item }) {
   const diff = item.difference ?? 0;
-
   if (item.system_stock == null) return <span className="text-[11px] text-gray-400">Unchecked</span>;
   if (diff === 0) {
     return (
@@ -111,6 +129,35 @@ function InfoRow({ label, value, icon: Icon }) {
         {label}
       </div>
       <span className="text-sm font-medium text-gray-900 dark:text-white text-right">{value ?? "—"}</span>
+    </div>
+  );
+}
+
+// ── Statistics row (compact stat item) ──────────────────────────────────
+function StatItem({ label, value, color = "text-gray-900 dark:text-white" }) {
+  return (
+    <div className="flex items-center justify-between py-1.5">
+      <span className="text-sm text-gray-500 dark:text-gray-400">{label}</span>
+      <span className={`text-sm font-semibold ${color}`}>{value}</span>
+    </div>
+  );
+}
+
+// ── Event Timeline Item ─────────────────────────────────────────────────
+function TimelineItem({ time, title, description, icon: Icon, color }) {
+  return (
+    <div className="flex gap-3 pb-4 last:pb-0 relative">
+      <div className="flex flex-col items-center">
+        <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${color || "bg-gray-100 dark:bg-gray-700"}`}>
+          {Icon && <Icon className="h-3.5 w-3.5" />}
+        </div>
+        <div className="flex-1 w-px bg-[#ececf2] dark:bg-gray-700 mt-1" />
+      </div>
+      <div className="flex-1 pb-2">
+        <p className="text-sm font-medium text-gray-900 dark:text-white">{title}</p>
+        {description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>}
+        {time && <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">{time}</p>}
+      </div>
     </div>
   );
 }
@@ -160,6 +207,12 @@ function ActionsDropdown({ onClose, onAction, status }) {
   );
 }
 
+// ── Resolve default tab from status ─────────────────────────────────────
+function getDefaultTab(status) {
+  if (status === "in_progress") return "counting";
+  return "overview";
+}
+
 // ═════════════════════════════════════════════════════════════════════════
 // MAIN PAGE: StockOpnameDetail
 // ═════════════════════════════════════════════════════════════════════════
@@ -201,18 +254,85 @@ export default function StockOpnameDetail() {
     }
   }, [id]);
 
-  useEffect(() => { fetchSession(); }, [fetchSession]);
+  useEffect(() => {
+    fetchSession();
+  }, [fetchSession]);
+
+  // ── Smart default tab: auto-select on first load only ────────────
+  const initialTabSet = useRef(false);
+  useEffect(() => {
+    if (session && !initialTabSet.current) {
+      initialTabSet.current = true;
+      setActiveTab(getDefaultTab(session.status));
+    }
+  }, [session]);
 
   // ── Derived values ────────────────────────────────────────────────
   const items = useMemo(() => session?.items || [], [session]);
   const status = session?.status || "draft";
   const isLocked = status === "completed" || status === "cancelled";
   const totalItems = items.length;
-  const checkedItems = items.filter((i) => i.physical_stock != null).length;
+
+  // ✅ BUG 1: draft sessions have no counted items
+  const checkedItems = status === "draft"
+    ? 0
+    : items.filter(
+        (i) => i.physical_stock !== null && i.physical_stock !== undefined
+      ).length;
+
+  const remainingItems = totalItems - checkedItems;
+  const progressPct = totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0;
   const diffItems = items.filter((i) => (i.difference ?? 0) !== 0);
   const missingItems = diffItems.filter((i) => (i.difference ?? 0) < 0).length;
   const excessItems = diffItems.filter((i) => (i.difference ?? 0) > 0).length;
+  const matchedItems = items.filter((i) => (i.difference ?? 0) === 0 && i.physical_stock != null).length;
   const estimatedValue = items.reduce((sum, i) => sum + Math.abs(i.difference ?? 0) * (i.product?.unit_cost ?? 0), 0);
+
+  // ── Build activity log events from session timestamps ────────────
+  const activityEvents = useMemo(() => {
+    const events = [];
+    if (session?.created_at) {
+      events.push({
+        key: "created",
+        time: formatDateTime(session.created_at),
+        title: "Session Created",
+        description: `Stock opname ${session.reference_number || ""} was created`,
+        icon: ClipboardList,
+        color: "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400",
+      });
+    }
+    if (session?.started_at) {
+      events.push({
+        key: "started",
+        time: formatDateTime(session.started_at),
+        title: "Session Started",
+        description: "Counting process was initiated",
+        icon: Play,
+        color: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
+      });
+    }
+    if (session?.completed_at) {
+      events.push({
+        key: "completed",
+        time: formatDateTime(session.completed_at),
+        title: "Session Completed",
+        description: "All items counted and inventory adjusted",
+        icon: CheckCircle,
+        color: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
+      });
+    }
+    if (session?.cancelled_at) {
+      events.push({
+        key: "cancelled",
+        time: formatDateTime(session.cancelled_at),
+        title: "Session Cancelled",
+        description: "Stock opname was cancelled",
+        icon: XCircle,
+        color: "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400",
+      });
+    }
+    return events;
+  }, [session]);
 
   // ── Filtered items for counting tab ───────────────────────────────
   const filteredItems = useMemo(() => {
@@ -231,7 +351,6 @@ export default function StockOpnameDetail() {
     const raw = parseInt(value, 10);
     const newVal = isNaN(raw) ? 0 : raw;
 
-    // Update UI instantly
     setSession((prev) => {
       if (!prev) return prev;
       const updatedItems = prev.items.map((i) => {
@@ -242,7 +361,6 @@ export default function StockOpnameDetail() {
       return { ...prev, items: updatedItems };
     });
 
-    // Debounced save
     if (debounceTimers.current[itemId]) clearTimeout(debounceTimers.current[itemId]);
     debounceTimers.current[itemId] = setTimeout(async () => {
       setSavingRowId(itemId);
@@ -276,7 +394,6 @@ export default function StockOpnameDetail() {
       setCountSearch(barcodeInput);
       setBarcodeModalOpen(false);
       setBarcodeInput("");
-      // Auto-scroll handled by the DOM
       setTimeout(() => {
         const el = document.getElementById(`so-item-${items[found]?.id}`);
         if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -286,28 +403,39 @@ export default function StockOpnameDetail() {
     }
   };
 
-  // ── Actions ───────────────────────────────────────────────────────
-  const handleStartSession = async () => {
-    if (!confirm("Start this stock opname session?")) return;
-    setSubmitting(true);
-    try {
-      const res = await startStockOpname(id);
-      const d = res.data?.data || res.data;
-      setSession(d);
-      toast.success("Session started — begin counting products");
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to start session");
-    } finally {
-      setSubmitting(false);
-    }
+  // ── ISSUE 2: Confirmation modal (replaces browser confirm) ────
+  const [confirmModal, setConfirmModal] = useState({ open: false, title: "", description: "", action: null, buttonLabel: "Confirm" });
+
+  const openConfirmModal = (title, description, action, buttonLabel) => {
+    setConfirmModal({ open: true, title, description, action, buttonLabel: buttonLabel || "Start Session" });
+  };
+
+  // ── ISSUE 1: Use refetch() pattern for all state transitions ────
+  const handleStartSession = () => {
+    openConfirmModal(
+      "Start Stock Opname Session?",
+      "Products will be loaded and counting will begin.",
+      async () => {
+        setSubmitting(true);
+        try {
+          await startStockOpname(id);
+          await fetchSession();
+          toast.success("Session started — begin counting products");
+        } catch (err) {
+          toast.error(err?.response?.data?.message || "Failed to start session");
+        } finally {
+          setSubmitting(false);
+        }
+      },
+      "Start Session"
+    );
   };
 
   const handleCompleteSessionConfirm = async () => {
     setSubmitting(true);
     try {
-      const res = await completeStockOpname(id);
-      const d = res.data?.data || res.data;
-      setSession(d);
+      await completeStockOpname(id);
+      await fetchSession();
       setCompleteModalOpen(false);
       toast.success("Stock opname completed. Inventory has been updated.");
     } catch (err) {
@@ -317,19 +445,24 @@ export default function StockOpnameDetail() {
     }
   };
 
-  const handleCancelSession = async () => {
-    if (!confirm("Cancel this stock opname session?")) return;
-    setSubmitting(true);
-    try {
-      const res = await cancelStockOpname(id);
-      const d = res.data?.data || res.data;
-      setSession(d);
-      toast.success("Session cancelled");
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to cancel session");
-    } finally {
-      setSubmitting(false);
-    }
+  const handleCancelSession = () => {
+    openConfirmModal(
+      "Cancel Stock Opname Session?",
+      "This stock opname will be cancelled. No modifications will be allowed afterward.",
+      async () => {
+        setSubmitting(true);
+        try {
+          await cancelStockOpname(id);
+          await fetchSession();
+          toast.success("Session cancelled");
+        } catch (err) {
+          toast.error(err?.response?.data?.message || "Failed to cancel session");
+        } finally {
+          setSubmitting(false);
+        }
+      },
+      "Cancel Session"
+    );
   };
 
   const handleAction = (key) => {
@@ -357,7 +490,8 @@ export default function StockOpnameDetail() {
     );
   }
 
-  const storeName = session.store?.name || "—";
+  // ✅ BUG 2: fallback chain for store name
+  const storeName = session.store?.name || session.store_name || session.store || "—";
   const createdByName = session.created_by_user?.name || session.created_by || "—";
 
   return (
@@ -375,21 +509,23 @@ export default function StockOpnameDetail() {
         <div className="flex items-center gap-2">
           {status === "draft" && (
             <button onClick={handleStartSession} disabled={submitting}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-accent to-accent-hover px-4 py-2 text-sm font-medium text-white shadow-sm hover:shadow-md transition-all disabled:opacity-60">
+              className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
+              style={{ background: "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))" }}>
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
               Start Session
             </button>
           )}
           {status === "in_progress" && (
             <button onClick={() => setCompleteModalOpen(true)} disabled={submitting}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:shadow-md transition-all disabled:opacity-60">
+              className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
+              style={{ background: "linear-gradient(to right, #10b981, #059669)" }}>
               <CheckCircle className="h-4 w-4" />
               Complete Session
             </button>
           )}
           <div className="relative">
             <button onClick={() => setShowActions((prev) => !prev)}
-              className="inline-flex items-center gap-2 rounded-xl border border-[#ececf2] dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60">
+              className="inline-flex items-center gap-2 rounded-2xl border border-[#ececf2] dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60">
               <MoreHorizontal className="h-4 w-4" />
               <ChevronDown className="h-4 w-4" />
             </button>
@@ -401,7 +537,7 @@ export default function StockOpnameDetail() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
-          HEADER SECTION
+          HEADER SECTION — improved info density
           ══════════════════════════════════════════════════════════════ */}
       <div className="bg-white dark:bg-gray-800 rounded-3xl border border-[#ececf2] dark:border-gray-700 p-6 shadow-sm">
         <div className="flex items-start justify-between">
@@ -421,6 +557,8 @@ export default function StockOpnameDetail() {
                 <span>{formatDateShort(session.created_at)}</span>
                 <span>•</span>
                 <span>by {createdByName}</span>
+                <span>•</span>
+                <span>{totalItems} Products</span>
               </div>
             </div>
           </div>
@@ -433,30 +571,43 @@ export default function StockOpnameDetail() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
-          LOCKED BANNER
+          LOCKED BANNER — completed/cancelled specific messages
           ══════════════════════════════════════════════════════════════ */}
       {isLocked && (
-        <div className={`rounded-2xl border px-5 py-3 flex items-center gap-3 ${
+        <div className={`rounded-2xl border px-5 py-3.5 flex items-center gap-3 ${
           status === "completed"
             ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/30 text-emerald-700 dark:text-emerald-300"
             : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-300"
         }`}>
-          {status === "completed" ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <XCircle className="h-5 w-5 shrink-0" />}
-          <p className="text-sm font-medium">
-            This session is {status === "completed" ? "completed" : "cancelled"} and cannot be modified.
-          </p>
+          {status === "completed" ? (
+            <>
+              <CheckCircle2 className="h-5 w-5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium">This stock opname has been completed.</p>
+                <p className="text-xs mt-0.5 opacity-80">Inventory has already been adjusted and this session is locked.</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <XCircle className="h-5 w-5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium">This stock opname has been cancelled.</p>
+                <p className="text-xs mt-0.5 opacity-80">No further modifications are allowed.</p>
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {/* ══════════════════════════════════════════════════════════════
-          KPI CARDS
+          KPI CARDS — replaced Excess → Remaining, reordered
           ══════════════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <KpiCard title="Products Total" value={totalItems} subtitle="items in session" icon={Package} color="text-purple-600 bg-purple-50 dark:bg-purple-900/30" />
-        <KpiCard title="Checked" value={checkedItems} subtitle={`${totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0}% completed`} icon={CheckCircle2} color="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30" />
+        <KpiCard title="Checked" value={checkedItems} subtitle={`${progressPct}% completed`} icon={CheckCircle2} color="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30" />
+        <KpiCard title="Remaining" value={remainingItems} subtitle="left to count" icon={Layers} color="text-blue-600 bg-blue-50 dark:bg-blue-900/30" />
         <KpiCard title="Differences" value={diffItems.length} subtitle="items with mismatches" icon={AlertTriangle} color="text-amber-600 bg-amber-50 dark:bg-amber-900/30" />
         <KpiCard title="Missing" value={missingItems} subtitle="overstated in system" icon={XCircle} color="text-red-600 bg-red-50 dark:bg-red-900/30" />
-        <KpiCard title="Excess" value={excessItems} subtitle="understated in system" icon={TrendingUp} color="text-blue-600 bg-blue-50 dark:bg-blue-900/30" />
         <KpiCard title="Estimated Adj. Value" value={formatRp(estimatedValue)} subtitle="total adjustment" icon={DollarSign} color="text-rose-600 bg-rose-50 dark:bg-rose-900/30" />
       </div>
 
@@ -493,14 +644,33 @@ export default function StockOpnameDetail() {
                   </div>
                 </div>
 
-                {/* COL 2: Progress Summary */}
+                {/* COL 2: Progress Summary — upgraded */}
                 <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-5">
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <BarChart3 className="h-4 w-4 text-accent" />
                     Progress Summary
                   </h3>
-                  <div className="space-y-4">
-                    <StockOpnameProgress checked={checkedItems} total={totalItems} />
+                  <div className="space-y-5">
+                    <div>
+                      <div className="flex items-end justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Progress</span>
+                        <span className="text-2xl font-bold text-accent">{progressPct}%</span>
+                      </div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                        <span className="text-lg font-bold text-gray-900 dark:text-white">{checkedItems}</span>
+                        {" / "}{totalItems} Products Checked
+                      </p>
+                      <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500 ease-out"
+                          style={{
+                            width: `${Math.min(progressPct, 100)}%`,
+                            // ✅ BUG 3: accent gradient always
+                            background: "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                          }}
+                        />
+                      </div>
+                    </div>
                     <div className="h-px bg-[#ececf2] dark:bg-gray-700" />
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-sm">
@@ -523,15 +693,61 @@ export default function StockOpnameDetail() {
                   </div>
                 </div>
               </div>
+
+              {/* Additional cards below main grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Difference Breakdown */}
+                <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-5">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <ListChecks className="h-4 w-4 text-accent" />
+                    Difference Breakdown
+                  </h3>
+                  <div className="space-y-1">
+                    <StatItem label="Matched Items" value={matchedItems} color="text-emerald-600 dark:text-emerald-400" />
+                    <StatItem label="Items With Difference" value={diffItems.length} color="text-amber-600 dark:text-amber-400" />
+                    <StatItem label="Missing Items" value={missingItems} color="text-red-600 dark:text-red-400" />
+                    <StatItem label="Excess Items" value={excessItems} color="text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-5">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-accent" />
+                    Recent Activity
+                  </h3>
+                  {activityEvents.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-6 text-center">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700/50">
+                        <Clock className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <p className="mt-2 text-xs text-gray-400">No activity recorded</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {activityEvents.map((evt) => (
+                        <TimelineItem
+                          key={evt.key}
+                          time={evt.time}
+                          title={evt.title}
+                          description={evt.description}
+                          icon={evt.icon}
+                          color={evt.color}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
           {/* ══════════════════════════════════════════════════════════
-              TAB: COUNTING
+              TAB: COUNTING — improved toolbar
               ══════════════════════════════════════════════════════════ */}
           {activeTab === "counting" && (
             <div className="space-y-4">
-              {/* Toolbar */}
+              {/* Toolbar — search left, actions right */}
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="relative flex-1 max-w-sm">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -543,24 +759,35 @@ export default function StockOpnameDetail() {
                     className="w-full rounded-xl border border-[#ececf2] dark:border-gray-600 pl-9 pr-3 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                   />
                 </div>
-                <button onClick={() => setBarcodeModalOpen(true)}
-                  className="flex items-center gap-2 rounded-xl border border-[#ececf2] dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all">
-                  <Barcode className="h-4 w-4" />
-                  Scan Barcode
-                </button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setBarcodeModalOpen(true)}
+                    className="flex items-center gap-2 rounded-xl border border-[#ececf2] dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all">
+                    <Barcode className="h-4 w-4" />
+                    Scan Barcode
+                  </button>
+                  <button
+                    className="flex items-center gap-2 rounded-xl border border-[#ececf2] dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all">
+                    <Filter className="h-4 w-4" />
+                    Filters
+                  </button>
+                </div>
               </div>
 
               {/* Counting Table */}
               {filteredItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50">
-                    <Package className="h-6 w-6 text-gray-400" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50">
+                    <Package className="h-7 w-7 text-gray-400" />
                   </div>
-                  <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    {items.length === 0 ? "No products to count" : "No matching products found"}
+                  <p className="mt-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    {items.length === 0
+                      ? "No products available for counting"
+                      : "No matching products found"}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {items.length === 0 ? "Start the session to populate products for counting" : "Try a different search term"}
+                  <p className="text-xs text-gray-400 mt-1 max-w-xs">
+                    {items.length === 0
+                      ? "Start the session to load products into this stock opname"
+                      : "Try a different search term or scan a barcode"}
                   </p>
                 </div>
               ) : (
@@ -646,7 +873,6 @@ export default function StockOpnameDetail() {
                         <p className="text-xs text-gray-400 mt-0.5">Paste barcode to find matching product</p>
                       </div>
                     </div>
-                    {/* TODO: integrate hardware barcode scanner */}
                     <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-2 italic">TODO: integrate hardware barcode scanner</p>
                     <input
                       type="text"
@@ -675,7 +901,7 @@ export default function StockOpnameDetail() {
           )}
 
           {/* ══════════════════════════════════════════════════════════
-              TAB: ACTIVITY LOGS
+              TAB: ACTIVITY LOGS — built from session data
               ══════════════════════════════════════════════════════════ */}
           {activeTab === "activity-logs" && (
             <div className="space-y-4">
@@ -688,29 +914,40 @@ export default function StockOpnameDetail() {
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Timeline of events for this session</p>
                 </div>
               </div>
-              <div className="overflow-x-auto rounded-2xl border border-[#ececf2] dark:border-gray-700">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/80">
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Timestamp</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Event</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td colSpan={4} className="px-4 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center">
-                          <ClipboardList className="h-8 w-8 text-gray-300 dark:text-gray-600 mb-2" />
-                          <p className="text-sm text-gray-500 dark:text-gray-400">No activity logs available</p>
-                          <p className="text-xs text-gray-400 mt-1">Activity tracking will be available soon</p>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {activityEvents.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50">
+                    <ClipboardList className="h-7 w-7 text-gray-400" />
+                  </div>
+                  <p className="mt-4 text-sm font-semibold text-gray-700 dark:text-gray-300">No activity recorded</p>
+                  <p className="text-xs text-gray-400 mt-1">Activity logs will appear here as users interact with this session</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-2xl border border-[#ececf2] dark:border-gray-700">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/80">
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Timestamp</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Event</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {activityEvents.map((evt) => (
+                        <tr key={evt.key} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                          <td className="px-4 py-3 text-[13px] text-gray-500 dark:text-gray-400">{evt.time}</td>
+                          <td className="px-4 py-3">
+                            <span className="text-[13px] font-medium text-gray-900 dark:text-white">{evt.title}</span>
+                          </td>
+                          <td className="px-4 py-3 text-[13px] text-gray-500 dark:text-gray-400">{evt.description}</td>
+                          <td className="px-4 py-3 text-[13px] text-gray-500 dark:text-gray-400">{createdByName}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -731,6 +968,42 @@ export default function StockOpnameDetail() {
           valueFormatted: formatRp(estimatedValue),
         }}
       />
+
+      {/* ═══ ISSUE 2: CONFIRMATION MODAL (replaces browser confirm) ═══ */}
+      {confirmModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-2xl border border-[#ececf2] dark:border-gray-700 mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-900/30">
+                <AlertTriangle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">{confirmModal.title}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{confirmModal.description}</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmModal({ open: false, title: "", description: "", action: null, buttonLabel: "Confirm" })}
+                className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const action = confirmModal.action;
+                  setConfirmModal({ open: false, title: "", description: "", action: null, buttonLabel: "Confirm" });
+                  if (action) await action();
+                }}
+                className="flex-1 rounded-2xl bg-gradient-to-r px-5 py-3.5 text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all cursor-pointer"
+                style={{ background: "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))" }}
+              >
+                {confirmModal.buttonLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
