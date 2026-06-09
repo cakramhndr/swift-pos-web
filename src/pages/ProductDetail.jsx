@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { updateProduct } from "@/api/products";
 import {
   Package,
   ArrowLeft,
@@ -356,10 +358,24 @@ function ActionsDropdown({ onClose, onAction }) {
 // ══════════════════════════════════════════════════════════════════════
 // THUMBNAIL STRIP (placeholder thumbnails)
 // ══════════════════════════════════════════════════════════════════════
-function ThumbnailStrip({ product, onSelect, activeIndex }) {
+function ThumbnailStrip({ product, onSelect, activeIndex, onUpload }) {
   const thumbs = [product.image, null, null]; // up to 3; nulls are placeholder
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (onUpload) onUpload(file);
+    // Reset so same file can be re-selected
+    e.target.value = "";
+  };
   return (
     <div className="flex gap-2 mt-3">
+      <input
+        id="gallery-image-input"
+        type="file"
+        accept="image/jpeg,image/jpg,image/png,image/webp"
+        className="hidden"
+        onChange={handleFileChange}
+      />
       {thumbs.map((src, i) => (
         <button
           key={i}
@@ -381,7 +397,14 @@ function ThumbnailStrip({ product, onSelect, activeIndex }) {
           )}
         </button>
       ))}
-      <button className="w-16 h-16 rounded-xl border-2 border-dashed border-[#ececf2] dark:border-gray-700 flex items-center justify-center text-gray-300 dark:text-gray-600 hover:border-gray-400 hover:text-gray-400 transition-all">
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          const input = document.getElementById("gallery-image-input");
+          if (input) input.click();
+        }}
+        className="w-16 h-16 rounded-xl border-2 border-dashed border-[#ececf2] dark:border-gray-700 flex items-center justify-center text-gray-300 dark:text-gray-600 hover:border-gray-400 hover:text-gray-400 transition-all"
+      >
         <PlusCircle className="h-5 w-5" />
       </button>
     </div>
@@ -405,11 +428,64 @@ export default function ProductDetail() {
     purchaseHistory,
     purchasesLoading,
     inventoryValueTrend,
+    refetchProduct,
   } = useProductDetail(id);
 
   const [activeTab, setActiveTab] = useState("overview");
   const [activeImage, setActiveImage] = useState(0);
   const [showActions, setShowActions] = useState(false);
+
+  // ── Gallery image upload handler ──────────────────────────────────
+  const handleGalleryUpload = async (file) => {
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only JPG, JPEG, PNG, and WEBP files are allowed");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("_method", "PUT");
+
+      // UpdateProductRequest requires: name (required), unit_price (required), unit_cost (required)
+      // Append current values from product to pass validation
+      if (product?.name !== undefined) {
+        formData.append("name", product.name);
+      }
+      if (product?.sku !== undefined) {
+        formData.append("sku", product.sku ?? "");
+      }
+      if (product?.unit_price !== undefined) {
+        formData.append("unit_price", String(product.unit_price));
+      }
+      if (product?.unit_cost !== undefined) {
+        formData.append("unit_cost", String(product.unit_cost));
+      }
+      if (product?.stock !== undefined) {
+        formData.append("stock", String(product.stock));
+      }
+      if (product?.min_stock !== undefined) {
+        formData.append("min_stock", String(product.min_stock));
+      }
+      if (product?.category?.id !== undefined) {
+        formData.append("category_id", String(product.category.id));
+      }
+      if (product?.category_id !== undefined) {
+        formData.append("category_id", String(product.category_id));
+      }
+
+      await updateProduct(id, formData);
+      toast.success("Image uploaded ✅");
+      // Refetch product data to show new image
+      refetchProduct();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Upload failed");
+    }
+  };
 
   // ── Derived values ─────────────────────────────────────────────────
   const hasVariants = product?.variants && product.variants.length > 0;
@@ -460,7 +536,11 @@ export default function ProductDetail() {
         navigate("/purchase-orders", {
           state: {
             openCreatePo: true,
-            prefillProduct: { id: product.id, name: product.name, unit_cost: unitCost },
+            prefillProduct: {
+              id: product.id,
+              name: product.name,
+              unit_cost: unitCost,
+            },
           },
         });
         break;
@@ -591,6 +671,7 @@ export default function ProductDetail() {
             product={product}
             activeIndex={activeImage}
             onSelect={setActiveImage}
+            onUpload={handleGalleryUpload}
           />
         </div>
 
@@ -909,9 +990,7 @@ export default function ProductDetail() {
               </div>
 
               {/* Row 3: Description */}
-              <div
-                className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-5"
-              >
+              <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-5">
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <Info className="h-4 w-4 text-accent" />
                   Description & Specifications

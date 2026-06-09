@@ -90,7 +90,7 @@ export default function useProductDetail(productId) {
         const res = await getTransactions({ per_page: 100 });
         if (cancelled) return;
         const body = res.data.data ?? res.data;
-        const transactions = Array.isArray(body) ? body : body.data ?? [];
+        const transactions = Array.isArray(body) ? body : (body.data ?? []);
         const items = [];
         transactions.forEach((tx) => {
           const txItems = tx.items ?? tx.transaction_items ?? [];
@@ -110,7 +110,7 @@ export default function useProductDetail(productId) {
                     "Walk-in",
                   qty: Number(item.quantity ?? item.qty ?? 0),
                   unit_price: Number(
-                    item.unit_price ?? item.price ?? item.unitPrice ?? 0
+                    item.unit_price ?? item.price ?? item.unitPrice ?? 0,
                   ),
                   revenue: Number(item.subtotal ?? item.total ?? 0),
                   profit:
@@ -137,7 +137,7 @@ export default function useProductDetail(productId) {
         });
         if (cancelled) return;
         const body = res.data.data ?? res.data;
-        const logs = Array.isArray(body) ? body : body.data ?? [];
+        const logs = Array.isArray(body) ? body : (body.data ?? []);
         if (!cancelled) setInventoryLogs(logs);
       } catch {
         if (!cancelled) setInventoryLogs([]);
@@ -151,7 +151,7 @@ export default function useProductDetail(productId) {
         const res = await getPurchaseOrders({ per_page: 50 });
         if (cancelled) return;
         const body = res.data.data ?? res.data;
-        const orders = Array.isArray(body) ? body : body.data ?? [];
+        const orders = Array.isArray(body) ? body : (body.data ?? []);
         const filtered = [];
         orders.forEach((po) => {
           const poItems = po.items ?? po.purchase_order_items ?? [];
@@ -164,12 +164,11 @@ export default function useProductDetail(productId) {
                   ...item,
                   po_number: po.po_number ?? po.poNumber ?? po.id,
                   po_date: po.order_date ?? po.date ?? po.created_at,
-                  supplier:
-                    po.supplier?.name || po.supplier_name || "—",
+                  supplier: po.supplier?.name || po.supplier_name || "—",
                   po_status: po.status ?? "unknown",
                   qty: Number(item.quantity ?? item.qty ?? 0),
                   unit_cost: Number(
-                    item.unit_cost ?? item.cost ?? item.unitCost ?? 0
+                    item.unit_cost ?? item.cost ?? item.unitCost ?? 0,
                   ),
                   subtotal: Number(item.subtotal ?? item.total ?? 0),
                 });
@@ -191,9 +190,16 @@ export default function useProductDetail(productId) {
     };
   }, [productId]);
 
-  const refetchProduct = useCallback(() => {
-    // Force re-fetch by toggling a key - handled by parent component
-  }, []);
+  const refetchProduct = useCallback(async () => {
+    if (!productId) return;
+    try {
+      const res = await getProductById(productId);
+      const body = res.data.data ?? res.data;
+      setProduct(body);
+    } catch {
+      // silently ignore
+    }
+  }, [productId]);
 
   return {
     product,

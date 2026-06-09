@@ -16,11 +16,28 @@ export function getProductById(id) {
 }
 
 export function createProduct(data) {
-  return client.post("/products", data);
+  // If data is FormData (contains file upload), send as multipart/form-data.
+  // Axios will auto-detect and set the correct Content-Type with boundary.
+  // For plain objects, send as JSON (existing behavior).
+  return client.post("/products", data, {
+    headers:
+      data instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" },
+  });
 }
 
 export function updateProduct(id, data) {
-  return client.put(`/products/${id}`, data);
+  // Support both JSON and FormData
+  return client.post(`/products/${id}`, data, {
+    headers:
+      data instanceof FormData
+        ? {
+            "Content-Type": "multipart/form-data",
+            "X-HTTP-Method-Override": "PUT",
+          }
+        : { "Content-Type": "application/json" },
+  });
 }
 
 export function deleteProduct(id) {
