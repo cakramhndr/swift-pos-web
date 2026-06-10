@@ -12,6 +12,7 @@ import {
   BarChart2,
   Users2,
   Settings,
+  Activity,
   Moon,
   Sun,
   ChevronDown,
@@ -38,7 +39,10 @@ const analyticsNav = [
   { to: "/analytics", icon: Users2, label: "CRM" },
 ];
 
-const systemNav = [{ to: "/settings", icon: Settings, label: "Settings" }];
+const systemNav = [
+  { to: "/settings", icon: Settings, label: "Settings" },
+  { to: "/activity-logs", icon: Activity, label: "Activity Logs" },
+];
 
 function NavGroup({ items, label }) {
   return (
@@ -121,10 +125,7 @@ export default function AppSidebar() {
             )}
           >
             <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-accent/10 border border-accent/30 shrink-0">
-              <Store
-                size={16}
-                className="text-accent dark:text-accent"
-              />
+              <Store size={16} className="text-accent dark:text-accent" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">

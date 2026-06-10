@@ -1,7 +1,8 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import AppSidebar from "./components/layout/AppSidebar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
+import Landing from "./pages/Landing";
 import useAppearance from "./hooks/useAppearance";
 
 import Dashboard from "./pages/Dashboard.jsx";
@@ -22,6 +23,7 @@ import PurchaseOrderDetail from "./pages/PurchaseOrderDetail";
 import SupplierDetail from "./pages/SupplierDetail";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import ActivityLogs from "./pages/ActivityLogs";
 
 import { Toaster } from "sonner";
 
@@ -31,7 +33,8 @@ export default function App() {
 
   return (
     <Routes>
-      {/* Public route */}
+      {/* Public routes */}
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
 
       {/* Protected routes (sidebar layout) */}
@@ -43,7 +46,8 @@ export default function App() {
               <AppSidebar />
               <main className="flex-1 ml-[260px] p-7 lg:p-10 max-w-[1600px]">
                 <Routes>
-                  <Route path="/" element={<Dashboard />} />
+                  <Route index element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/products" element={<Products />} />
                   {/* Specific product routes BEFORE /products/:id */}
                   <Route path="/products/:id/edit" element={<ProductEdit />} />
@@ -56,12 +60,22 @@ export default function App() {
                   <Route path="/suppliers" element={<Suppliers />} />
                   <Route path="/purchase-orders" element={<PurchaseOrders />} />
                   {/* Specific purchase-order routes BEFORE /purchase-orders/:id */}
-                  <Route path="/purchase-orders/:id/edit" element={<PurchaseOrderEdit />} />
-                  <Route path="/purchase-orders/:id" element={<PurchaseOrderDetail />} />
+                  <Route
+                    path="/purchase-orders/:id/edit"
+                    element={<PurchaseOrderEdit />}
+                  />
+                  <Route
+                    path="/purchase-orders/:id"
+                    element={<PurchaseOrderDetail />}
+                  />
                   <Route path="/suppliers/:id" element={<SupplierDetail />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/stock-opnames" element={<StockOpnames />} />
-                  <Route path="/stock-opnames/:id" element={<StockOpnameDetail />} />
+                  <Route
+                    path="/stock-opnames/:id"
+                    element={<StockOpnameDetail />}
+                  />
+                  <Route path="/activity-logs" element={<ActivityLogs />} />
                   <Route path="/settings" element={<Settings />} />
                 </Routes>
                 <Toaster richColors position="top-center" />
