@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import useTransaction from "@/hooks/useTransaction";
 import useProducts from "@/hooks/useProducts";
 import useCustomers from "@/hooks/useCustomers";
+import { createCustomer } from "@/api/customers";
 
 import {
   ShoppingCart,
@@ -50,10 +51,9 @@ export default function Transactions() {
     refetch: refetchProducts,
   } = useProducts({ perPage: 100 });
 
-  const {
-    data: customers,
-    refetch: refetchCustomers,
-  } = useCustomers({ perPage: 100 });
+  const { data: customers, refetch: refetchCustomers } = useCustomers({
+    perPage: 100,
+  });
 
   // ─── State ──────────────────────────────────────────────────────────────
   const [cart, setCart] = useState([]);
@@ -86,6 +86,7 @@ export default function Transactions() {
     phone: "",
   });
   const [selectedCustomerType, setSelectedCustomerType] = useState(null);
+  const [creatingCustomer, setCreatingCustomer] = useState(false);
 
   // ─── Load data on mount ────────────────────────────────────────────────
   useEffect(() => {
@@ -116,7 +117,16 @@ export default function Transactions() {
       }
       // Normalize unit_price (snake_case from API) to unitPrice (camelCase used by cart)
       const unitPrice = Number(product.unit_price ?? product.unitPrice ?? 0);
-      return [...prevCart, { ...product, unitPrice, stock: Number(product.stock), qty: 1 }];
+      return [
+        ...prevCart,
+        {
+          ...product,
+          cartId: String(product.id),
+          unitPrice,
+          stock: Number(product.stock),
+          qty: 1,
+        },
+      ];
     });
   };
 
@@ -140,7 +150,13 @@ export default function Transactions() {
           variantName: variant.name,
           sku: variant.sku || product.sku,
           unitPrice: Number(variant.unit_price ?? variant.unitPrice ?? 0),
-          unitCost: Number(variant.unit_cost ?? variant.unitCost ?? product.unit_cost ?? product.unitCost ?? 0),
+          unitCost: Number(
+            variant.unit_cost ??
+              variant.unitCost ??
+              product.unit_cost ??
+              product.unitCost ??
+              0,
+          ),
           stock: Number(variant.stock),
           qty: 1,
           image: product.image,
@@ -152,11 +168,17 @@ export default function Transactions() {
   };
 
   const increaseQty = (cartId) => {
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.cartId === cartId ? { ...item, qty: item.qty + 1 } : item,
-      ),
-    );
+    setCart((prevCart) => {
+      const item = prevCart.find((i) => i.cartId === cartId);
+      if (!item) return prevCart;
+      if (item.qty >= item.stock) {
+        toast.error(`Only ${item.stock} units available`);
+        return prevCart;
+      }
+      return prevCart.map((i) =>
+        i.cartId === cartId ? { ...i, qty: i.qty + 1 } : i,
+      );
+    });
   };
 
   const decreaseQty = (cartId) => {
@@ -198,7 +220,9 @@ export default function Transactions() {
       (customer.fullName || customer.name || "")
         .toLowerCase()
         .includes(customerSearch.toLowerCase()) ||
-      (customer.email || "").toLowerCase().includes(customerSearch.toLowerCase()),
+      (customer.email || "")
+        .toLowerCase()
+        .includes(customerSearch.toLowerCase()),
   );
 
   const handleProceedToCheckout = () => {
@@ -215,12 +239,43 @@ export default function Transactions() {
     setSelectedCustomerType("walkin");
   };
 
-  const handleCreateNewCustomer = () => {
+  const handleCreateNewCustomer = async () => {
     if (!newCustomerData.name.trim()) {
       toast.error("Please enter customer name");
       return;
     }
-    toast.info("Go to Customers page to add new customers");
+    setCreatingCustomer(true);
+    try {
+      const res = await createCustomer({
+        name: newCustomerData.name.trim(),
+        phone: newCustomerData.phone.trim(),
+      });
+      const newCust = res.data?.data ?? res.data;
+      const newCustomerId = newCust.id;
+      const newCustomerName =
+        newCust.name ?? newCust.fullName ?? newCustomerData.name.trim();
+
+      // Refetch customers from API
+      await refetchCustomers();
+
+      // Find and auto-select the newly created customer
+      const found = customers.find((c) => c.id === newCustomerId);
+      if (found) {
+        setSelectedCustomer(found);
+      } else {
+        // Fallback: construct a minimal customer object
+        setSelectedCustomer({ id: newCustomerId, name: newCustomerName });
+      }
+      setSelectedCustomerType("existing");
+      setShowNewCustomerForm(false);
+      setNewCustomerData({ name: "", phone: "" });
+      toast.success(`Customer "${newCustomerName}" created ✅`);
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to create customer";
+      toast.error(msg);
+    } finally {
+      setCreatingCustomer(false);
+    }
   };
 
   const handleContinueToPayment = () => {
@@ -296,6 +351,7 @@ export default function Transactions() {
 
       // Reset state
       setCart([]);
+      refetchProducts();
       setShowCheckout(false);
       setPaidAmount("");
       setSelectedCustomer(null);
@@ -408,7 +464,9 @@ export default function Transactions() {
                       Products
                     </h2>
                     <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
-                      {productsLoading ? "Loading..." : `${filteredProducts.length} available`}
+                      {productsLoading
+                        ? "Loading..."
+                        : `${filteredProducts.length} available`}
                     </p>
                   </div>
                 </div>
@@ -765,7 +823,10 @@ export default function Transactions() {
                       </div>
                       <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
                         <p className="font-bold text-accent dark:text-accent text-sm">
-                          Rp {(Number(variant.unit_price ?? variant.unitPrice) || 0).toLocaleString()}
+                          Rp{" "}
+                          {(
+                            Number(variant.unit_price ?? variant.unitPrice) || 0
+                          ).toLocaleString()}
                         </p>
                         <span
                           className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -897,7 +958,9 @@ export default function Transactions() {
                             setSelectedTransaction({
                               id: transaction.invoice_number ?? transaction.id,
                               date: transaction.created_at
-                                ? new Date(transaction.created_at).toLocaleDateString("id-ID", {
+                                ? new Date(
+                                    transaction.created_at,
+                                  ).toLocaleDateString("id-ID", {
                                     day: "2-digit",
                                     month: "short",
                                     year: "numeric",
@@ -905,7 +968,9 @@ export default function Transactions() {
                                     minute: "2-digit",
                                   })
                                 : "-",
-                              customerName: transaction.customer?.name || "Walk-in Customer",
+                              customerName:
+                                transaction.customer?.name ||
+                                "Walk-in Customer",
                               items: (transaction.items || []).map((item) => ({
                                 cartId: item.id,
                                 id: item.product_id,
@@ -925,7 +990,10 @@ export default function Transactions() {
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-purple-200 text-xs font-bold text-accent">
-                                #{String(transaction.invoice_number || transaction.id).slice(-3)}
+                                #
+                                {String(
+                                  transaction.invoice_number || transaction.id,
+                                ).slice(-3)}
                               </div>
                               <span className="font-semibold text-accent">
                                 #{transaction.invoice_number || transaction.id}
@@ -935,7 +1003,9 @@ export default function Transactions() {
                           <td className="px-6 py-4">
                             <p className="text-sm text-gray-700 dark:text-gray-200">
                               {transaction.created_at
-                                ? new Date(transaction.created_at).toLocaleDateString("id-ID", {
+                                ? new Date(
+                                    transaction.created_at,
+                                  ).toLocaleDateString("id-ID", {
                                     day: "2-digit",
                                     month: "short",
                                     year: "numeric",
@@ -947,22 +1017,25 @@ export default function Transactions() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-wrap items-center gap-1.5">
-                              {(transaction.items || []).slice(0, 2).map((item) => (
-                                <span
-                                  key={item.id}
-                                  className="inline-block rounded-lg bg-gray-500/10 dark:bg-gray-500/15 border border-gray-400/20 dark:border-gray-400/15 px-2.5 py-1 text-xs font-medium text-gray-500 dark:text-gray-400"
-                                >
-                                  {item.variant_name
-                                    ? `${item.product_name} (${item.variant_name})`
-                                    : item.product_name}{" "}
-                                  x{item.quantity}
-                                </span>
-                              ))}
-                              {transaction.items && transaction.items.length > 2 && (
-                                <span className="inline-block rounded-lg bg-accent-light px-2.5 py-1 text-xs font-medium text-accent">
-                                  +{transaction.items.length - 2} more
-                                </span>
-                              )}
+                              {(transaction.items || [])
+                                .slice(0, 2)
+                                .map((item) => (
+                                  <span
+                                    key={item.id}
+                                    className="inline-block rounded-lg bg-gray-500/10 dark:bg-gray-500/15 border border-gray-400/20 dark:border-gray-400/15 px-2.5 py-1 text-xs font-medium text-gray-500 dark:text-gray-400"
+                                  >
+                                    {item.variant_name
+                                      ? `${item.product_name} (${item.variant_name})`
+                                      : item.product_name}{" "}
+                                    x{item.quantity}
+                                  </span>
+                                ))}
+                              {transaction.items &&
+                                transaction.items.length > 2 && (
+                                  <span className="inline-block rounded-lg bg-accent-light px-2.5 py-1 text-xs font-medium text-accent">
+                                    +{transaction.items.length - 2} more
+                                  </span>
+                                )}
                             </div>
                           </td>
                           <td className="px-6 py-4 text-right">
@@ -986,8 +1059,7 @@ export default function Transactions() {
                 {meta.last_page > 1 && (
                   <div className="mt-5 flex items-center justify-between">
                     <p className="text-sm text-gray-400 dark:text-gray-400">
-                      Showing{" "}
-                      {(meta.current_page - 1) * meta.per_page + 1}–
+                      Showing {(meta.current_page - 1) * meta.per_page + 1}–
                       {Math.min(meta.current_page * meta.per_page, meta.total)}{" "}
                       of {meta.total}
                     </p>
@@ -1157,9 +1229,9 @@ export default function Transactions() {
                   </div>
                 </button>
 
-                {/* Add New Customer Button — now redirects to Customers page */}
+                {/* Add New Customer Button — opens inline form */}
                 <button
-                  onClick={() => toast.info("Go to Customers page to add new customers")}
+                  onClick={() => setShowNewCustomerForm(true)}
                   className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl border border-accent text-accent dark:text-accent font-medium text-sm transition-all hover:bg-accent-light dark:hover:bg-accent/30"
                 >
                   <Plus className="h-4 w-4" />
@@ -1213,19 +1285,20 @@ export default function Transactions() {
                       setShowNewCustomerForm(false);
                       setNewCustomerData({ name: "", phone: "" });
                     }}
-                    className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3.5 font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all duration-200"
+                    className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleCreateNewCustomer}
-                    className="flex-1 rounded-2xl bg-gradient-to-r py-3.5 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                    disabled={creatingCustomer}
+                    className="flex-1 rounded-2xl bg-gradient-to-r py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60"
                     style={{
                       background:
                         "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
                     }}
                   >
-                    Create Customer
+                    {creatingCustomer ? "Saving..." : "Create & Select"}
                   </button>
                 </div>
               </>
@@ -1297,7 +1370,9 @@ export default function Transactions() {
                   }}
                 >
                   {selectedCustomer ? (
-                    getInitials(selectedCustomer.fullName || selectedCustomer.name)
+                    getInitials(
+                      selectedCustomer.fullName || selectedCustomer.name,
+                    )
                   ) : (
                     <User className="h-5 w-5" />
                   )}
@@ -1575,7 +1650,8 @@ export default function Transactions() {
                       Paid Amount
                     </p>
                     <p className="font-semibold text-gray-900 dark:text-white">
-                      Rp {Number(selectedTransaction.paidAmount).toLocaleString()}
+                      Rp{" "}
+                      {Number(selectedTransaction.paidAmount).toLocaleString()}
                     </p>
                   </div>
                   <div className="flex items-center justify-between bg-green-50 rounded-xl px-3 py-2">

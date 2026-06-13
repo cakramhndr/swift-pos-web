@@ -6,6 +6,7 @@ import {
   Package,
   Users,
   Warehouse,
+  Grid3X3,
   ClipboardList,
   ClipboardCheck,
   Building2,
@@ -23,8 +24,9 @@ import useDarkMode from "@/hooks/useDarkMode";
 import { cn } from "@/lib/utils";
 
 const mainNav = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/products", icon: Package, label: "Products" },
+  { to: "/categories", icon: Grid3X3, label: "Categories" },
   { to: "/transactions", icon: ShoppingCart, label: "Transactions" },
   { to: "/customers", icon: Users, label: "Customers" },
   { to: "/inventory", icon: Warehouse, label: "Inventory" },

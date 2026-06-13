@@ -27,8 +27,10 @@ import {
   Hash,
   Printer,
   ChevronDown,
-  Image,
+  Upload,
+  Download,
 } from "lucide-react";
+import client from "@/api/client";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -42,7 +44,6 @@ import KpiCard from "@/components/product-detail/KpiCard";
 import TabNavigation from "@/components/product-detail/TabNavigation";
 import useProductDetail from "@/hooks/useProductDetail";
 
-// ── Constants ──────────────────────────────────────────────────────────
 const TABS = [
   { key: "overview", label: "Overview", icon: BarChart3 },
   { key: "stock-history", label: "Stock History", icon: Activity },
@@ -75,9 +76,6 @@ const formatNumber = (num) => {
   return Number(num).toLocaleString("id-ID");
 };
 
-// ══════════════════════════════════════════════════════════════════════
-// STATUS BADGE
-// ══════════════════════════════════════════════════════════════════════
 function StatusBadge({ stock, minStock }) {
   const s = Number(stock ?? 0);
   const m = Number(minStock ?? 5);
@@ -108,9 +106,6 @@ function StatusBadge({ stock, minStock }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
-// INVENTORY VALUE CHART
-// ══════════════════════════════════════════════════════════════════════
 function InventoryValueChart({ data }) {
   if (!data || data.length < 2) {
     return (
@@ -165,9 +160,6 @@ function InventoryValueChart({ data }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
-// INFO ROW (Key-Value pair for metadata sections)
-// ══════════════════════════════════════════════════════════════════════
 function InfoRow({ label, value, icon: Icon }) {
   return (
     <div className="flex items-center justify-between py-2.5 border-b border-[#ececf2] dark:border-gray-700 last:border-0">
@@ -182,9 +174,6 @@ function InfoRow({ label, value, icon: Icon }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
-// TABLE COMPONENT
-// ══════════════════════════════════════════════════════════════════════
 function DataTable({ columns, data, emptyMessage = "No data available" }) {
   if (!data || data.length === 0) {
     return (
@@ -243,9 +232,6 @@ function DataTable({ columns, data, emptyMessage = "No data available" }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
-// LOG TYPE BADGE
-// ══════════════════════════════════════════════════════════════════════
 function LogTypeBadge({ type }) {
   const t = (type ?? "").toLowerCase();
   let label = type;
@@ -272,9 +258,6 @@ function LogTypeBadge({ type }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
-// PO STATUS BADGE
-// ══════════════════════════════════════════════════════════════════════
 function PoStatusBadge({ status }) {
   const s = (status ?? "").toLowerCase();
   let cls = "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300";
@@ -297,9 +280,6 @@ function PoStatusBadge({ status }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
-// ACTIONS DROPDOWN
-// ══════════════════════════════════════════════════════════════════════
 function ActionsDropdown({ onClose, onAction }) {
   const ref = useRef(null);
 
@@ -355,65 +335,6 @@ function ActionsDropdown({ onClose, onAction }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
-// THUMBNAIL STRIP (placeholder thumbnails)
-// ══════════════════════════════════════════════════════════════════════
-function ThumbnailStrip({ product, onSelect, activeIndex, onUpload }) {
-  const thumbs = [product.image, null, null]; // up to 3; nulls are placeholder
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (onUpload) onUpload(file);
-    // Reset so same file can be re-selected
-    e.target.value = "";
-  };
-  return (
-    <div className="flex gap-2 mt-3">
-      <input
-        id="gallery-image-input"
-        type="file"
-        accept="image/jpeg,image/jpg,image/png,image/webp"
-        className="hidden"
-        onChange={handleFileChange}
-      />
-      {thumbs.map((src, i) => (
-        <button
-          key={i}
-          onClick={() => onSelect(i)}
-          className={`w-16 h-16 rounded-xl border-2 flex items-center justify-center overflow-hidden transition-all ${
-            activeIndex === i
-              ? "border-accent ring-1 ring-accent"
-              : "border-[#ececf2] dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-          }`}
-        >
-          {src ? (
-            <img
-              src={src}
-              alt=""
-              className="h-full w-full object-contain p-1"
-            />
-          ) : (
-            <Image className="h-5 w-5 text-gray-300 dark:text-gray-600" />
-          )}
-        </button>
-      ))}
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          const input = document.getElementById("gallery-image-input");
-          if (input) input.click();
-        }}
-        className="w-16 h-16 rounded-xl border-2 border-dashed border-[#ececf2] dark:border-gray-700 flex items-center justify-center text-gray-300 dark:text-gray-600 hover:border-gray-400 hover:text-gray-400 transition-all"
-      >
-        <PlusCircle className="h-5 w-5" />
-      </button>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════════
-// MAIN PAGE: ProductDetailV2
-// ══════════════════════════════════════════════════════════════════════
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -432,11 +353,11 @@ export default function ProductDetail() {
   } = useProductDetail(id);
 
   const [activeTab, setActiveTab] = useState("overview");
-  const [activeImage, setActiveImage] = useState(0);
   const [showActions, setShowActions] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  // ── Gallery image upload handler ──────────────────────────────────
-  const handleGalleryUpload = async (file) => {
+  // ── Image upload handler (single image, replaces existing) ────────
+  const handleImageUpload = async (file) => {
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       toast.error("Only JPG, JPEG, PNG, and WEBP files are allowed");
@@ -446,13 +367,12 @@ export default function ProductDetail() {
       toast.error("Image must be less than 5MB");
       return;
     }
+    setUploading(true);
     try {
       const formData = new FormData();
       formData.append("image", file);
       formData.append("_method", "PUT");
 
-      // UpdateProductRequest requires: name (required), unit_price (required), unit_cost (required)
-      // Append current values from product to pass validation
       if (product?.name !== undefined) {
         formData.append("name", product.name);
       }
@@ -479,11 +399,12 @@ export default function ProductDetail() {
       }
 
       await updateProduct(id, formData);
-      toast.success("Image uploaded ✅");
-      // Refetch product data to show new image
+      toast.success("Image updated ✅");
       refetchProduct();
     } catch (err) {
       toast.error(err?.response?.data?.message || "Upload failed");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -512,7 +433,6 @@ export default function ProductDetail() {
       unitCost > 0 ? ((unitPrice - unitCost) / unitCost) * 100 : 0;
   }
 
-  // KPI calculations
   const inventoryValue = stock * unitCost;
   const totalSold = salesHistory.reduce((sum, s) => sum + (s.qty ?? 0), 0);
   const totalRevenue = salesHistory.reduce(
@@ -522,7 +442,6 @@ export default function ProductDetail() {
   const totalProfit = salesHistory.reduce((sum, s) => sum + (s.profit ?? 0), 0);
   const avgSellingPrice = totalSold > 0 ? totalRevenue / totalSold : 0;
 
-  // ── Actions handler ────────────────────────────────────────────────
   const handleAction = (key) => {
     switch (key) {
       case "edit":
@@ -532,7 +451,6 @@ export default function ProductDetail() {
         navigate("/inventory");
         break;
       case "po":
-        // Navigate to purchase orders page with prefill state
         navigate("/purchase-orders", {
           state: {
             openCreatePo: true,
@@ -555,7 +473,6 @@ export default function ProductDetail() {
     }
   };
 
-  // ── Loading state ─────────────────────────────────────────────────
   if (loading && !product) {
     return (
       <div className="space-y-6">
@@ -577,7 +494,6 @@ export default function ProductDetail() {
     );
   }
 
-  // ── Error / Not found ─────────────────────────────────────────────
   if (error || !product) {
     return (
       <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm dark:bg-gray-800 dark:shadow-none">
@@ -600,7 +516,6 @@ export default function ProductDetail() {
     );
   }
 
-  // ── Helper to get category/brand/supplier names ────────────────────
   const categoryName =
     product.category?.name || product.category_name || product.category || "—";
   const brandName =
@@ -611,9 +526,7 @@ export default function ProductDetail() {
 
   return (
     <div className="space-y-6">
-      {/* ══════════════════════════════════════════════════════════════
-          TOP BAR — Back button (left) + Print & Actions (right)
-          ══════════════════════════════════════════════════════════════ */}
+      {/* TOP BAR */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate("/products")}
@@ -624,13 +537,41 @@ export default function ProductDetail() {
         </button>
 
         <div className="flex items-center gap-2">
-          {/* Print button */}
+          {product.barcode && (
+            <button
+              onClick={async () => {
+                try {
+                  const res = await client.get(
+                    `/products/${product.id}/barcode`,
+                    { responseType: "blob" },
+                  );
+                  const url = window.URL.createObjectURL(new Blob([res.data]));
+                  const link = document.createElement("a");
+                  link.href = url;
+                  link.setAttribute(
+                    "download",
+                    `barcode-${product.barcode}.png`,
+                  );
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+                  window.URL.revokeObjectURL(url);
+                  toast.success("Barcode downloaded");
+                } catch {
+                  toast.error("Failed to download barcode");
+                }
+              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-[#ececf2] dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:shadow-sm"
+            >
+              <Download className="h-4 w-4" />
+              Barcode
+            </button>
+          )}
           <button className="inline-flex items-center gap-2 rounded-xl border border-[#ececf2] dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:shadow-sm">
             <Printer className="h-4 w-4" />
             Print
           </button>
 
-          {/* Actions dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowActions((prev) => !prev)}
@@ -649,11 +590,9 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════
-          HEADER SECTION — 3 columns: Image | Info | Metadata
-          ══════════════════════════════════════════════════════════════ */}
+      {/* HEADER SECTION */}
       <div className="flex gap-8 items-start">
-        {/* ── Col 1: Image Gallery ── */}
+        {/* Col 1: Single Product Image */}
         <div className="shrink-0 w-[280px]">
           <div className="aspect-square rounded-2xl bg-gradient-to-br from-violet-50 dark:from-violet-900/30 to-purple-50 dark:to-purple-900/30 flex items-center justify-center overflow-hidden border border-[#ececf2] dark:border-gray-700">
             {product.image ? (
@@ -663,21 +602,49 @@ export default function ProductDetail() {
                 className="h-full w-full object-contain p-4"
               />
             ) : (
-              <Package className="h-24 w-24 text-accent/60" />
+              <div className="flex flex-col items-center gap-2 text-gray-400 dark:text-gray-500">
+                <Upload className="h-10 w-10" />
+                <span className="text-xs font-medium">No Image</span>
+              </div>
             )}
           </div>
-          {/* Thumbnail strip */}
-          <ThumbnailStrip
-            product={product}
-            activeIndex={activeImage}
-            onSelect={setActiveImage}
-            onUpload={handleGalleryUpload}
+
+          {/* Image upload controls */}
+          <input
+            id="product-image-input"
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleImageUpload(file);
+              e.target.value = "";
+            }}
           />
+          <div className="mt-3 space-y-2">
+            <button
+              onClick={() => {
+                const input = document.getElementById("product-image-input");
+                if (input) input.click();
+              }}
+              disabled={uploading}
+              className="w-full flex items-center justify-center gap-2 rounded-xl border border-accent bg-gradient-to-r from-violet-50 dark:from-violet-900/20 to-purple-50 dark:to-purple-900/20 px-4 py-2.5 text-sm font-medium text-accent transition-all hover:bg-accent-light dark:hover:bg-accent/30 disabled:opacity-60"
+            >
+              <Upload className="h-4 w-4" />
+              {uploading
+                ? "Uploading..."
+                : product.image
+                  ? "Change Image"
+                  : "Upload Image"}
+            </button>
+            <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center">
+              Uploading a new image will replace the current image.
+            </p>
+          </div>
         </div>
 
-        {/* ── Col 2: Product Info ── */}
+        {/* Col 2: Product Info */}
         <div className="flex-1 space-y-5">
-          {/* Name & Badges */}
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {product.name}
@@ -695,7 +662,6 @@ export default function ProductDetail() {
 
           <div className="h-px bg-[#ececf2] dark:bg-gray-700" />
 
-          {/* Pricing Summary — 4 columns */}
           {!hasVariants && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
               <div className="space-y-1">
@@ -734,7 +700,7 @@ export default function ProductDetail() {
           )}
         </div>
 
-        {/* ── Col 3: Metadata ── */}
+        {/* Col 3: Metadata */}
         <div className="shrink-0 w-[220px] space-y-2.5">
           <div className="flex justify-between text-sm">
             <span className="text-gray-500 dark:text-gray-400">SKU</span>
@@ -769,9 +735,7 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════
-          KPI CARDS
-          ══════════════════════════════════════════════════════════════ */}
+      {/* KPI CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <KpiCard
           title="Current Stock"
@@ -810,9 +774,7 @@ export default function ProductDetail() {
         />
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════
-          TAB NAVIGATION
-          ══════════════════════════════════════════════════════════════ */}
+      {/* TAB NAVIGATION */}
       <div className="rounded-3xl bg-white dark:bg-gray-800 border border-[#ececf2] dark:border-gray-700 shadow-sm overflow-hidden">
         <div className="px-6 pt-4">
           <TabNavigation
@@ -823,14 +785,9 @@ export default function ProductDetail() {
         </div>
 
         <div className="p-6">
-          {/* ══════════════════════════════════════════════════════════
-              TAB: OVERVIEW
-              ══════════════════════════════════════════════════════════ */}
           {activeTab === "overview" && (
             <div className="space-y-6">
-              {/* Row 1 — 3 columns */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* COL 1: Stock Information */}
                 <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-5">
                   <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                     <Box className="h-4 w-4 text-accent" />
@@ -870,7 +827,6 @@ export default function ProductDetail() {
                   </div>
                 </div>
 
-                {/* COL 2: Cost & Pricing */}
                 {!hasVariants && (
                   <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-5">
                     <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
@@ -907,7 +863,6 @@ export default function ProductDetail() {
                   </div>
                 )}
 
-                {/* COL 3: Inventory Value Trend */}
                 <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-5">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -930,9 +885,7 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Row 2 — Sales Performance (span 2 cols) + optional notes */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* COL 1-2: Sales Performance */}
                 <div className="lg:col-span-2 rounded-2xl border border-[#ececf2] dark:border-gray-700 p-5">
                   <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-accent" />
@@ -971,7 +924,6 @@ export default function ProductDetail() {
                   </div>
                 </div>
 
-                {/* COL 3: Notes */}
                 <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-5">
                   <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                     <Info className="h-4 w-4 text-accent" />
@@ -989,7 +941,6 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Row 3: Description */}
               <div className="rounded-2xl border border-[#ececf2] dark:border-gray-700 p-5">
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <Info className="h-4 w-4 text-accent" />
@@ -1025,9 +976,6 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* ══════════════════════════════════════════════════════════
-              TAB: STOCK HISTORY
-              ══════════════════════════════════════════════════════════ */}
           {activeTab === "stock-history" && (
             <div>
               <div className="flex items-center gap-3 mb-6">
@@ -1091,9 +1039,6 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* ══════════════════════════════════════════════════════════
-              TAB: SALES HISTORY
-              ══════════════════════════════════════════════════════════ */}
           {activeTab === "sales-history" && (
             <div>
               <div className="flex items-center gap-3 mb-6">
@@ -1164,9 +1109,6 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* ══════════════════════════════════════════════════════════
-              TAB: PURCHASE HISTORY
-              ══════════════════════════════════════════════════════════ */}
           {activeTab === "purchase-history" && (
             <div>
               <div className="flex items-center gap-3 mb-6">
@@ -1236,9 +1178,6 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* ══════════════════════════════════════════════════════════
-              TAB: INVENTORY LOGS
-              ══════════════════════════════════════════════════════════ */}
           {activeTab === "inventory-logs" && (
             <div>
               <div className="flex items-center gap-3 mb-6">
@@ -1307,9 +1246,6 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* ══════════════════════════════════════════════════════════
-              TAB: VARIANTS
-              ══════════════════════════════════════════════════════════ */}
           {activeTab === "variants" && (
             <div>
               <div className="flex items-center gap-3 mb-6">

@@ -29,15 +29,13 @@ export function createProduct(data) {
 
 export function updateProduct(id, data) {
   // Support both JSON and FormData
-  return client.post(`/products/${id}`, data, {
-    headers:
-      data instanceof FormData
-        ? {
-            "Content-Type": "multipart/form-data",
-            "X-HTTP-Method-Override": "PUT",
-          }
-        : { "Content-Type": "application/json" },
-  });
+  if (data instanceof FormData) {
+    data.append("_method", "PUT");
+    return client.post(`/products/${id}`, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  }
+  return client.put(`/products/${id}`, data);
 }
 
 export function deleteProduct(id) {

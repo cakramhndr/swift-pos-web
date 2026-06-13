@@ -21,6 +21,7 @@ import StockOpnameDetail from "./pages/StockOpnameDetail";
 import PurchaseOrderEdit from "./pages/PurchaseOrderEdit";
 import PurchaseOrderDetail from "./pages/PurchaseOrderDetail";
 import SupplierDetail from "./pages/SupplierDetail";
+import Categories from "./pages/Categories";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import ActivityLogs from "./pages/ActivityLogs";
@@ -68,6 +69,7 @@ export default function App() {
                     path="/purchase-orders/:id"
                     element={<PurchaseOrderDetail />}
                   />
+                  <Route path="/categories" element={<Categories />} />
                   <Route path="/suppliers/:id" element={<SupplierDetail />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/stock-opnames" element={<StockOpnames />} />

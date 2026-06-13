@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import useProducts from "@/hooks/useProducts";
+import { getCategories, createCategory } from "@/api/categories";
 
 import {
   Dialog,
@@ -18,7 +19,6 @@ import {
   Trash2,
   Package,
   AlertTriangle,
-  Settings2,
   Upload,
   X,
   FileDown,
@@ -32,30 +32,6 @@ import {
 } from "lucide-react";
 import { exportProductsPDF } from "@/lib/exportUtils";
 
-const DEFAULT_CATEGORIES = [
-  "Headset",
-  "Mouse",
-  "Keyboard",
-  "Gamepad",
-  "Microphone",
-  "Monitor",
-  "Other",
-];
-
-// ─── Category color mapping ──────────────────────────────────────────
-const CATEGORY_COLORS = {
-  "Gaming Gear":
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-  Headset: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300",
-  Mouse: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  Keyboard:
-    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
-  Monitor:
-    "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
-  Storage: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300",
-  default: "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300",
-};
-
 const CATEGORY_AVATAR_COLORS = {
   "Gaming Gear":
     "from-purple-100 to-purple-200 border-purple-200 text-purple-500",
@@ -67,9 +43,6 @@ const CATEGORY_AVATAR_COLORS = {
   default: "from-purple-100 to-purple-200 border-purple-200 text-purple-400",
 };
 
-function getCategoryColor(catName) {
-  return CATEGORY_COLORS[catName] || CATEGORY_COLORS.default;
-}
 function getCategoryAvatar(catName) {
   return CATEGORY_AVATAR_COLORS[catName] || CATEGORY_AVATAR_COLORS.default;
 }
@@ -217,16 +190,15 @@ export default function Products() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [manageCatOpen, setManageCatOpen] = useState(false);
-  const [categories, setCategories] = useState(() => {
-    try {
-      const s = localStorage.getItem("swiftpos_categories");
-      return s ? JSON.parse(s) : [...DEFAULT_CATEGORIES];
-    } catch {
-      return [...DEFAULT_CATEGORIES];
-    }
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickAddForm, setQuickAddForm] = useState({
+    name: "",
+    description: "",
   });
-  const [newCategoryName, setNewCategoryName] = useState("");
+  const [quickAddTarget, setQuickAddTarget] = useState(null); // "new" or editingProduct?.id
+  const [quickAddSubmitting, setQuickAddSubmitting] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -235,6 +207,73 @@ export default function Products() {
   const [addVariants, setAddVariants] = useState([]);
   const [editVariants, setEditVariants] = useState([]);
   const [manualSkuIds, setManualSkuIds] = useState(() => new Set());
+
+  // ── Quick Add Category ───────────────────────────────────────────────
+  const handleQuickAddCategory = async () => {
+    if (!quickAddForm.name.trim()) {
+      toast.error("Category name is required");
+      return;
+    }
+    setQuickAddSubmitting(true);
+    try {
+      const res = await createCategory({
+        name: quickAddForm.name.trim(),
+        description: quickAddForm.description.trim(),
+      });
+      const newCat = res.data?.data ?? res.data;
+      const newCatName = newCat.name ?? quickAddForm.name.trim();
+
+      // Refetch categories from API
+      const catRes = await getCategories({ per_page: 100 });
+      const body = catRes.data.data ?? catRes.data;
+      const list = Array.isArray(body) ? body : (body.data ?? []);
+      setCategories(list);
+
+      // Auto-select the newly created category
+      if (quickAddTarget === "new") {
+        setNewProduct((prev) => ({ ...prev, category: newCatName }));
+      } else if (quickAddTarget && editingProduct) {
+        setEditingProduct((prev) => ({ ...prev, category: newCatName }));
+      }
+
+      setQuickAddOpen(false);
+      setQuickAddForm({ name: "", description: "" });
+      setQuickAddTarget(null);
+      toast.success(`Category "${newCatName}" created ✅`);
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to create category";
+      toast.error(msg);
+    } finally {
+      setQuickAddSubmitting(false);
+    }
+  };
+
+  const openQuickAdd = (target) => {
+    setQuickAddForm({ name: "", description: "" });
+    setQuickAddTarget(target);
+    setQuickAddOpen(true);
+  };
+
+  // ── Fetch categories from API ────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    getCategories({ per_page: 100 })
+      .then((res) => {
+        if (cancelled) return;
+        const body = res.data.data ?? res.data;
+        const list = Array.isArray(body) ? body : (body.data ?? []);
+        setCategories(list);
+      })
+      .catch(() => {
+        if (!cancelled) setCategories([]);
+      })
+      .finally(() => {
+        if (!cancelled) setCategoriesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const summaryStats = useMemo(
     () => ({
@@ -250,6 +289,12 @@ export default function Products() {
       ).size,
     }),
     [products],
+  );
+
+  // ── Category name list for dropdowns ──────────────────────────────────
+  const categoryNames = useMemo(
+    () => categories.map((c) => c.name),
+    [categories],
   );
 
   const filteredProducts = useMemo(() => {
@@ -284,9 +329,6 @@ export default function Products() {
   const totalFiltered = filteredProducts.length;
   const totalPages = Math.ceil(totalFiltered / perPage) || 1;
 
-  useEffect(() => {
-    localStorage.setItem("swiftpos_categories", JSON.stringify(categories));
-  }, [categories]);
   useEffect(() => {
     refetch({ page, category: categoryFilter });
   }, [page, categoryFilter, refetch]);
@@ -401,13 +443,11 @@ export default function Products() {
 
   // ── Image selection handler ──────────────────────────────────────────
   const handleImageSelect = (file) => {
-    // Validate file type
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       toast.error("Only JPG, JPEG, PNG, and WEBP files are allowed");
       return;
     }
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Image must be less than 5MB");
       return;
@@ -428,8 +468,6 @@ export default function Products() {
     }
     setSubmitting(true);
     try {
-      // If an image is selected, build FormData for multipart upload
-      // Otherwise send plain JSON (backward compatible)
       let payload;
       if (productImage) {
         const formData = new FormData();
@@ -563,29 +601,6 @@ export default function Products() {
     if (s > 0) toast.success(`${s} product${s > 1 ? "s" : ""} deleted 🗑️`);
     if (f > 0) toast.error(`${f} product${f > 1 ? "s" : ""} failed`);
     refetch();
-  };
-  const handleAddCategory = () => {
-    const t = newCategoryName.trim();
-    if (!t) {
-      toast.error("Enter category name");
-      return;
-    }
-    if (categories.includes(t)) {
-      toast.error("Category exists");
-      return;
-    }
-    setCategories([...categories, t]);
-    setNewCategoryName("");
-    toast.success(`"${t}" added ✅`);
-  };
-  const handleDeleteCategory = (cat) => {
-    const usedBy = products.find((p) => getCategoryName(p) === cat);
-    if (usedBy) {
-      toast.error(`Cannot delete "${cat}" – used by "${usedBy.name}"`);
-      return;
-    }
-    setCategories(categories.filter((c) => c !== cat));
-    toast.success(`"${cat}" deleted 🗑️`);
   };
   const handleCSVFile = (e) => {
     const file = e.target.files?.[0];
@@ -850,7 +865,7 @@ export default function Products() {
                   </DialogTitle>
                 </DialogHeader>
                 <div className="px-6 pb-6 pt-4 space-y-4">
-                  {/* ── PRODUCT IMAGE UPLOAD ── */}
+                  {/* PRODUCT IMAGE UPLOAD */}
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 block">
                       PRODUCT IMAGE
@@ -990,23 +1005,40 @@ export default function Products() {
                       <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
                         Category
                       </label>
-                      <select
-                        value={newProduct.category}
-                        onChange={(e) =>
-                          setNewProduct({
-                            ...newProduct,
-                            category: e.target.value,
-                          })
-                        }
-                        className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer"
-                      >
-                        <option value="">Select category</option>
-                        {categories.map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="flex gap-2">
+                        <select
+                          value={newProduct.category}
+                          onChange={(e) =>
+                            setNewProduct({
+                              ...newProduct,
+                              category: e.target.value,
+                            })
+                          }
+                          className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer"
+                        >
+                          <option value="">Select category</option>
+                          {categoriesLoading ? (
+                            <option disabled>Loading categories...</option>
+                          ) : (
+                            categoryNames.map((name) => (
+                              <option key={name} value={name}>
+                                {name}
+                              </option>
+                            ))
+                          )}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => openQuickAdd("new")}
+                          className="shrink-0 flex items-center justify-center w-11 rounded-2xl bg-gradient-to-r text-white shadow-sm hover:shadow-md transition-all"
+                          style={{
+                            background:
+                              "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                          }}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <div>
@@ -1264,8 +1296,8 @@ export default function Products() {
                 className="appearance-none rounded-2xl border border-[#ececf2] dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 pr-10 text-sm font-medium text-gray-700 dark:text-white outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer"
               >
                 <option>All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat}>{cat}</option>
+                {categoryNames.map((name) => (
+                  <option key={name}>{name}</option>
                 ))}
               </select>
               <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-accent text-[10px] font-bold">
@@ -1321,6 +1353,14 @@ export default function Products() {
               <Package className="h-4 w-4" /> {totalFiltered} product
               {totalFiltered !== 1 ? "s" : ""}
             </span>
+          </div>
+          <div className="flex items-center gap-3 mt-4">
+            <button
+              onClick={() => navigate("/categories")}
+              className="flex items-center gap-1.5 rounded-xl border border-accent bg-gradient-to-r from-violet-50 dark:from-violet-900/20 to-purple-50 dark:to-purple-900/20 px-3.5 py-2 text-sm font-medium text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30"
+            >
+              <Grid3X3 className="h-3.5 w-3.5" /> Manage Categories
+            </button>
           </div>
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-3 px-4 py-2 bg-accent-light border border-accent rounded-lg dark:bg-accent/20 dark:border-accent/30 mb-3 mt-4">
@@ -1612,22 +1652,45 @@ export default function Products() {
                                             <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
                                               Category
                                             </label>
-                                            <select
-                                              value={editingProduct.category}
-                                              onChange={(e) =>
-                                                setEditingProduct({
-                                                  ...editingProduct,
-                                                  category: e.target.value,
-                                                })
-                                              }
-                                              className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer"
-                                            >
-                                              {categories.map((cat) => (
-                                                <option key={cat} value={cat}>
-                                                  {cat}
+                                            <div className="flex gap-2">
+                                              <select
+                                                value={editingProduct.category}
+                                                onChange={(e) =>
+                                                  setEditingProduct({
+                                                    ...editingProduct,
+                                                    category: e.target.value,
+                                                  })
+                                                }
+                                                className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer"
+                                              >
+                                                <option value="">
+                                                  Select category
                                                 </option>
-                                              ))}
-                                            </select>
+                                                {categoryNames.map((name) => (
+                                                  <option
+                                                    key={name}
+                                                    value={name}
+                                                  >
+                                                    {name}
+                                                  </option>
+                                                ))}
+                                              </select>
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  openQuickAdd(
+                                                    editingProduct?.id,
+                                                  )
+                                                }
+                                                className="shrink-0 flex items-center justify-center w-11 rounded-2xl bg-gradient-to-r text-white shadow-sm hover:shadow-md transition-all"
+                                                style={{
+                                                  background:
+                                                    "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                                                }}
+                                              >
+                                                <Plus className="h-4 w-4" />
+                                              </button>
+                                            </div>
                                           </div>
                                         </div>
                                         <div>
@@ -1960,6 +2023,112 @@ export default function Products() {
         </div>
       )}
 
+      {/* ── Quick Add Category Modal ───────────────────────────────── */}
+      {quickAddOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl">
+            <div
+              className="h-1 bg-gradient-to-r rounded-t-3xl -mt-6 -mx-6 mb-6"
+              style={{
+                background:
+                  "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
+              }}
+            />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+                  }}
+                >
+                  <Grid3X3 className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Add Category
+                  </h2>
+                  <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">
+                    Create a new category
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setQuickAddOpen(false);
+                  setQuickAddTarget(null);
+                }}
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 dark:text-gray-400 transition-all hover:bg-gray-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
+                  Category Name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Anime Hoodie"
+                  value={quickAddForm.name}
+                  onChange={(e) =>
+                    setQuickAddForm({ ...quickAddForm, name: e.target.value })
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleQuickAddCategory();
+                  }}
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1.5 block">
+                  Description
+                </label>
+                <textarea
+                  placeholder="Optional description..."
+                  value={quickAddForm.description}
+                  onChange={(e) =>
+                    setQuickAddForm({
+                      ...quickAddForm,
+                      description: e.target.value,
+                    })
+                  }
+                  rows={2}
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setQuickAddOpen(false);
+                    setQuickAddTarget(null);
+                  }}
+                  className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3 font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleQuickAddCategory}
+                  disabled={quickAddSubmitting}
+                  className="flex-1 rounded-2xl bg-gradient-to-r py-3 font-semibold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60"
+                  style={{
+                    background:
+                      "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                  }}
+                >
+                  {quickAddSubmitting ? "Saving…" : "Save Category"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Import CSV Modal */}
       {importModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -2148,94 +2317,6 @@ export default function Products() {
                 }
               >
                 Import {validRowCount} Product{validRowCount !== 1 ? "s" : ""}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Manage Categories Modal */}
-      {manageCatOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl">
-            <div
-              className="h-1 bg-gradient-to-r rounded-t-3xl -mt-6 -mx-6 mb-6"
-              style={{
-                background:
-                  "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
-              }}
-            />
-            <div className="flex items-center gap-3 mb-6">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm"
-                style={{
-                  background:
-                    "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
-                }}
-              >
-                <Settings2 className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Manage Categories
-                </h2>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Add or remove product categories
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2 mb-6">
-              <input
-                type="text"
-                placeholder="New category name..."
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddCategory();
-                }}
-                className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
-              />
-              <button
-                onClick={handleAddCategory}
-                className="shrink-0 rounded-2xl bg-gradient-to-r px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:shadow-md"
-                style={{
-                  background:
-                    "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
-                }}
-              >
-                Add
-              </button>
-            </div>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {categories.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-4">
-                  No categories yet
-                </p>
-              ) : (
-                categories.map((cat) => (
-                  <div
-                    key={cat}
-                    className="flex items-center justify-between rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 hover:bg-accent-light"
-                  >
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                      {cat}
-                    </span>
-                    <button
-                      onClick={() => handleDeleteCategory(cat)}
-                      className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-red-500 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-3 w-3" /> Delete
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-            <div className="mt-6">
-              <button
-                onClick={() => setManageCatOpen(false)}
-                className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3 font-medium text-gray-700 hover:bg-gray-100"
-              >
-                Close
               </button>
             </div>
           </div>
