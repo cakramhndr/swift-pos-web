@@ -300,10 +300,11 @@ function ReceiveStockModal({ order, onClose, onReceive }) {
 export default function PurchaseOrderDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getById, receive, loading } = usePurchaseOrders();
+  const { getById, receive, cancelOrder, loading } = usePurchaseOrders();
 
   const [order, setOrder] = useState(null);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -318,13 +319,18 @@ export default function PurchaseOrderDetail() {
   };
 
   const handleCancel = async () => {
-    if (!window.confirm("Are you sure you want to cancel this purchase order?"))
-      return;
-    const updated = await getById(id);
-    if (updated) {
-      setOrder({ ...updated, status: "cancelled" });
+    try {
+      const result = await cancelOrder(id);
+      if (result) {
+        setOrder(result);
+        toast.success("Purchase order cancelled successfully");
+      }
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message || "Failed to cancel purchase order",
+      );
     }
-    toast.success("Purchase order cancelled");
+    setShowCancelDialog(false);
   };
 
   const handlePrint = () => window.print();
@@ -429,9 +435,9 @@ export default function PurchaseOrderDetail() {
           >
             <Printer className="h-4 w-4" /> Print
           </button>
-          {!["completed", "cancelled"].includes(order.status) && (
+          {(order.status === "draft" || order.status === "pending") && (
             <button
-              onClick={handleCancel}
+              onClick={() => setShowCancelDialog(true)}
               className="flex items-center gap-2 rounded-2xl border border-red-300 dark:border-red-700/50 px-4 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
             >
               <XCircle className="h-4 w-4" /> Cancel
@@ -642,6 +648,41 @@ export default function PurchaseOrderDetail() {
           </div>
         </div>
       </div>
+
+      {/* ═══ Cancel Confirmation Dialog ═══ */}
+      {showCancelDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-gray-800/95 p-6 shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/30">
+                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Cancel Purchase Order?
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowCancelDialog(false)}
+                className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all cursor-pointer"
+              >
+                Keep Order
+              </button>
+              <button
+                onClick={handleCancel}
+                className="flex-1 rounded-2xl bg-red-600 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition-all cursor-pointer"
+              >
+                Yes, Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Receive Stock Modal */}
       {showReceiveModal && (

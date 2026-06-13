@@ -560,7 +560,6 @@ export default function Products() {
           unit_cost: Number(v.unitCost) || 0,
         }));
       else {
-        body.stock = Number(editingProduct.stock);
         body.unit_price = Number(editingProduct.unitPrice);
       }
       await updateProductApiHook(editingProduct.id, body);
@@ -1723,38 +1722,17 @@ export default function Products() {
                                           )}
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
-                                          <div>
-                                            <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
-                                              Stock{" "}
-                                              {editVariants.length === 0 && (
-                                                <span className="text-red-400">
-                                                  *
-                                                </span>
-                                              )}
+                                          <div className="space-y-1">
+                                            <label className="text-sm font-medium">
+                                              Current Stock
                                             </label>
-                                            <input
-                                              type="number"
-                                              min="0"
-                                              value={editingProduct.stock}
-                                              disabled={editVariants.length > 0}
-                                              onChange={(e) => {
-                                                setEditingProduct({
-                                                  ...editingProduct,
-                                                  stock: Number(e.target.value),
-                                                });
-                                                if (editErrors.stock)
-                                                  setEditErrors({
-                                                    ...editErrors,
-                                                    stock: "",
-                                                  });
-                                              }}
-                                              className={`w-full rounded-2xl border px-4 py-3 outline-none focus:ring-2 ${editErrors.stock ? "border-red-300" : "border-[#ececf2] dark:border-gray-700 focus:border-accent focus:ring-accent/20"} ${editVariants.length > 0 ? "bg-gray-50" : ""}`}
-                                            />
-                                            {editErrors.stock && (
-                                              <p className="text-xs text-red-500 mt-1">
-                                                Required
-                                              </p>
-                                            )}
+                                            <div className="px-3 py-2 bg-muted rounded-md text-sm">
+                                              {editingProduct.stock} units
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">
+                                              Stock is managed from Inventory
+                                              and Purchase Orders.
+                                            </p>
                                           </div>
                                           <div>
                                             <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">

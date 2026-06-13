@@ -31,6 +31,10 @@ export function receivePurchaseOrder(id, data) {
   return client.post(`/purchase-orders/${id}/receive`, data);
 }
 
+export function cancelPurchaseOrder(id) {
+  return client.post(`/purchase-orders/${id}/cancel`);
+}
+
 export function getPurchaseAnalytics(params = {}) {
   return client.get("/purchase-orders/analytics", { params });
 }

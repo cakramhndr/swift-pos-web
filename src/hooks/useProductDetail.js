@@ -166,7 +166,7 @@ export default function useProductDetail(productId) {
                   po_date: po.order_date ?? po.date ?? po.created_at,
                   supplier: po.supplier?.name || po.supplier_name || "—",
                   po_status: po.status ?? "unknown",
-                  qty: Number(item.quantity ?? item.qty ?? 0),
+                  qty: Number(item.quantity_ordered ?? 0),
                   unit_cost: Number(
                     item.unit_cost ?? item.cost ?? item.unitCost ?? 0,
                   ),

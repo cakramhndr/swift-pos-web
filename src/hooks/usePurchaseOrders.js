@@ -19,7 +19,8 @@ export default function usePurchaseOrders() {
       if (body.meta) setMeta(body.meta);
       return body;
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to fetch purchase orders";
+      const msg =
+        err?.response?.data?.message || "Failed to fetch purchase orders";
       setError(msg);
       return null;
     } finally {
@@ -36,7 +37,8 @@ export default function usePurchaseOrders() {
       const order = body.data || body;
       return order;
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to fetch purchase order";
+      const msg =
+        err?.response?.data?.message || "Failed to fetch purchase order";
       setError(msg);
       toast.error(msg);
       return null;
@@ -52,7 +54,8 @@ export default function usePurchaseOrders() {
       toast.success(res.data?.message || "Purchase order created ✅");
       return res.data?.data;
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to create purchase order";
+      const msg =
+        err?.response?.data?.message || "Failed to create purchase order";
       toast.error(msg);
       return null;
     } finally {
@@ -67,7 +70,8 @@ export default function usePurchaseOrders() {
       toast.success(res.data?.message || "Purchase order updated ✅");
       return res.data?.data;
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to update purchase order";
+      const msg =
+        err?.response?.data?.message || "Failed to update purchase order";
       toast.error(msg);
       return null;
     } finally {
@@ -82,7 +86,8 @@ export default function usePurchaseOrders() {
       toast.success("Purchase order deleted 🗑️");
       return true;
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to delete purchase order";
+      const msg =
+        err?.response?.data?.message || "Failed to delete purchase order";
       toast.error(msg);
       return false;
     } finally {
@@ -119,6 +124,22 @@ export default function usePurchaseOrders() {
     }
   }, []);
 
+  const cancelOrder = useCallback(async (id) => {
+    setLoading(true);
+    try {
+      const res = await api.cancelPurchaseOrder(id);
+      toast.success(res.data?.message || "Purchase order cancelled ✅");
+      return res.data?.data || res.data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message || "Failed to cancel purchase order";
+      toast.error(msg);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     data,
     loading,
@@ -130,6 +151,7 @@ export default function usePurchaseOrders() {
     update,
     remove,
     receive,
+    cancelOrder,
     getAnalytics,
   };
 }
