@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import useDarkMode from "@/hooks/useDarkMode";
 import { cn } from "@/lib/utils";
+import useStoreProfile from "@/hooks/useStoreProfile";
 
 const mainNav = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -82,7 +83,11 @@ function NavGroup({ items, label }) {
 
 export default function AppSidebar() {
   const { isDark, toggleDark } = useDarkMode();
+  const { storeProfile, error } = useStoreProfile();
   const [outletOpen, setOutletOpen] = useState(false);
+
+  const storeName = storeProfile?.name || "SwiftPOS";
+  const storeLogoUrl = storeProfile?.logo_url || null;
 
   return (
     <aside
@@ -98,16 +103,24 @@ export default function AppSidebar() {
         {/* Top Brand Section */}
         <div className="px-5 pt-6 pb-4">
           <div className="flex items-center gap-3.5">
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-accent shadow-md shadow-accent/20">
-              <ShoppingCart size={20} className="text-white" />
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-accent shadow-md shadow-accent/20 shrink-0 overflow-hidden">
+              {storeLogoUrl ? (
+                <img
+                  src={storeLogoUrl}
+                  alt={storeName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <ShoppingCart size={20} className="text-white" />
+              )}
               <div className="absolute inset-0 rounded-xl bg-white/[0.08]" />
             </div>
             <div>
               <h1 className="text-[15px] font-semibold tracking-tight text-gray-900 dark:text-white leading-tight">
-                SwiftPOS
+                {storeName}
               </h1>
               <p className="text-[11px] font-medium text-gray-400 dark:text-gray-500 leading-tight mt-px">
-                Management System
+                {error ? "Management System" : "Management System"}
               </p>
             </div>
           </div>

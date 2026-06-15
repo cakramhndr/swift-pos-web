@@ -176,6 +176,7 @@ export default function Products() {
   const variantIdCounter = useRef(0);
   const [newProduct, setNewProduct] = useState({
     sku: "",
+    barcode: "",
     name: "",
     category: "",
     stock: "",
@@ -473,6 +474,7 @@ export default function Products() {
         const formData = new FormData();
         formData.append("image", productImage);
         formData.append("sku", sku);
+        formData.append("barcode", newProduct.barcode || "");
         formData.append("name", newProduct.name.trim());
         formData.append("category", newProduct.category || "");
         formData.append("min_stock", String(Number(newProduct.minStock) || 5));
@@ -498,6 +500,7 @@ export default function Products() {
       } else {
         payload = {
           sku,
+          barcode: newProduct.barcode || null,
           name: newProduct.name.trim(),
           category: newProduct.category || null,
           min_stock: Number(newProduct.minStock) || 5,
@@ -520,6 +523,7 @@ export default function Products() {
       toast.success("Product added ✅");
       setNewProduct({
         sku: "",
+        barcode: "",
         name: "",
         category: "",
         stock: "",
@@ -546,6 +550,7 @@ export default function Products() {
     try {
       const body = {
         sku: editingProduct.sku,
+        barcode: editingProduct.barcode || null,
         name: editingProduct.name.trim(),
         category: editingProduct.category || null,
         min_stock: Number(editingProduct.minStock) || 5,
@@ -1002,6 +1007,37 @@ export default function Products() {
                     </div>
                     <div>
                       <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                        Barcode
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="e.g. SP1712345678"
+                          value={newProduct.barcode}
+                          onChange={(e) =>
+                            setNewProduct({
+                              ...newProduct,
+                              barcode: e.target.value,
+                            })
+                          }
+                          className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setNewProduct({
+                              ...newProduct,
+                              barcode: `SP${Date.now()}`,
+                            })
+                          }
+                          className="shrink-0 text-xs px-2 py-1 border border-accent text-accent rounded-md hover:bg-accent-light"
+                        >
+                          Generate
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
                         Category
                       </label>
                       <div className="flex gap-2">
@@ -1164,6 +1200,7 @@ export default function Products() {
                       onClick={() => {
                         setNewProduct({
                           sku: "",
+                          barcode: "",
                           name: "",
                           category: "",
                           stock: "",
@@ -1571,6 +1608,7 @@ export default function Products() {
                                       setEditingProduct({
                                         id: product.id,
                                         sku: product.sku,
+                                        barcode: product.barcode || "",
                                         name: product.name,
                                         category:
                                           product.category?.name ??
@@ -1647,6 +1685,41 @@ export default function Products() {
                                               </button>
                                             </div>
                                           </div>
+                                          <div>
+                                            <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                              Barcode
+                                            </label>
+                                            <div className="flex gap-2">
+                                              <input
+                                                type="text"
+                                                placeholder="e.g. SP1712345678"
+                                                value={
+                                                  editingProduct.barcode || ""
+                                                }
+                                                onChange={(e) =>
+                                                  setEditingProduct({
+                                                    ...editingProduct,
+                                                    barcode: e.target.value,
+                                                  })
+                                                }
+                                                className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                                              />
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  setEditingProduct({
+                                                    ...editingProduct,
+                                                    barcode: `SP${Date.now()}`,
+                                                  })
+                                                }
+                                                className="shrink-0 text-xs px-2 py-1 border border-accent text-accent rounded-md hover:bg-accent-light"
+                                              >
+                                                Generate
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
                                           <div>
                                             <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5 block">
                                               Category

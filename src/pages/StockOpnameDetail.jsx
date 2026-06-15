@@ -31,6 +31,7 @@ import {
   cancelStockOpname,
   updateStockOpname,
 } from "@/api/stockOpnames";
+import { getProducts } from "@/api/products";
 import KpiCard from "@/components/product-detail/KpiCard";
 import TabNavigation from "@/components/product-detail/TabNavigation";
 import StockOpnameCompleteModal from "@/components/stock-opname/StockOpnameCompleteModal";
@@ -63,14 +64,32 @@ function formatDateTime(ds) {
 // ── Status badge ────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const variants = {
-    draft: { label: "Draft", classes: "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600" },
-    in_progress: { label: "In Progress", classes: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-700/50" },
-    completed: { label: "Completed", classes: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700/50" },
-    cancelled: { label: "Cancelled", classes: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-700/50" },
+    draft: {
+      label: "Draft",
+      classes:
+        "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600",
+    },
+    in_progress: {
+      label: "In Progress",
+      classes:
+        "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-700/50",
+    },
+    completed: {
+      label: "Completed",
+      classes:
+        "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700/50",
+    },
+    cancelled: {
+      label: "Cancelled",
+      classes:
+        "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-700/50",
+    },
   };
   const v = variants[status] || variants.draft;
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${v.classes}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${v.classes}`}
+    >
       {v.label}
     </span>
   );
@@ -79,14 +98,24 @@ function StatusBadge({ status }) {
 // ── Difference Badge ────────────────────────────────────────────────────
 function DiffBadge({ value }) {
   if (value === 0) return <span className="text-gray-400 text-[13px]">0</span>;
-  if (value > 0) return <span className="text-emerald-600 dark:text-emerald-400 font-medium text-[13px]">+{value}</span>;
-  return <span className="text-red-600 dark:text-red-400 font-medium text-[13px]">{value}</span>;
+  if (value > 0)
+    return (
+      <span className="text-emerald-600 dark:text-emerald-400 font-medium text-[13px]">
+        +{value}
+      </span>
+    );
+  return (
+    <span className="text-red-600 dark:text-red-400 font-medium text-[13px]">
+      {value}
+    </span>
+  );
 }
 
 // ── Item Status Badge ───────────────────────────────────────────────────
 function ItemStatusBadge({ item }) {
   const diff = item.difference ?? 0;
-  if (item.system_stock == null) return <span className="text-[11px] text-gray-400">Unchecked</span>;
+  if (item.system_stock == null)
+    return <span className="text-[11px] text-gray-400">Unchecked</span>;
   if (diff === 0) {
     return (
       <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/30">
@@ -114,7 +143,12 @@ function DetailSkeleton() {
     <div className="space-y-6 animate-pulse p-6">
       <div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded" />
       <div className="grid grid-cols-5 gap-4">
-        {[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-24 bg-gray-100 dark:bg-gray-800 rounded-2xl" />)}
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div
+            key={i}
+            className="h-24 bg-gray-100 dark:bg-gray-800 rounded-2xl"
+          />
+        ))}
       </div>
     </div>
   );
@@ -128,7 +162,9 @@ function InfoRow({ label, value, icon: Icon }) {
         {Icon && <Icon className="h-3.5 w-3.5" />}
         {label}
       </div>
-      <span className="text-sm font-medium text-gray-900 dark:text-white text-right">{value ?? "—"}</span>
+      <span className="text-sm font-medium text-gray-900 dark:text-white text-right">
+        {value ?? "—"}
+      </span>
     </div>
   );
 }
@@ -148,15 +184,27 @@ function TimelineItem({ time, title, description, icon: Icon, color }) {
   return (
     <div className="flex gap-3 pb-4 last:pb-0 relative">
       <div className="flex flex-col items-center">
-        <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${color || "bg-gray-100 dark:bg-gray-700"}`}>
+        <div
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${color || "bg-gray-100 dark:bg-gray-700"}`}
+        >
           {Icon && <Icon className="h-3.5 w-3.5" />}
         </div>
         <div className="flex-1 w-px bg-[#ececf2] dark:bg-gray-700 mt-1" />
       </div>
       <div className="flex-1 pb-2">
-        <p className="text-sm font-medium text-gray-900 dark:text-white">{title}</p>
-        {description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>}
-        {time && <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">{time}</p>}
+        <p className="text-sm font-medium text-gray-900 dark:text-white">
+          {title}
+        </p>
+        {description && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            {description}
+          </p>
+        )}
+        {time && (
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+            {time}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -176,32 +224,60 @@ function ActionsDropdown({ onClose, onAction, status }) {
 
   const items = [];
   if (status === "draft") {
-    items.push({ key: "cancel", label: "Cancel Session", icon: Ban, danger: true });
+    items.push({
+      key: "cancel",
+      label: "Cancel Session",
+      icon: Ban,
+      danger: true,
+    });
   }
   if (status === "in_progress") {
-    items.push({ key: "cancel", label: "Cancel Session", icon: Ban, danger: true });
+    items.push({
+      key: "cancel",
+      label: "Cancel Session",
+      icon: Ban,
+      danger: true,
+    });
   }
   if (items.length === 0) {
-    items.push({ key: "none", label: "No actions available", icon: null, disabled: true });
+    items.push({
+      key: "none",
+      label: "No actions available",
+      icon: null,
+      disabled: true,
+    });
   }
 
   return (
-    <div ref={ref} className="absolute right-0 top-full mt-1 w-56 rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg z-50 py-1.5">
+    <div
+      ref={ref}
+      className="absolute right-0 top-full mt-1 w-56 rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg z-50 py-1.5"
+    >
       {items.map((item) =>
         item.disabled ? (
-          <div key={item.key} className="px-4 py-2.5 text-sm text-gray-400 dark:text-gray-500 text-center">No actions available</div>
+          <div
+            key={item.key}
+            className="px-4 py-2.5 text-sm text-gray-400 dark:text-gray-500 text-center"
+          >
+            No actions available
+          </div>
         ) : (
           <button
             key={item.key}
-            onClick={() => { onAction(item.key); onClose(); }}
+            onClick={() => {
+              onAction(item.key);
+              onClose();
+            }}
             className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-              item.danger ? "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20" : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+              item.danger
+                ? "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50"
             }`}
           >
             {item.icon && <item.icon className="h-4 w-4" />}
             {item.label}
           </button>
-        )
+        ),
       )}
     </div>
   );
@@ -274,19 +350,26 @@ export default function StockOpnameDetail() {
   const totalItems = items.length;
 
   // ✅ BUG 1: draft sessions have no counted items
-  const checkedItems = status === "draft"
-    ? 0
-    : items.filter(
-        (i) => i.physical_stock !== null && i.physical_stock !== undefined
-      ).length;
+  const checkedItems =
+    status === "draft"
+      ? 0
+      : items.filter(
+          (i) => i.physical_stock !== null && i.physical_stock !== undefined,
+        ).length;
 
   const remainingItems = totalItems - checkedItems;
-  const progressPct = totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0;
+  const progressPct =
+    totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0;
   const diffItems = items.filter((i) => (i.difference ?? 0) !== 0);
   const missingItems = diffItems.filter((i) => (i.difference ?? 0) < 0).length;
   const excessItems = diffItems.filter((i) => (i.difference ?? 0) > 0).length;
-  const matchedItems = items.filter((i) => (i.difference ?? 0) === 0 && i.physical_stock != null).length;
-  const estimatedValue = items.reduce((sum, i) => sum + Math.abs(i.difference ?? 0) * (i.product?.unit_cost ?? 0), 0);
+  const matchedItems = items.filter(
+    (i) => (i.difference ?? 0) === 0 && i.physical_stock != null,
+  ).length;
+  const estimatedValue = items.reduce(
+    (sum, i) => sum + Math.abs(i.difference ?? 0) * (i.product?.unit_cost ?? 0),
+    0,
+  );
 
   // ── Build activity log events from session timestamps ────────────
   const activityEvents = useMemo(() => {
@@ -298,7 +381,8 @@ export default function StockOpnameDetail() {
         title: "Session Created",
         description: `Stock opname ${session.reference_number || ""} was created`,
         icon: ClipboardList,
-        color: "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400",
+        color:
+          "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400",
       });
     }
     if (session?.started_at) {
@@ -308,7 +392,8 @@ export default function StockOpnameDetail() {
         title: "Session Started",
         description: "Counting process was initiated",
         icon: Play,
-        color: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
+        color:
+          "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
       });
     }
     if (session?.completed_at) {
@@ -318,7 +403,8 @@ export default function StockOpnameDetail() {
         title: "Session Completed",
         description: "All items counted and inventory adjusted",
         icon: CheckCircle,
-        color: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
+        color:
+          "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
       });
     }
     if (session?.cancelled_at) {
@@ -361,7 +447,8 @@ export default function StockOpnameDetail() {
       return { ...prev, items: updatedItems };
     });
 
-    if (debounceTimers.current[itemId]) clearTimeout(debounceTimers.current[itemId]);
+    if (debounceTimers.current[itemId])
+      clearTimeout(debounceTimers.current[itemId]);
     debounceTimers.current[itemId] = setTimeout(async () => {
       setSavingRowId(itemId);
       try {
@@ -370,7 +457,10 @@ export default function StockOpnameDetail() {
             product_id: i.product_id,
             variant_id: i.variant_id || null,
             system_stock: i.system_stock ?? 0,
-            physical_stock: i.id === itemId ? newVal : (i.physical_stock ?? i.system_stock ?? 0),
+            physical_stock:
+              i.id === itemId
+                ? newVal
+                : (i.physical_stock ?? i.system_stock ?? 0),
             notes: i.notes || null,
           })),
         });
@@ -383,31 +473,52 @@ export default function StockOpnameDetail() {
   };
 
   // ── Barcode search ────────────────────────────────────────────────
-  const handleBarcodeSearch = () => {
+  const handleBarcodeSearch = async () => {
     if (!barcodeInput.trim()) return;
-    const q = barcodeInput.toLowerCase();
-    const found = items.findIndex((i) => {
-      const bc = (i.product?.barcode || i.product?.sku || "").toLowerCase();
-      return bc.includes(q);
-    });
-    if (found >= 0) {
+    try {
+      const res = await getProducts({ barcode: barcodeInput.trim() });
+      const body = res.data?.data ?? res.data;
+      const products = Array.isArray(body) ? body : (body.data ?? []);
+      if (products.length === 0) {
+        toast.error("Barcode not found");
+        return;
+      }
+      const product = products[0];
+      const foundIdx = items.findIndex((i) => i.product_id === product.id);
+      if (foundIdx < 0) {
+        toast.error("Product not included in this stock opname session");
+        setBarcodeInput("");
+        return;
+      }
+      toast.success("Product found");
       setCountSearch(barcodeInput);
-      setBarcodeModalOpen(false);
       setBarcodeInput("");
       setTimeout(() => {
-        const el = document.getElementById(`so-item-${items[found]?.id}`);
+        const el = document.getElementById(`so-item-${items[foundIdx]?.id}`);
         if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 100);
-    } else {
-      toast.error("No matching product found for this barcode");
+    } catch {
+      toast.error("Barcode not found");
     }
   };
 
   // ── ISSUE 2: Confirmation modal (replaces browser confirm) ────
-  const [confirmModal, setConfirmModal] = useState({ open: false, title: "", description: "", action: null, buttonLabel: "Confirm" });
+  const [confirmModal, setConfirmModal] = useState({
+    open: false,
+    title: "",
+    description: "",
+    action: null,
+    buttonLabel: "Confirm",
+  });
 
   const openConfirmModal = (title, description, action, buttonLabel) => {
-    setConfirmModal({ open: true, title, description, action, buttonLabel: buttonLabel || "Start Session" });
+    setConfirmModal({
+      open: true,
+      title,
+      description,
+      action,
+      buttonLabel: buttonLabel || "Start Session",
+    });
   };
 
   // ── ISSUE 1: Use refetch() pattern for all state transitions ────
@@ -422,12 +533,14 @@ export default function StockOpnameDetail() {
           await fetchSession();
           toast.success("Session started — begin counting products");
         } catch (err) {
-          toast.error(err?.response?.data?.message || "Failed to start session");
+          toast.error(
+            err?.response?.data?.message || "Failed to start session",
+          );
         } finally {
           setSubmitting(false);
         }
       },
-      "Start Session"
+      "Start Session",
     );
   };
 
@@ -456,12 +569,14 @@ export default function StockOpnameDetail() {
           await fetchSession();
           toast.success("Session cancelled");
         } catch (err) {
-          toast.error(err?.response?.data?.message || "Failed to cancel session");
+          toast.error(
+            err?.response?.data?.message || "Failed to cancel session",
+          );
         } finally {
           setSubmitting(false);
         }
       },
-      "Cancel Session"
+      "Cancel Session",
     );
   };
 
@@ -480,9 +595,13 @@ export default function StockOpnameDetail() {
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700">
             <ClipboardList className="h-8 w-8 text-gray-400" />
           </div>
-          <p className="mt-4 text-sm font-medium text-gray-500 dark:text-gray-400">{error || "Stock opname not found"}</p>
-          <button onClick={() => navigate("/stock-opnames")}
-            className="mt-4 flex items-center gap-2 rounded-2xl border border-[#ececf2] dark:border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60">
+          <p className="mt-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+            {error || "Stock opname not found"}
+          </p>
+          <button
+            onClick={() => navigate("/stock-opnames")}
+            className="mt-4 flex items-center gap-2 rounded-2xl border border-[#ececf2] dark:border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60"
+          >
             <ArrowLeft className="h-4 w-4" /> Back to Stock Opname
           </button>
         </div>
@@ -491,8 +610,10 @@ export default function StockOpnameDetail() {
   }
 
   // ✅ BUG 2: fallback chain for store name
-  const storeName = session.store?.name || session.store_name || session.store || "—";
-  const createdByName = session.created_by_user?.name || session.created_by || "—";
+  const storeName =
+    session.store?.name || session.store_name || session.store || "—";
+  const createdByName =
+    session.created_by_user?.name || session.created_by || "—";
 
   return (
     <div className="space-y-6">
@@ -500,37 +621,60 @@ export default function StockOpnameDetail() {
           TOP BAR
           ══════════════════════════════════════════════════════════════ */}
       <div className="flex items-center justify-between">
-        <button onClick={() => navigate("/stock-opnames")}
-          className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white transition-colors">
+        <button
+          onClick={() => navigate("/stock-opnames")}
+          className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white transition-colors"
+        >
           <ArrowLeft className="h-4 w-4" />
           Back to Stock Opname
         </button>
 
         <div className="flex items-center gap-2">
           {status === "draft" && (
-            <button onClick={handleStartSession} disabled={submitting}
+            <button
+              onClick={handleStartSession}
+              disabled={submitting}
               className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
-              style={{ background: "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))" }}>
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+              style={{
+                background:
+                  "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+              }}
+            >
+              {submitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
               Start Session
             </button>
           )}
           {status === "in_progress" && (
-            <button onClick={() => setCompleteModalOpen(true)} disabled={submitting}
+            <button
+              onClick={() => setCompleteModalOpen(true)}
+              disabled={submitting}
               className="flex items-center gap-2 rounded-2xl bg-gradient-to-r px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
-              style={{ background: "linear-gradient(to right, #10b981, #059669)" }}>
+              style={{
+                background: "linear-gradient(to right, #10b981, #059669)",
+              }}
+            >
               <CheckCircle className="h-4 w-4" />
               Complete Session
             </button>
           )}
           <div className="relative">
-            <button onClick={() => setShowActions((prev) => !prev)}
-              className="inline-flex items-center gap-2 rounded-2xl border border-[#ececf2] dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60">
+            <button
+              onClick={() => setShowActions((prev) => !prev)}
+              className="inline-flex items-center gap-2 rounded-2xl border border-[#ececf2] dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-700/60"
+            >
               <MoreHorizontal className="h-4 w-4" />
               <ChevronDown className="h-4 w-4" />
             </button>
             {showActions && (
-              <ActionsDropdown onClose={() => setShowActions(false)} onAction={handleAction} status={status} />
+              <ActionsDropdown
+                onClose={() => setShowActions(false)}
+                onAction={handleAction}
+                status={status}
+              />
             )}
           </div>
         </div>
@@ -542,13 +686,20 @@ export default function StockOpnameDetail() {
       <div className="bg-white dark:bg-gray-800 rounded-3xl border border-[#ececf2] dark:border-gray-700 p-6 shadow-sm">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br shadow-md"
-              style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))" }}>
+            <div
+              className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br shadow-md"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+              }}
+            >
               <ClipboardList className="h-7 w-7 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{session.reference_number}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {session.reference_number}
+                </h1>
                 <StatusBadge status={status} />
               </div>
               <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
@@ -574,25 +725,36 @@ export default function StockOpnameDetail() {
           LOCKED BANNER — completed/cancelled specific messages
           ══════════════════════════════════════════════════════════════ */}
       {isLocked && (
-        <div className={`rounded-2xl border px-5 py-3.5 flex items-center gap-3 ${
-          status === "completed"
-            ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/30 text-emerald-700 dark:text-emerald-300"
-            : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-300"
-        }`}>
+        <div
+          className={`rounded-2xl border px-5 py-3.5 flex items-center gap-3 ${
+            status === "completed"
+              ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/30 text-emerald-700 dark:text-emerald-300"
+              : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-300"
+          }`}
+        >
           {status === "completed" ? (
             <>
               <CheckCircle2 className="h-5 w-5 shrink-0" />
               <div>
-                <p className="text-sm font-medium">This stock opname has been completed.</p>
-                <p className="text-xs mt-0.5 opacity-80">Inventory has already been adjusted and this session is locked.</p>
+                <p className="text-sm font-medium">
+                  This stock opname has been completed.
+                </p>
+                <p className="text-xs mt-0.5 opacity-80">
+                  Inventory has already been adjusted and this session is
+                  locked.
+                </p>
               </div>
             </>
           ) : (
             <>
               <XCircle className="h-5 w-5 shrink-0" />
               <div>
-                <p className="text-sm font-medium">This stock opname has been cancelled.</p>
-                <p className="text-xs mt-0.5 opacity-80">No further modifications are allowed.</p>
+                <p className="text-sm font-medium">
+                  This stock opname has been cancelled.
+                </p>
+                <p className="text-xs mt-0.5 opacity-80">
+                  No further modifications are allowed.
+                </p>
               </div>
             </>
           )}
@@ -603,12 +765,48 @@ export default function StockOpnameDetail() {
           KPI CARDS — replaced Excess → Remaining, reordered
           ══════════════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-        <KpiCard title="Products Total" value={totalItems} subtitle="items in session" icon={Package} color="text-purple-600 bg-purple-50 dark:bg-purple-900/30" />
-        <KpiCard title="Checked" value={checkedItems} subtitle={`${progressPct}% completed`} icon={CheckCircle2} color="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30" />
-        <KpiCard title="Remaining" value={remainingItems} subtitle="left to count" icon={Layers} color="text-blue-600 bg-blue-50 dark:bg-blue-900/30" />
-        <KpiCard title="Differences" value={diffItems.length} subtitle="items with mismatches" icon={AlertTriangle} color="text-amber-600 bg-amber-50 dark:bg-amber-900/30" />
-        <KpiCard title="Missing" value={missingItems} subtitle="overstated in system" icon={XCircle} color="text-red-600 bg-red-50 dark:bg-red-900/30" />
-        <KpiCard title="Estimated Adj. Value" value={formatRp(estimatedValue)} subtitle="total adjustment" icon={DollarSign} color="text-rose-600 bg-rose-50 dark:bg-rose-900/30" />
+        <KpiCard
+          title="Products Total"
+          value={totalItems}
+          subtitle="items in session"
+          icon={Package}
+          color="text-purple-600 bg-purple-50 dark:bg-purple-900/30"
+        />
+        <KpiCard
+          title="Checked"
+          value={checkedItems}
+          subtitle={`${progressPct}% completed`}
+          icon={CheckCircle2}
+          color="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30"
+        />
+        <KpiCard
+          title="Remaining"
+          value={remainingItems}
+          subtitle="left to count"
+          icon={Layers}
+          color="text-blue-600 bg-blue-50 dark:bg-blue-900/30"
+        />
+        <KpiCard
+          title="Differences"
+          value={diffItems.length}
+          subtitle="items with mismatches"
+          icon={AlertTriangle}
+          color="text-amber-600 bg-amber-50 dark:bg-amber-900/30"
+        />
+        <KpiCard
+          title="Missing"
+          value={missingItems}
+          subtitle="overstated in system"
+          icon={XCircle}
+          color="text-red-600 bg-red-50 dark:bg-red-900/30"
+        />
+        <KpiCard
+          title="Estimated Adj. Value"
+          value={formatRp(estimatedValue)}
+          subtitle="total adjustment"
+          icon={DollarSign}
+          color="text-rose-600 bg-rose-50 dark:bg-rose-900/30"
+        />
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
@@ -616,7 +814,11 @@ export default function StockOpnameDetail() {
           ══════════════════════════════════════════════════════════════ */}
       <div className="rounded-3xl bg-white dark:bg-gray-800 border border-[#ececf2] dark:border-gray-700 shadow-sm overflow-hidden">
         <div className="px-6 pt-4">
-          <TabNavigation tabs={TABS} active={activeTab} onChange={setActiveTab} />
+          <TabNavigation
+            tabs={TABS}
+            active={activeTab}
+            onChange={setActiveTab}
+          />
         </div>
 
         <div className="p-6">
@@ -633,14 +835,38 @@ export default function StockOpnameDetail() {
                     Session Information
                   </h3>
                   <div className="divide-y divide-[#ececf2] dark:divide-gray-700">
-                    <InfoRow label="Reference Number" value={session.reference_number} icon={ClipboardList} />
+                    <InfoRow
+                      label="Reference Number"
+                      value={session.reference_number}
+                      icon={ClipboardList}
+                    />
                     <InfoRow label="Store" value={storeName} icon={Package} />
-                    <InfoRow label="Status" value={<StatusBadge status={status} />} />
+                    <InfoRow
+                      label="Status"
+                      value={<StatusBadge status={status} />}
+                    />
                     <InfoRow label="Created By" value={createdByName} />
                     <InfoRow label="Notes" value={session.notes || "—"} />
-                    <InfoRow label="Created At" value={formatDateShort(session.created_at)} />
-                    <InfoRow label="Completed At" value={session.completed_at ? formatDateShort(session.completed_at) : "—"} />
-                    <InfoRow label="Cancelled At" value={session.cancelled_at ? formatDateShort(session.cancelled_at) : "—"} />
+                    <InfoRow
+                      label="Created At"
+                      value={formatDateShort(session.created_at)}
+                    />
+                    <InfoRow
+                      label="Completed At"
+                      value={
+                        session.completed_at
+                          ? formatDateShort(session.completed_at)
+                          : "—"
+                      }
+                    />
+                    <InfoRow
+                      label="Cancelled At"
+                      value={
+                        session.cancelled_at
+                          ? formatDateShort(session.cancelled_at)
+                          : "—"
+                      }
+                    />
                   </div>
                 </div>
 
@@ -653,12 +879,19 @@ export default function StockOpnameDetail() {
                   <div className="space-y-5">
                     <div>
                       <div className="flex items-end justify-between mb-2">
-                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Progress</span>
-                        <span className="text-2xl font-bold text-accent">{progressPct}%</span>
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Progress
+                        </span>
+                        <span className="text-2xl font-bold text-accent">
+                          {progressPct}%
+                        </span>
                       </div>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                        <span className="text-lg font-bold text-gray-900 dark:text-white">{checkedItems}</span>
-                        {" / "}{totalItems} Products Checked
+                        <span className="text-lg font-bold text-gray-900 dark:text-white">
+                          {checkedItems}
+                        </span>
+                        {" / "}
+                        {totalItems} Products Checked
                       </p>
                       <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
@@ -666,7 +899,8 @@ export default function StockOpnameDetail() {
                           style={{
                             width: `${Math.min(progressPct, 100)}%`,
                             // ✅ BUG 3: accent gradient always
-                            background: "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                            background:
+                              "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
                           }}
                         />
                       </div>
@@ -674,20 +908,36 @@ export default function StockOpnameDetail() {
                     <div className="h-px bg-[#ececf2] dark:bg-gray-700" />
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-500 dark:text-gray-400">Items with Difference</span>
-                        <span className="font-semibold text-gray-900 dark:text-white">{diffItems.length}</span>
+                        <span className="text-gray-500 dark:text-gray-400">
+                          Items with Difference
+                        </span>
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          {diffItems.length}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-500 dark:text-gray-400">Missing Items</span>
-                        <span className="font-semibold text-red-600 dark:text-red-400">{missingItems}</span>
+                        <span className="text-gray-500 dark:text-gray-400">
+                          Missing Items
+                        </span>
+                        <span className="font-semibold text-red-600 dark:text-red-400">
+                          {missingItems}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-500 dark:text-gray-400">Excess Items</span>
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{excessItems}</span>
+                        <span className="text-gray-500 dark:text-gray-400">
+                          Excess Items
+                        </span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                          {excessItems}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between text-sm border-t border-[#ececf2] dark:border-gray-700 pt-3">
-                        <span className="font-semibold text-gray-700 dark:text-gray-200">Estimated Adjustment Value</span>
-                        <span className="text-base font-bold text-accent">{formatRp(estimatedValue)}</span>
+                        <span className="font-semibold text-gray-700 dark:text-gray-200">
+                          Estimated Adjustment Value
+                        </span>
+                        <span className="text-base font-bold text-accent">
+                          {formatRp(estimatedValue)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -703,10 +953,26 @@ export default function StockOpnameDetail() {
                     Difference Breakdown
                   </h3>
                   <div className="space-y-1">
-                    <StatItem label="Matched Items" value={matchedItems} color="text-emerald-600 dark:text-emerald-400" />
-                    <StatItem label="Items With Difference" value={diffItems.length} color="text-amber-600 dark:text-amber-400" />
-                    <StatItem label="Missing Items" value={missingItems} color="text-red-600 dark:text-red-400" />
-                    <StatItem label="Excess Items" value={excessItems} color="text-emerald-600 dark:text-emerald-400" />
+                    <StatItem
+                      label="Matched Items"
+                      value={matchedItems}
+                      color="text-emerald-600 dark:text-emerald-400"
+                    />
+                    <StatItem
+                      label="Items With Difference"
+                      value={diffItems.length}
+                      color="text-amber-600 dark:text-amber-400"
+                    />
+                    <StatItem
+                      label="Missing Items"
+                      value={missingItems}
+                      color="text-red-600 dark:text-red-400"
+                    />
+                    <StatItem
+                      label="Excess Items"
+                      value={excessItems}
+                      color="text-emerald-600 dark:text-emerald-400"
+                    />
                   </div>
                 </div>
 
@@ -721,7 +987,9 @@ export default function StockOpnameDetail() {
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700/50">
                         <Clock className="h-5 w-5 text-gray-400" />
                       </div>
-                      <p className="mt-2 text-xs text-gray-400">No activity recorded</p>
+                      <p className="mt-2 text-xs text-gray-400">
+                        No activity recorded
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-1">
@@ -760,13 +1028,14 @@ export default function StockOpnameDetail() {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setBarcodeModalOpen(true)}
-                    className="flex items-center gap-2 rounded-xl border border-[#ececf2] dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all">
+                  <button
+                    onClick={() => setBarcodeModalOpen(true)}
+                    className="flex items-center gap-2 rounded-xl border border-[#ececf2] dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all"
+                  >
                     <Barcode className="h-4 w-4" />
                     Scan Barcode
                   </button>
-                  <button
-                    className="flex items-center gap-2 rounded-xl border border-[#ececf2] dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all">
+                  <button className="flex items-center gap-2 rounded-xl border border-[#ececf2] dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-all">
                     <Filter className="h-4 w-4" />
                     Filters
                   </button>
@@ -795,51 +1064,88 @@ export default function StockOpnameDetail() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/80">
-                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
-                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product</th>
-                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">SKU / Barcode</th>
-                        <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">System Stock</th>
-                        <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Physical Stock</th>
-                        <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Difference</th>
-                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Notes</th>
-                        <th className="px-4 py-3 text-center text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          #
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Product
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          SKU / Barcode
+                        </th>
+                        <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          System Stock
+                        </th>
+                        <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Physical Stock
+                        </th>
+                        <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Difference
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Notes
+                        </th>
+                        <th className="px-4 py-3 text-center text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Status
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                       {filteredItems.map((item, idx) => {
-                        const productName = item.product?.name || "Unknown Product";
-                        const barcode = item.product?.barcode || item.product?.sku || "—";
+                        const productName =
+                          item.product?.name || "Unknown Product";
+                        const barcode =
+                          item.product?.barcode || item.product?.sku || "—";
                         const systemStock = item.system_stock ?? 0;
-                        const physicalStock = item.physical_stock ?? systemStock;
+                        const physicalStock =
+                          item.physical_stock ?? systemStock;
                         const diff = item.difference ?? 0;
                         const isSaving = savingRowId === item.id;
 
                         return (
-                          <tr key={item.id} id={`so-item-${item.id}`}
-                            className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                            <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-[13px]">{idx + 1}</td>
-                            <td className="px-4 py-3">
-                              <span className="font-medium text-gray-900 dark:text-white text-[13px]">{productName}</span>
+                          <tr
+                            key={item.id}
+                            id={`so-item-${item.id}`}
+                            className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/30"
+                          >
+                            <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-[13px]">
+                              {idx + 1}
                             </td>
                             <td className="px-4 py-3">
-                              <span className="font-mono text-[13px] text-gray-600 dark:text-gray-400">{barcode}</span>
+                              <span className="font-medium text-gray-900 dark:text-white text-[13px]">
+                                {productName}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="font-mono text-[13px] text-gray-600 dark:text-gray-400">
+                                {barcode}
+                              </span>
                             </td>
                             <td className="px-4 py-3 text-right text-[13px] text-gray-900 dark:text-white font-medium">
                               {systemStock}
                             </td>
                             <td className="px-4 py-3 text-right">
                               {isLocked ? (
-                                <span className="text-[13px] text-gray-900 dark:text-white font-medium">{physicalStock}</span>
+                                <span className="text-[13px] text-gray-900 dark:text-white font-medium">
+                                  {physicalStock}
+                                </span>
                               ) : (
                                 <div className="flex items-center justify-end gap-1">
                                   <input
                                     type="number"
                                     min="0"
                                     value={physicalStock}
-                                    onChange={(e) => handlePhysicalStockChange(item.id, e.target.value)}
+                                    onChange={(e) =>
+                                      handlePhysicalStockChange(
+                                        item.id,
+                                        e.target.value,
+                                      )
+                                    }
                                     className="w-20 rounded-lg border border-[#ececf2] dark:border-gray-600 px-2.5 py-1.5 text-sm text-right outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 dark:bg-gray-700 dark:text-white"
                                   />
-                                  {isSaving && <Loader2 className="h-3.5 w-3.5 text-accent animate-spin shrink-0" />}
+                                  {isSaving && (
+                                    <Loader2 className="h-3.5 w-3.5 text-accent animate-spin shrink-0" />
+                                  )}
                                 </div>
                               )}
                             </td>
@@ -847,7 +1153,9 @@ export default function StockOpnameDetail() {
                               <DiffBadge value={diff} />
                             </td>
                             <td className="px-4 py-3">
-                              <span className="text-[13px] text-gray-500 dark:text-gray-400">{item.notes || "—"}</span>
+                              <span className="text-[13px] text-gray-500 dark:text-gray-400">
+                                {item.notes || "—"}
+                              </span>
                             </td>
                             <td className="px-4 py-3 text-center">
                               <ItemStatusBadge item={item} />
@@ -869,28 +1177,43 @@ export default function StockOpnameDetail() {
                         <Barcode className="h-5 w-5 text-accent" />
                       </div>
                       <div>
-                        <h2 className="text-base font-bold text-gray-900 dark:text-white">Scan Barcode</h2>
-                        <p className="text-xs text-gray-400 mt-0.5">Paste barcode to find matching product</p>
+                        <h2 className="text-base font-bold text-gray-900 dark:text-white">
+                          Scan Barcode
+                        </h2>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          Scan or type barcode to find matching product
+                        </p>
                       </div>
                     </div>
-                    <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-2 italic">TODO: integrate hardware barcode scanner</p>
                     <input
                       type="text"
                       placeholder="Paste barcode here..."
                       value={barcodeInput}
                       onChange={(e) => setBarcodeInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleBarcodeSearch(); }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleBarcodeSearch();
+                      }}
                       className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 mb-4"
                       autoFocus
                     />
                     <div className="flex gap-3">
-                      <button onClick={() => { setBarcodeModalOpen(false); setBarcodeInput(""); }}
-                        className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
+                      <button
+                        onClick={() => {
+                          setBarcodeModalOpen(false);
+                          setBarcodeInput("");
+                        }}
+                        className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                      >
                         Cancel
                       </button>
-                      <button onClick={handleBarcodeSearch}
+                      <button
+                        onClick={handleBarcodeSearch}
                         className="flex-1 rounded-2xl bg-gradient-to-r py-3 text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all"
-                        style={{ background: "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))" }}>
+                        style={{
+                          background:
+                            "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                        }}
+                      >
                         Find
                       </button>
                     </div>
@@ -910,8 +1233,12 @@ export default function StockOpnameDetail() {
                   <ClipboardList className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-gray-900 dark:text-white">Activity Logs</h2>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Timeline of events for this session</p>
+                  <h2 className="text-base font-bold text-gray-900 dark:text-white">
+                    Activity Logs
+                  </h2>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                    Timeline of events for this session
+                  </p>
                 </div>
               </div>
               {activityEvents.length === 0 ? (
@@ -919,29 +1246,53 @@ export default function StockOpnameDetail() {
                   <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50">
                     <ClipboardList className="h-7 w-7 text-gray-400" />
                   </div>
-                  <p className="mt-4 text-sm font-semibold text-gray-700 dark:text-gray-300">No activity recorded</p>
-                  <p className="text-xs text-gray-400 mt-1">Activity logs will appear here as users interact with this session</p>
+                  <p className="mt-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    No activity recorded
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Activity logs will appear here as users interact with this
+                    session
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto rounded-2xl border border-[#ececf2] dark:border-gray-700">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/80">
-                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Timestamp</th>
-                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Event</th>
-                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
-                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Timestamp
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Event
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Description
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          User
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                       {activityEvents.map((evt) => (
-                        <tr key={evt.key} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                          <td className="px-4 py-3 text-[13px] text-gray-500 dark:text-gray-400">{evt.time}</td>
-                          <td className="px-4 py-3">
-                            <span className="text-[13px] font-medium text-gray-900 dark:text-white">{evt.title}</span>
+                        <tr
+                          key={evt.key}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+                        >
+                          <td className="px-4 py-3 text-[13px] text-gray-500 dark:text-gray-400">
+                            {evt.time}
                           </td>
-                          <td className="px-4 py-3 text-[13px] text-gray-500 dark:text-gray-400">{evt.description}</td>
-                          <td className="px-4 py-3 text-[13px] text-gray-500 dark:text-gray-400">{createdByName}</td>
+                          <td className="px-4 py-3">
+                            <span className="text-[13px] font-medium text-gray-900 dark:text-white">
+                              {evt.title}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-[13px] text-gray-500 dark:text-gray-400">
+                            {evt.description}
+                          </td>
+                          <td className="px-4 py-3 text-[13px] text-gray-500 dark:text-gray-400">
+                            {createdByName}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -978,13 +1329,25 @@ export default function StockOpnameDetail() {
                 <AlertTriangle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">{confirmModal.title}</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{confirmModal.description}</p>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  {confirmModal.title}
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  {confirmModal.description}
+                </p>
               </div>
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => setConfirmModal({ open: false, title: "", description: "", action: null, buttonLabel: "Confirm" })}
+                onClick={() =>
+                  setConfirmModal({
+                    open: false,
+                    title: "",
+                    description: "",
+                    action: null,
+                    buttonLabel: "Confirm",
+                  })
+                }
                 className="flex-1 rounded-2xl border border-[#ececf2] dark:border-gray-700 py-3.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all cursor-pointer"
               >
                 Cancel
@@ -992,11 +1355,20 @@ export default function StockOpnameDetail() {
               <button
                 onClick={async () => {
                   const action = confirmModal.action;
-                  setConfirmModal({ open: false, title: "", description: "", action: null, buttonLabel: "Confirm" });
+                  setConfirmModal({
+                    open: false,
+                    title: "",
+                    description: "",
+                    action: null,
+                    buttonLabel: "Confirm",
+                  });
                   if (action) await action();
                 }}
                 className="flex-1 rounded-2xl bg-gradient-to-r px-5 py-3.5 text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all cursor-pointer"
-                style={{ background: "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))" }}
+                style={{
+                  background:
+                    "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                }}
               >
                 {confirmModal.buttonLabel}
               </button>

@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
+import { getStoreProfile, updateStoreProfile } from "@/api/store";
+import useStoreProfile from "@/hooks/useStoreProfile";
 import {
   Store,
   Database,
@@ -816,19 +818,15 @@ export default function Settings() {
   const currentCat =
     categories.find((c) => c.id === activePage) ?? categories[0];
   const isReceipt = activePage === "receipt-settings";
+  const { refreshStoreProfile } = useStoreProfile();
 
   // ═══════════════════════════════════════════════════════════════════════
   // Store Profile
   // ═══════════════════════════════════════════════════════════════════════
-  const [storeProfile, setStoreProfile] = useState(() => {
-    try {
-      const saved = localStorage.getItem("swiftpos_store_profile");
-      return saved ? JSON.parse(saved) : { ...DEFAULT_STORE_PROFILE };
-    } catch {
-      return { ...DEFAULT_STORE_PROFILE };
-    }
+  const [storeProfile, setStoreProfile] = useState({
+    ...DEFAULT_STORE_PROFILE,
   });
-  const [logoPreview, setLogoPreview] = useState(storeProfile.logo || "");
+  const [logoPreview, setLogoPreview] = useState("");
   const fileInputRef = useRef(null);
 
   const handleLogoUpload = (e) => {
@@ -838,26 +836,89 @@ export default function Settings() {
       toast.error("Please select an image file");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setStoreProfile({ ...storeProfile, logo: ev.target.result });
-      setLogoPreview(ev.target.result);
-    };
-    reader.readAsDataURL(file);
+    // Keep preview using object URL for instant feedback
+    setLogoPreview(URL.createObjectURL(file));
+    // Store the actual File object for FormData upload
+    setStoreProfile((prev) => ({ ...prev, logoFile: file }));
   };
 
   const removeLogo = () => {
-    setStoreProfile({ ...storeProfile, logo: "" });
+    setStoreProfile((prev) => ({ ...prev, logo: "", logoFile: null }));
     setLogoPreview("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const saveStoreProfile = () => {
-    localStorage.setItem(
-      "swiftpos_store_profile",
-      JSON.stringify(storeProfile),
-    );
-    toast.success("Store profile saved successfully ✅");
+  // Load store profile from API on mount
+  useEffect(() => {
+    let cancelled = false;
+    getStoreProfile()
+      .then((res) => {
+        if (cancelled) return;
+        const data = res.data.data;
+        setStoreProfile({
+          name: data.name || "",
+          address: data.address || "",
+          phone: data.phone || "",
+          logo: data.logo_url || "",
+          logoFile: null,
+        });
+        setLogoPreview(data.logo_url || "");
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("Failed to load store profile", err);
+        toast.error("Failed to load store profile");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const saveStoreProfile = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("name", storeProfile.name);
+      if (storeProfile.address)
+        formData.append("address", storeProfile.address);
+      if (storeProfile.phone) formData.append("phone", storeProfile.phone);
+      if (storeProfile.logoFile) {
+        formData.append("logo", storeProfile.logoFile);
+      }
+
+      // Laravel PUT with FormData needs _method=PUT
+      formData.append("_method", "PUT");
+
+      await updateStoreProfile(formData);
+
+      // Refresh all subscribers (sidebar, dashboard, etc.)
+      await refreshStoreProfile();
+
+      // Reload profile from API to get fresh data
+      const res = await getStoreProfile();
+      const data = res.data.data;
+      setStoreProfile({
+        name: data.name || "",
+        address: data.address || "",
+        phone: data.phone || "",
+        logo: data.logo_url || "",
+        logoFile: null,
+      });
+      setLogoPreview(data.logo_url || "");
+
+      toast.success("Store profile saved successfully ✅");
+    } catch (err) {
+      const errors = err.response?.data?.errors;
+      if (errors) {
+        // Display validation errors using toast
+        Object.values(errors).forEach((msgs) => {
+          msgs.forEach((msg) => toast.error(msg));
+        });
+      } else {
+        toast.error(
+          err.response?.data?.message || "Failed to save store profile",
+        );
+      }
+    }
   };
 
   // ═══════════════════════════════════════════════════════════════════════
