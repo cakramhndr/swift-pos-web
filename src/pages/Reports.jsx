@@ -281,6 +281,7 @@ export default function Reports() {
   }, [trendGroupBy, dateRange.date_from, dateRange.date_to, fetchTrends]);
 
   // ─── Fetch low stock ───────────────────────────────────────────────
+  const [lowStockProducts, setLowStockProducts] = useState(0);
   useEffect(() => {
     (async () => {
       setLoadingStock(true);
@@ -288,8 +289,10 @@ export default function Reports() {
         const res = await getSummary();
         const data = res.data?.data ?? res.data;
         setLowStockItems(data?.low_stock_items ?? []);
+        setLowStockProducts(data?.low_stock_products ?? 0);
       } catch {
         setLowStockItems([]);
+        setLowStockProducts(0);
       } finally {
         setLoadingStock(false);
       }
@@ -298,7 +301,7 @@ export default function Reports() {
 
   // ─── Derived data ──────────────────────────────────────────────────
   const marginPercent = useMemo(() => {
-    const rev = sales.total_revenue || 0;
+    const rev = sales.net_revenue || sales.total_revenue || 0;
     const profit = sales.profit || 0;
     return rev > 0 ? (profit / rev) * 100 : 0;
   }, [sales]);
@@ -1351,7 +1354,9 @@ export default function Reports() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100">
                   <TrendingUp className="h-4 w-4 text-red-600" />
                 </div>
-                <h2 className="text-base font-bold text-gray-900 dark:text-white">Produk Terlaris</h2>
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">
+                  Produk Terlaris
+                </h2>
               </div>
               {(products.top_products || []).length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12">
@@ -1363,34 +1368,55 @@ export default function Reports() {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80 text-left text-xs text-gray-500 dark:text-gray-400">
-                        <th className="px-3 py-3 font-semibold text-center">#</th>
+                        <th className="px-3 py-3 font-semibold text-center">
+                          #
+                        </th>
                         <th className="px-3 py-3 font-semibold">Produk</th>
-                        <th className="px-3 py-3 font-semibold text-center">Qty</th>
-                        <th className="px-3 py-3 font-semibold text-right">Revenue</th>
+                        <th className="px-3 py-3 font-semibold text-center">
+                          Qty
+                        </th>
+                        <th className="px-3 py-3 font-semibold text-right">
+                          Revenue
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {(products.top_products || []).slice(0, 10).map((p, idx) => (
-                        <tr key={p.product_id || idx} className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60">
-                          <td className="px-3 py-3 text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              {idx === 0 && <span className="text-amber-500 text-xs">👑</span>}
-                              <span className="text-xs font-bold text-gray-500">#{idx + 1}</span>
-                            </div>
-                          </td>
-                          <td className="px-3 py-3">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">{p.product_name}</p>
-                          </td>
-                          <td className="px-3 py-3 text-center">
-                            <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                              {p.quantity_sold}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <span className="text-sm font-medium text-red-600">{formatRp(p.revenue)}</span>
-                          </td>
-                        </tr>
-                      ))}
+                      {(products.top_products || [])
+                        .slice(0, 10)
+                        .map((p, idx) => (
+                          <tr
+                            key={p.product_id || idx}
+                            className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60"
+                          >
+                            <td className="px-3 py-3 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                {idx === 0 && (
+                                  <span className="text-amber-500 text-xs">
+                                    👑
+                                  </span>
+                                )}
+                                <span className="text-xs font-bold text-gray-500">
+                                  #{idx + 1}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-3">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {p.product_name}
+                              </p>
+                            </td>
+                            <td className="px-3 py-3 text-center">
+                              <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                                {p.quantity_sold}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 text-right">
+                              <span className="text-sm font-medium text-red-600">
+                                {formatRp(p.revenue)}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
                 </div>
@@ -1403,7 +1429,9 @@ export default function Reports() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
                   <TrendingUp className="h-4 w-4 text-green-600" />
                 </div>
-                <h2 className="text-base font-bold text-gray-900 dark:text-white">Produk Margin Tertinggi</h2>
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">
+                  Produk Margin Tertinggi
+                </h2>
               </div>
               {topMarginProducts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12">
@@ -1415,31 +1443,52 @@ export default function Reports() {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="bg-gradient-to-r from-[#f8f8fc] dark:from-gray-800/80 to-white dark:to-gray-800/80 text-left text-xs text-gray-500 dark:text-gray-400">
-                        <th className="px-3 py-3 font-semibold text-center">#</th>
+                        <th className="px-3 py-3 font-semibold text-center">
+                          #
+                        </th>
                         <th className="px-3 py-3 font-semibold">Produk</th>
-                        <th className="px-3 py-3 font-semibold text-center">Margin %</th>
-                        <th className="px-3 py-3 font-semibold text-right">Profit</th>
+                        <th className="px-3 py-3 font-semibold text-center">
+                          Margin %
+                        </th>
+                        <th className="px-3 py-3 font-semibold text-right">
+                          Profit
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {topMarginProducts.map((p, idx) => (
-                        <tr key={p.product_id || idx} className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60">
+                        <tr
+                          key={p.product_id || idx}
+                          className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60"
+                        >
                           <td className="px-3 py-3 text-center">
                             <div className="flex items-center justify-center gap-1">
-                              {idx === 0 && <span className="text-amber-500 text-xs">👑</span>}
-                              <span className="text-xs font-bold text-gray-500">#{idx + 1}</span>
+                              {idx === 0 && (
+                                <span className="text-amber-500 text-xs">
+                                  👑
+                                </span>
+                              )}
+                              <span className="text-xs font-bold text-gray-500">
+                                #{idx + 1}
+                              </span>
                             </div>
                           </td>
                           <td className="px-3 py-3">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">{p.product_name}</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {p.product_name}
+                            </p>
                           </td>
                           <td className="px-3 py-3 text-center">
-                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${p.margin_pct >= 21 ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-800"}`}>
+                            <span
+                              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${p.margin_pct >= 21 ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-800"}`}
+                            >
                               {p.margin_pct.toFixed(1)}%
                             </span>
                           </td>
                           <td className="px-3 py-3 text-right">
-                            <span className="text-sm font-medium text-green-600">{formatRp(p.profit)}</span>
+                            <span className="text-sm font-medium text-green-600">
+                              {formatRp(p.profit)}
+                            </span>
                           </td>
                         </tr>
                       ))}
@@ -1457,6 +1506,11 @@ export default function Reports() {
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
                 Stok Menipis
+                {lowStockProducts > 0 && (
+                  <span className="ml-auto text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-full">
+                    {lowStockProducts}
+                  </span>
+                )}
               </h3>
               {loadingStock ? (
                 <div className="space-y-3 animate-pulse">
@@ -1474,27 +1528,48 @@ export default function Reports() {
                 </div>
               ) : (
                 <div className="space-y-2.5">
-                  {lowStockItems.slice(0, 5).map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2.5"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {item.name}
+                  {(() => {
+                    const displayed = lowStockItems.slice(0, 5);
+                    const remaining = lowStockItems.length - displayed.length;
+                    return (
+                      <>
+                        {displayed.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2.5"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+                              <div>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {item.name}
+                                </p>
+                                <p className="text-xs text-amber-600 dark:text-amber-400">
+                                  Sisa {item.stock || item.quantity} unit
+                                </p>
+                              </div>
+                            </div>
+                            <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                              {item.stock || item.quantity}
+                            </span>
+                          </div>
+                        ))}
+                        {remaining > 0 && (
+                          <p className="text-xs text-center text-gray-400 pt-1">
+                            +{remaining} produk lainnya
                           </p>
-                          <p className="text-xs text-amber-600 dark:text-amber-400">
-                            Sisa {item.stock || item.quantity} unit
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
-                        {item.stock || item.quantity}
-                      </span>
-                    </div>
-                  ))}
+                        )}
+                        <button
+                          onClick={() =>
+                            (window.location.href = "/products?low_stock=1")
+                          }
+                          className="mt-2 w-full text-center text-xs font-semibold text-accent hover:text-accent-dark hover:underline transition-colors cursor-pointer"
+                        >
+                          Lihat Semua →
+                        </button>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -1509,22 +1584,14 @@ export default function Reports() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Total Refund</span>
                   <span className="text-lg font-bold text-red-600 dark:text-red-400">
-                    {formatRp(0)}
+                    {formatRp(sales.total_returns || 0)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Jumlah Retur</span>
                   <span className="text-lg font-bold text-gray-900 dark:text-white">
-                    {overview.transaction_summary.cancelled || 0}
+                    {sales.total_returns_count || 0}
                   </span>
-                </div>
-                <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">Refund Rate</span>
-                    <span className="text-lg font-bold text-accent">
-                      {refundRate}%
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -1601,12 +1668,16 @@ export default function Reports() {
             </div>
 
             {(() => {
-              const sorted = [...(sales.transactions || [])].sort((a, b) => (b.total || 0) - (a.total || 0)).slice(0, topN);
+              const sorted = [...(sales.transactions || [])]
+                .sort((a, b) => (b.total || 0) - (a.total || 0))
+                .slice(0, topN);
               if (sorted.length === 0) {
                 return (
                   <div className="flex flex-col items-center justify-center py-12">
                     <Receipt className="h-8 w-8 text-gray-300 dark:text-gray-600" />
-                    <p className="mt-2 text-sm text-gray-400">No transactions for this period</p>
+                    <p className="mt-2 text-sm text-gray-400">
+                      No transactions for this period
+                    </p>
                   </div>
                 );
               }
@@ -1619,17 +1690,30 @@ export default function Reports() {
                         <th className="px-4 py-4 font-semibold">Invoice</th>
                         <th className="px-4 py-4 font-semibold">Tanggal</th>
                         <th className="px-4 py-4 font-semibold">Customer</th>
-                        <th className="px-4 py-4 font-semibold text-center">Items</th>
-                        <th className="px-4 py-4 font-semibold text-right">Total</th>
-                        <th className="px-4 py-4 font-semibold">Metode Bayar</th>
-                        <th className="px-4 py-4 font-semibold text-center">Status</th>
+                        <th className="px-4 py-4 font-semibold text-center">
+                          Items
+                        </th>
+                        <th className="px-4 py-4 font-semibold text-right">
+                          Total
+                        </th>
+                        <th className="px-4 py-4 font-semibold">
+                          Metode Bayar
+                        </th>
+                        <th className="px-4 py-4 font-semibold text-center">
+                          Status
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {sorted.map((txn, idx) => (
-                        <tr key={txn.id} className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60">
+                        <tr
+                          key={txn.id}
+                          className="border-t border-[#ececf2] dark:border-gray-700/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/60"
+                        >
                           <td className="px-4 py-4 text-xs font-bold text-accent flex items-center gap-1">
-                            {idx === 0 && <span className="text-amber-500">👑</span>}
+                            {idx === 0 && (
+                              <span className="text-amber-500">👑</span>
+                            )}
                             #{idx + 1}
                           </td>
                           <td className="px-4 py-4">
