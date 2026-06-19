@@ -1,3 +1,5 @@
+For quick context, read AI_CONTEXT.md first.
+
 # SwiftPOS
 
 ## Project Information
@@ -6,62 +8,100 @@
 
 ### Frontend
 
-- React 18
-- Vite
-- Tailwind CSS
+- React 19
+- Vite 8
+- Tailwind CSS 4
+- react-router-dom v7
+- Recharts (charts)
+- jsPDF (PDF generation)
+- Axios (HTTP client)
 
 ### Backend
 
 - Laravel 12
 - MySQL
+- PHP ^8.2
+- Laravel Sanctum (auth)
+- Spatie Laravel Permission (RBAC)
+- Spatie Laravel Activitylog
+- DomPDF (PDF generation)
+- picqer/php-barcode-generator
+
+### Current Sprint
+
+**Sprint 11 — Cash Register / Shift Management**
+Backend: BACKEND_COMPLETE
+Frontend: IN_PROGRESS
+
+### Latest Completed Sprint
+
+**Sprint 10 — Customer Return**
+Status: PRODUCTION_READY (verified in code)
 
 ---
 
-# Completed Features
+## Completed Features
 
-## Core System
+### Core System
 
-- Authentication
-- Dashboard
-- Branding
-- Audit Trail
+- Authentication (login/logout/me)
+- Dashboard (sales overview, charts, KPIs)
+- Branding (store profile/header)
+- Audit Trail (activity logs)
+- RBAC permissions (via Spatie)
 
-## Master Data
+### Master Data
 
-- Products
-- Categories
-- Customers
-- Suppliers
+- Products (CRUD, images, barcodes)
+- Product Variants
+- Categories (CRUD)
+- Customers (CRUD, quick add)
+- Suppliers (CRUD)
 
-## Inventory
+### Inventory
 
-- Inventory Management
-- Inventory Logs
-- Barcode System
-- Stock Opname
+- Inventory Management (restock, adjustment)
+- Inventory Logs (with type enum: restock, sale, adjustment, return, customer_return, stock_opname)
+- Barcode System (generation, labels)
+- Stock Opname (create, start, complete, cancel)
 
-## Procurement
+### Procurement
 
-- Purchase Orders
-- Receiving Stock
+- Purchase Orders (CRUD, cancel, PDF download)
+- Receiving Stock (partial/full)
+- Cancellation Protection (prevent receive after cancel)
 
-## Sales
+### Sales
 
-- POS Transactions
+- POS Transactions (cart, checkout, invoice, stock validation)
+- Out of Stock Protection
 
-## Returns
+### Returns
 
-- Customer Returns
+- Customer Returns (with inventory log integration)
+- Return Status tracking (no_return / partially_returned / fully_returned)
 
-## Reporting
+### Reporting
 
-- Sales Reports
-- Inventory Reports
+- Sales Reports (revenue, trends, payment methods)
+- Inventory Reports (valuation, logs)
 - Profit & Margin Reports
+- Product & Customer Analytics
+- Report access guarded by `can:view reports` permission
 
----
+### Cash Register / Shift Management (Sprint 11 — Backend)
 
-# Production Ready Features
+- `cash_register_shifts` table (migration confirmed)
+- Shift number format: SFT-YYYYMMDD-NNNN (concurrency-safe, daily reset)
+- Open/Close/Current/History API endpoints
+- Expected cash calculation: opening_cash + SUM(cash transaction totals)
+- Audit trail: SHIFT_OPENED, SHIFT_CLOSED, SHIFT_DIFFERENCE
+- `transactions.shift_id` (nullable, Phase 1 — auto-populated by TransactionController@store when an open shift exists)
+- Customer Returns excluded from cash calculation
+
+## Production Ready Features [UNVERIFIED]
+
+The following features are claimed Production Ready but have not been fully verified against all edge cases. Listed as reported:
 
 - Authentication
 - Dashboard
@@ -79,245 +119,63 @@
 - Branding
 - Audit Trail
 
----
-
-# Latest Completed Sprint
-
-## Sprint 10 — Customer Return
-
-### Completed
-
-- Customer Return Module
-- Inventory Log Integration
-- Reports Integration
-- Profit Calculation Fix
-- Margin Calculation Fix
-- Asia/Jakarta Timezone Standardization
-- Low Stock Widget Fix
-- Audit Trail Integration
-
-### Status
-
-Production Ready
-
----
-
-# Current Sprint
-
-## Sprint 11 — Cash Register / Shift Management
-
-### Objective
-
-Implement cashier shift management to improve cash accountability and daily operational control.
-
-### Audit Findings
-
-Current POS flow allows transactions without shift tracking.
-
-Missing concepts:
-
-- Cash Register
-- Shift Opening
-- Shift Closing
-- Opening Cash
-- Closing Cash
-- Cash Difference
-
-Risks:
-
-- No cash accountability
-- Difficult cash reconciliation
-- No shift-based reporting
-- Limited audit capability
-
----
-
-# Planned Scope
-
-## Database
-
-### cash_register_shifts
-
-Fields:
-
-- id
-- shift_number
-- user_id
-- opening_cash
-- closing_cash_expected
-- closing_cash_actual
-- cash_difference
-- opened_at
-- closed_at
-- status
-- notes
-- created_at
-- updated_at
-
-Status:
-
-- OPEN
-- CLOSED
-
----
-
-## Backend API
-
-### Open Shift
-
-POST /api/shifts/open
-
-### Current Shift
-
-GET /api/shifts/current
-
-### Close Shift
-
-POST /api/shifts/close
-
-### Shift History
-
-GET /api/shifts
-
----
-
-## POS Integration
-
-Additional field:
-
-sales_transactions.shift_id
-
-Flow:
-
-Active Shift
-→ POS Transaction
-→ Save shift_id
-→ Continue existing process
-
----
-
-## Validation Rules
-
-### Open Shift
-
-- User cannot open multiple active shifts.
-
-### POS Transaction
-
-- Transaction requires active shift.
-- Validation may be enabled after successful rollout.
-
-### Close Shift
-
-Expected Cash Calculation:
-
-opening_cash
-
-- cash_sales
-
-* cash_refunds
-
-Cash Difference:
-
-closing_cash_actual
-
-- closing_cash_expected
-
----
-
-## Audit Trail Events
-
-- SHIFT_OPENED
-- SHIFT_CLOSED
-- SHIFT_DIFFERENCE
-
----
-
-## Frontend
-
-### Cash Register Page
-
-Components:
-
-- Open Shift Modal
-- Current Shift Card
-- Close Shift Modal
-- Shift History Table
-
----
-
-# Implementation Order
-
-1. Audit POS Architecture
-2. Create Shift Migration
-3. Create Model & Service Layer
-4. Open Shift API
-5. Current Shift API
-6. Close Shift API
-7. Audit Trail Integration
-8. POS Integration
-9. Frontend UI
-10. End-to-End Testing
-
----
-
-# Known Issues
-
-## Pending Evaluation
+## Known Issues
 
 ### Average Cost Recalculation
 
-Example:
+Status: PLANNED
 
-Existing Stock:
-7 @ 320,000
+Example: Existing stock 7 @ 320,000 + Received 3 @ 500,000 should produce average cost 374,000. Priority backlog item.
 
-Received:
-3 @ 500,000
+### Cash Register Frontend
 
-Expected Average Cost:
-374,000
-
-Status:
-Backlog
+Status: IN_PROGRESS — Backend is complete, including automatic shift_id assignment on POS transactions (TransactionController@store). Frontend UI (Cash Register page, shift open/close modals) has not been implemented yet.
 
 ---
 
-# Roadmap
+## Roadmap Summary
 
-## Next Priority
+| Phase   | Focus                                                    | Status                                  |
+| ------- | -------------------------------------------------------- | --------------------------------------- |
+| Phase 1 | Foundation (Auth, Store, Dashboard)                      | PRODUCTION_READY                        |
+| Phase 2 | Master Data (Products, Categories, Customers, Suppliers) | PRODUCTION_READY                        |
+| Phase 3 | POS (Cart, Checkout, Invoices)                           | PRODUCTION_READY                        |
+| Phase 4 | Inventory (Logs, Stock Opname, Barcodes)                 | PRODUCTION_READY                        |
+| Phase 5 | Procurement (POs, Receiving)                             | PRODUCTION_READY                        |
+| Phase 6 | Costing (Average Cost, Valuation)                        | PRODUCTION_READY                        |
+| Phase 7 | Reports (Revenue, Profit, Analytics)                     | PRODUCTION_READY                        |
+| Phase 8 | Audit Trail                                              | PRODUCTION_READY                        |
+| Phase 9 | Cash Register / Shift Management                         | BACKEND_COMPLETE, Frontend: IN_PROGRESS |
 
-1. Cash Register / Shift Management
-2. Average Cost Recalculation
-3. Supplier Delete Protection
-4. PO PDF / Print Export
+See ROADMAP.md for full detail.
 
 ---
 
-# Development Rules
+## Next Sprint
 
-- Audit first before coding
-- Do not break existing functionality
-- Preserve UI consistency
-- Prefer atomic changes
-- Explain root cause before proposing fixes
+Sprint 12 — AI Assistant Foundation / Cash Register Frontend (tentative)
 
-## Sprint 11 — Cash Register / Shift Management
+---
 
-Status: ✅ COMPLETE
-Date: 2026-06-16
+## Maintenance Rules
 
-### Delivered
+Every time a sprint is completed:
 
-- cash_register_shifts table
-- Shift open/close/current/history API
-- transactions.shift_id (Phase 1, nullable, non-blocking)
-- Audit: SHIFT_OPENED, SHIFT_CLOSED, SHIFT_DIFFERENCE
-- Concurrency-safe shift number generation (SFT-YYYYMMDD-NNNN)
+1. Update PROJECT_STATUS.md
+2. Update SPRINT_HISTORY.md
+3. Update KNOWN_DECISIONS.md if new decisions are made
+4. Update ROADMAP.md if priorities change
+5. Update AI_CONTEXT.md if Critical Decisions, Known Constraints, or Current Sprint changed
 
-### Excluded (by design)
+A sprint is NOT considered complete until documentation is updated. Never leave documentation outdated. If a status can't be verified in code, mark it `[UNVERIFIED]` rather than guessing.
 
-- Customer Returns excluded from cash calculation (stock-only)
-- Mandatory shift validation deferred to Phase 2
+### Commit documentation together with feature code
 
-### Next: Sprint 12 — [tentative: AI Assistant Foundation]
+Never commit feature code without updating docs when sprint status changes. Documentation changes are not a separate, later commit — they ship in the same commit as the feature/sprint work they describe.
+
+```
+git add .
+git commit -m "feat: sprint 11 cash register shift management"
+```
+
+If docs and code drift apart by even one sprint, this rule has failed — fix the process, not just the docs, when that happens.
