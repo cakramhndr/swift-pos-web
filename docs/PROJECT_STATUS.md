@@ -29,14 +29,13 @@ For quick context, read AI_CONTEXT.md first.
 
 ### Current Sprint
 
-**Sprint 11 — Cash Register / Shift Management**
-Backend: BACKEND_COMPLETE
-Frontend: IN_PROGRESS
+**Sprint 12.7 — Product Insights Top 5 & Restock Priority**
+Status: PRODUCTION_READY
 
 ### Latest Completed Sprint
 
-**Sprint 10 — Customer Return**
-Status: PRODUCTION_READY (verified in code)
+**Sprint 12.7 — Product Insights Top 5 & Restock Priority**
+Status: PRODUCTION_READY
 
 ---
 
@@ -99,6 +98,34 @@ Status: PRODUCTION_READY (verified in code)
 - `transactions.shift_id` (nullable, Phase 1 — auto-populated by TransactionController@store when an open shift exists)
 - Customer Returns excluded from cash calculation
 
+### AI Assistant Foundation (Sprint 12.x — Production Ready)
+
+- `ai_conversations` table (migration completed)
+- `AiConversation` model with store/user relationships
+- Config-driven skill registry (`config/ai-skills.php`) with 4 skills: Sales Overview, Product Insights, Customer Insights, Product Condition
+- `AiService` with full pipeline: rate limiting → security policy → intent detection → data retrieval → DeepSeek summarization → conversation logging
+- `AiController` with 6 endpoints: `POST /api/ai/chat`, `GET /api/ai/history`, `GET /api/ai/conversations`, `DELETE /api/ai/conversations`, `GET /api/ai/skills`, `GET /api/ai/insights-today`
+- DeepSeek API integration (`deepseek-chat` model) with fallback handling
+- Security policy enforcement (SQL injection, prompt injection, prohibited topics protection)
+- User rate limiting (30 req/min per user)
+- AI conversation logging (all conversations stored in ai_conversations table)
+- Frontend: AI Assistant page with chat interface, quick actions, conversation history panel
+- Frontend: AI Chat Interface with markdown-like rendering, offline mode indicators, rate limit handling
+- Frontend: AI Quick Actions (5 preset action cards with gradient icons)
+- Frontend: AI Insights Panel (recent conversation history with intent-based icons)
+- Frontend: AI Insights Today panel (4 snapshot cards: Pendapatan Hari Ini, Kondisi Stok, Produk Terlaris Hari Ini, Pelanggan)
+- Frontend: "Lihat Semua" expand/collapse, "Bersihkan Riwayat" delete conversations
+- Sidebar navigation link to AI Assistant
+- `recent_activity` skill permanently retired, replaced by `product_condition`
+- `extractFilters()` fallback default periode: bulan berjalan jika tidak ada keyword periode
+- Edge case handling: "produk baru" netral note jika semua produk baru
+- Pattern mismatch fix: 7 new patterns added to `product_insights`
+- Insight Hari Ini periode fix: `today` instead of `startOfMonth()`
+- Product Insights Top 5: `top_5` field with 5 best-selling products (name, SKU, units_sold, revenue, profit)
+- Product Condition Restock Priority: `restock_priority` array sorted by urgency (out of stock first, then low stock by deficit descending)
+- Collapsible "Aksi Cepat": click heading to collapse/expand with chevron indicator and smooth animation (state resets on refresh)
+- Intent-specific prompt instruction for `product_insights` — DeepSeek explicitly instructed to render all 5 products as numbered list
+
 ## Production Ready Features [UNVERIFIED]
 
 The following features are claimed Production Ready but have not been fully verified against all edge cases. Listed as reported:
@@ -135,17 +162,18 @@ Status: IN_PROGRESS — Backend is complete, including automatic shift_id assign
 
 ## Roadmap Summary
 
-| Phase   | Focus                                                    | Status                                  |
-| ------- | -------------------------------------------------------- | --------------------------------------- |
-| Phase 1 | Foundation (Auth, Store, Dashboard)                      | PRODUCTION_READY                        |
-| Phase 2 | Master Data (Products, Categories, Customers, Suppliers) | PRODUCTION_READY                        |
-| Phase 3 | POS (Cart, Checkout, Invoices)                           | PRODUCTION_READY                        |
-| Phase 4 | Inventory (Logs, Stock Opname, Barcodes)                 | PRODUCTION_READY                        |
-| Phase 5 | Procurement (POs, Receiving)                             | PRODUCTION_READY                        |
-| Phase 6 | Costing (Average Cost, Valuation)                        | PRODUCTION_READY                        |
-| Phase 7 | Reports (Revenue, Profit, Analytics)                     | PRODUCTION_READY                        |
-| Phase 8 | Audit Trail                                              | PRODUCTION_READY                        |
-| Phase 9 | Cash Register / Shift Management                         | BACKEND_COMPLETE, Frontend: IN_PROGRESS |
+| Phase    | Focus                                                    | Status                                  |
+| -------- | -------------------------------------------------------- | --------------------------------------- |
+| Phase 1  | Foundation (Auth, Store, Dashboard)                      | PRODUCTION_READY                        |
+| Phase 2  | Master Data (Products, Categories, Customers, Suppliers) | PRODUCTION_READY                        |
+| Phase 3  | POS (Cart, Checkout, Invoices)                           | PRODUCTION_READY                        |
+| Phase 4  | Inventory (Logs, Stock Opname, Barcodes)                 | PRODUCTION_READY                        |
+| Phase 5  | Procurement (POs, Receiving)                             | PRODUCTION_READY                        |
+| Phase 6  | Costing (Average Cost, Valuation)                        | PRODUCTION_READY                        |
+| Phase 7  | Reports (Revenue, Profit, Analytics)                     | PRODUCTION_READY                        |
+| Phase 8  | Audit Trail                                              | PRODUCTION_READY                        |
+| Phase 9  | Cash Register / Shift Management                         | BACKEND_COMPLETE, Frontend: IN_PROGRESS |
+| Phase 10 | AI Assistant Foundation                                  | PRODUCTION_READY                        |
 
 See ROADMAP.md for full detail.
 
@@ -153,7 +181,7 @@ See ROADMAP.md for full detail.
 
 ## Next Sprint
 
-Sprint 12 — AI Assistant Foundation / Cash Register Frontend (tentative)
+Sprint 12.8 — AI Assistant RBAC Protection (tentative)
 
 ---
 

@@ -25,6 +25,7 @@ import Categories from "./pages/Categories";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import ActivityLogs from "./pages/ActivityLogs";
+import AiAssistant from "./pages/AiAssistant";
 
 import { Toaster } from "sonner";
 
@@ -78,6 +79,7 @@ export default function App() {
                     element={<StockOpnameDetail />}
                   />
                   <Route path="/activity-logs" element={<ActivityLogs />} />
+                  <Route path="/ai-assistant" element={<AiAssistant />} />
                   <Route path="/settings" element={<Settings />} />
                 </Routes>
                 <Toaster richColors position="top-center" />

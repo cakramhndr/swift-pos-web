@@ -91,3 +91,33 @@ Architectural decisions confirmed in code. Status values: Verified / Unverified 
 **Status:** Verified
 
 **Rationale:** Current design assumes single store. Multi-store would require store_id scoping on all queries and a store selection mechanism.
+
+---
+
+#### AI Assistant — Fallback Default Periode
+
+**Current implementation:** `extractFilters()` in `AiService.php` (line 313-316) applies a default fallback of bulan berjalan (`startOfMonth()` s/d `today`) when no date keyword is detected in the user's message. This ensures manual input like "ringkasan penjualan" without explicit period keywords returns current month data rather than unbounded (lifetime) results. Applies to `sales_overview`, `product_insights`, and `customer_insights` skills. Does NOT apply to `product_condition` (which does not use `extractFilters()`). Quick Action cards are unaffected (all send explicit period keywords).
+
+**Status:** Verified (confirmed in `app/Services/AiService.php` lines 309-316)
+
+**Rationale:** Prevents misleading unbounded queries when users type manually without period keywords. Defaulting to current month is the safest assumption for a retail POS context.
+
+---
+
+#### AI Assistant — Product Insights Top 5 Ranking
+
+**Current implementation:** `product_insights` context builder in `config/ai-skills.php` returns a `top_5` field containing the 5 best-selling products (by quantity sold) for the queried period. Each product includes: name, SKU, units_sold, revenue, profit. The `buildPrompt()` method in `AiService.php` includes an intent-specific instruction for `product_insights` that explicitly tells DeepSeek to render all 5 products as a numbered list.
+
+**Status:** Verified (confirmed in `config/ai-skills.php` lines 197-198, `app/Services/AiService.php` lines 378-384)
+
+**Rationale:** Single best-seller does not provide sufficient business insight. Top 5 gives store owners a more complete picture of product performance.
+
+---
+
+#### AI Assistant — Estimasi Hari Habis (Deferred)
+
+**Current implementation:** Not implemented. The `product_condition` skill does NOT include any "estimated days until empty" or predictive stock depletion logic.
+
+**Status:** Deferred
+
+**Rationale:** Requires a predictive model and risks producing inaccurate estimates for new products or irregular sales patterns. Will be reconsidered when sales velocity data is more mature.

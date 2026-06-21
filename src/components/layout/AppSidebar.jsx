@@ -14,6 +14,7 @@ import {
   Users2,
   Settings,
   Activity,
+  Bot,
   Moon,
   Sun,
   ChevronDown,
@@ -43,6 +44,7 @@ const analyticsNav = [
 ];
 
 const systemNav = [
+  { to: "/ai-assistant", icon: Bot, label: "AI Assistant" },
   { to: "/settings", icon: Settings, label: "Settings" },
   { to: "/activity-logs", icon: Activity, label: "Activity Logs" },
 ];

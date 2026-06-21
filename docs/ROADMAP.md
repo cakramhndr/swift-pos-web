@@ -1,6 +1,6 @@
 # SwiftPOS Roadmap
 
-Last Updated: 2026-06-19
+Last Updated: 2026-06-22
 
 ---
 
@@ -120,7 +120,7 @@ Status: PRODUCTION_READY
 - [x] Purchase History
 - [x] Sales History
 
-# Phase 9 — Cash Register / Shift Management
+# Phase 9 — Cash Register / Shift Management (continued in current sprint)
 
 Backend: BACKEND_COMPLETE
 Frontend: IN_PROGRESS
@@ -140,11 +140,52 @@ Frontend: IN_PROGRESS
 
 ---
 
+# Phase 10 — AI Assistant Foundation
+
+Status: PRODUCTION_READY
+
+- [x] `ai_conversations` table (migration completed)
+- [x] `AiConversation` model with store/user relationships
+- [x] Config-driven skill registry (`config/ai-skills.php`) with 4 skills: `sales_overview`, `product_insights`, `customer_insights`, `product_condition`
+- [x] `AiService` with full pipeline (rate limiting → security policy → intent detection → data retrieval → DeepSeek summarization → conversation logging)
+- [x] `AiController` with 6 endpoints (chat, history, conversations, delete conversations, skills, insights-today)
+- [x] DeepSeek API integration (`deepseek-chat` model) with fallback handling
+- [x] Security policy enforcement (SQL injection, prompt injection, prohibited topics)
+- [x] User rate limiting (30 req/min per user)
+- [x] AI conversation logging
+- [x] Frontend: AI Assistant page with chat interface, quick actions, conversation history panel
+- [x] Frontend: AI Chat Interface with markdown-like rendering, offline mode indicators, rate limit handling
+- [x] Frontend: AI Quick Actions (5 preset action cards with gradient icons)
+- [x] Frontend: AI Insights Panel (recent conversation history with intent-based icons)
+- [x] Frontend: AI Insights Today panel (4 snapshot cards)
+- [x] Frontend: "Lihat Semua" / "Bersihkan Riwayat" buttons
+- [x] Sidebar navigation link to AI Assistant
+- [x] `product_condition` skill replacing deprecated `recent_activity`
+- [x] `extractFilters()` fallback default periode (bulan berjalan)
+- [x] Edge case "produk baru" netral note
+- [x] Pattern mismatch fix: 7 new patterns to `product_insights`
+- [x] Insight Hari Ini periode fix: `today` instead of `startOfMonth()`
+
+# Sprint 12.7 — Product Insights Top 5 & Restock Priority
+
+Status: COMPLETED
+
+- [x] Product Insights Top 5 ranking (top_5 field in context builder)
+- [x] Product Condition Restock Priority (restock_priority array with priority 1/2)
+- [x] Collapsible Quick Actions (click heading to collapse/expand)
+- [x] Intent-specific prompt instruction for product_insights (render all 5 products)
+- [x] Manual UI verification completed
+
+# Sprint 12.8 — AI Assistant RBAC Protection
+
+Status: PLANNED
+
 # Current Priorities
 
 ## High Priority
 
 - [ ] Cash Register Frontend UI
+- [ ] Sprint 12.8 — AI Assistant RBAC Protection
 - [ ] Print PO using generated PDF (replace window.print)
 - [ ] Export Activity Logs
 - [ ] Export Inventory Logs

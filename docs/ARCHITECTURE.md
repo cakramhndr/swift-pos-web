@@ -32,25 +32,26 @@
 
 Only modules with confirmed routes + controllers + models are listed:
 
-| Module           | Routes                                                                                                  | Controller                | Model             | Status           |
-| ---------------- | ------------------------------------------------------------------------------------------------------- | ------------------------- | ----------------- | ---------------- |
-| Auth             | `POST /login`, `POST /logout`, `GET /me`                                                                | AuthController            | User              | PRODUCTION_READY |
-| Products         | CRUD at `/api/products`                                                                                 | ProductController         | Product           | PRODUCTION_READY |
-| Categories       | CRUD at `/api/categories`                                                                               | CategoryController        | Category          | PRODUCTION_READY |
-| Customers        | CRUD at `/api/customers`                                                                                | CustomerController        | Customer          | PRODUCTION_READY |
-| Suppliers        | CRUD at `/api/suppliers`                                                                                | SupplierController        | Supplier          | PRODUCTION_READY |
-| Transactions     | CRUD at `/api/transactions`                                                                             | TransactionController     | Transaction       | PRODUCTION_READY |
-| Dashboard        | `GET /api/dashboard`                                                                                    | DashboardController       | —                 | PRODUCTION_READY |
-| Reports          | `GET /api/reports/*`                                                                                    | ReportController          | —                 | PRODUCTION_READY |
-| Purchase Orders  | CRUD + receive/cancel/pdf at `/api/purchase-orders/*`                                                   | PurchaseOrderController   | PurchaseOrder     | PRODUCTION_READY |
-| Stock Adjustment | `POST /api/stock-adjustments`                                                                           | StockAdjustmentController | —                 | PRODUCTION_READY |
-| Stock Opname     | CRUD + start/complete/cancel at `/api/stock-opnames/*`                                                  | StockOpnameController     | StockOpname       | PRODUCTION_READY |
-| Inventory Logs   | `GET /api/inventory-logs`                                                                               | InventoryLogController    | InventoryLog      | PRODUCTION_READY |
-| Sales Returns    | CRUD at `/api/sales-returns`                                                                            | SalesReturnController     | SalesReturn       | PRODUCTION_READY |
-| Store Profile    | `GET/PUT /api/store/profile`                                                                            | StoreController           | Store             | PRODUCTION_READY |
-| Barcode          | `GET /api/products/{id}/barcode`                                                                        | ProductBarcodeController  | —                 | PRODUCTION_READY |
-| Activity Logs    | `GET /api/activity-logs`                                                                                | ActivityLogController     | ActivityLog       | PRODUCTION_READY |
-| Shift Management | `POST /api/shifts/open`, `GET /api/shifts/current`, `POST /api/shifts/close`, `GET /api/shifts/history` | ShiftController           | CashRegisterShift | BACKEND_COMPLETE |
+| Module           | Routes                                                                                                                                                      | Controller                | Model             | Status           |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | ----------------- | ---------------- |
+| Auth             | `POST /login`, `POST /logout`, `GET /me`                                                                                                                    | AuthController            | User              | PRODUCTION_READY |
+| Products         | CRUD at `/api/products`                                                                                                                                     | ProductController         | Product           | PRODUCTION_READY |
+| Categories       | CRUD at `/api/categories`                                                                                                                                   | CategoryController        | Category          | PRODUCTION_READY |
+| Customers        | CRUD at `/api/customers`                                                                                                                                    | CustomerController        | Customer          | PRODUCTION_READY |
+| Suppliers        | CRUD at `/api/suppliers`                                                                                                                                    | SupplierController        | Supplier          | PRODUCTION_READY |
+| Transactions     | CRUD at `/api/transactions`                                                                                                                                 | TransactionController     | Transaction       | PRODUCTION_READY |
+| Dashboard        | `GET /api/dashboard`                                                                                                                                        | DashboardController       | —                 | PRODUCTION_READY |
+| Reports          | `GET /api/reports/*`                                                                                                                                        | ReportController          | —                 | PRODUCTION_READY |
+| Purchase Orders  | CRUD + receive/cancel/pdf at `/api/purchase-orders/*`                                                                                                       | PurchaseOrderController   | PurchaseOrder     | PRODUCTION_READY |
+| Stock Adjustment | `POST /api/stock-adjustments`                                                                                                                               | StockAdjustmentController | —                 | PRODUCTION_READY |
+| Stock Opname     | CRUD + start/complete/cancel at `/api/stock-opnames/*`                                                                                                      | StockOpnameController     | StockOpname       | PRODUCTION_READY |
+| Inventory Logs   | `GET /api/inventory-logs`                                                                                                                                   | InventoryLogController    | InventoryLog      | PRODUCTION_READY |
+| Sales Returns    | CRUD at `/api/sales-returns`                                                                                                                                | SalesReturnController     | SalesReturn       | PRODUCTION_READY |
+| Store Profile    | `GET/PUT /api/store/profile`                                                                                                                                | StoreController           | Store             | PRODUCTION_READY |
+| Barcode          | `GET /api/products/{id}/barcode`                                                                                                                            | ProductBarcodeController  | —                 | PRODUCTION_READY |
+| Activity Logs    | `GET /api/activity-logs`                                                                                                                                    | ActivityLogController     | ActivityLog       | PRODUCTION_READY |
+| Shift Management | `POST /api/shifts/open`, `GET /api/shifts/current`, `POST /api/shifts/close`, `GET /api/shifts/history`                                                     | ShiftController           | CashRegisterShift | BACKEND_COMPLETE |
+| AI Assistant     | `POST /api/ai/chat`, `GET /api/ai/history`, `GET /api/ai/conversations`, `GET /api/ai/skills`, `GET /api/ai/insights-today`, `DELETE /api/ai/conversations` | AiController              | AiConversation    | PRODUCTION_READY |
 
 ---
 
@@ -83,6 +84,7 @@ Only modules with confirmed routes + controllers + models are listed:
 | stock_opnames        | store_id → stores                   | belongsTo            | —                                  |
 | stock_opname_items   | stock_opname_id → stock_opnames     | belongsTo            | —                                  |
 | store                | —                                   | singleton            | One store per app (current design) |
+| ai_conversations     | store_id → stores, user_id → users  | belongsTo (both)     | Cascade on delete for both         |
 
 ---
 
@@ -133,6 +135,48 @@ Only modules with confirmed routes + controllers + models are listed:
    - Logs SHIFT_CLOSED and SHIFT_DIFFERENCE (if non-zero) audit events
 
 ---
+
+## AI Assistant Flow (Sprint 12.x)
+
+### Chat Flow (`POST /api/ai/chat`)
+
+1. **User sends message** → `POST /api/ai/chat` (AiController@chat)
+2. **Rate limit check** → Cache-based (30 req/min per user)
+3. **Security policy check** → Scans for SQL injection, prompt injection, prohibited topics
+4. **Intent detection** → Matches user message patterns against config-driven skill registry (`config/ai-skills.php`)
+5. **Data retrieval** → If skill matched, executes predefined read-only data source callback (no LLM-generated SQL)
+6. **Context builder** → Raw data from skill is serialized as JSON context
+7. **Intent-specific prompt rules** → `buildPrompt()` in `AiService.php` appends formatting instructions based on detected intent:
+   - Generic: "Jawab pertanyaan pengguna menggunakan data konteks di atas"
+   - `product_insights`: Additional instruction to display ALL 5 products from `top_5` as numbered list (1-5) with name, SKU, units sold, revenue, profit
+   - Other skills use generic instruction only (no intent-specific overrides)
+8. **DeepSeek summarization** → Sends complete prompt with context data + intent-specific rules to DeepSeek API (`deepseek-chat` model, with fallback if unavailable)
+9. **Conversation logging** → Stores full interaction in `ai_conversations` table (silent-fail on error)
+10. **Frontend rendering** → Chat interface renders response with offline/fallback indicators
+
+### Insights Today Flow (`GET /api/ai/insights-today`)
+
+1. **Frontend requests insights** → `GET /api/ai/insights-today` (AiController@insightsToday)
+2. **Cache check** → 20-min cache (`ai_daily_insights_store_{id}`) returned if fresh
+3. **Data aggregation** → Reuses skill data sources from skill registry:
+   - Pendapatan: `sales_overview` with `today → today` filter
+   - Kondisi Stok: `product_condition` with no date filter (snapshot)
+   - Produk Terlaris: `product_insights` with `today → today` filter
+   - Pelanggan: `customer_insights` with no date filter (lifetime accumulation)
+4. **Response** → 4 structured insight cards, no AI summarization (template-based)
+
+### Skill Registry
+
+4 active skills in `config/ai-skills.php`:
+
+| Skill               | Label               | Description                                            |
+| ------------------- | ------------------- | ------------------------------------------------------ |
+| `sales_overview`    | Ringkasan Penjualan | Revenue, profit, margin, transaction count, items sold |
+| `product_insights`  | Insight Produk      | Per-product sales: quantity, revenue, profit           |
+| `customer_insights` | Insight Pelanggan   | Top customers by spend, total customer count           |
+| `product_condition` | Kondisi Produk      | Stock status, low stock, out of stock, dead stock, new |
+
+The old `recent_activity` skill is permanently retired and must NOT be reused.
 
 ## Key Files Reference
 
