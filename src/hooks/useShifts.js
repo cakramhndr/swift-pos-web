@@ -1,5 +1,10 @@
 import { useState, useCallback } from "react";
-import { openShift, getCurrentShift, closeShift } from "@/api/shifts";
+import {
+  openShift,
+  getCurrentShift,
+  closeShift,
+  getShiftHistory,
+} from "@/api/shifts";
 
 /**
  * useShifts — manages shift state (current shift + open shift).
@@ -16,6 +21,10 @@ export default function useShifts() {
   const [currentShift, setCurrentShift] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [shiftHistory, setShiftHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyMeta, setHistoryMeta] = useState(null);
 
   const fetchCurrentShift = useCallback(async () => {
     setLoading(true);
@@ -79,12 +88,38 @@ export default function useShifts() {
     }
   }, []);
 
+  const fetchShiftHistory = useCallback(async (params = {}) => {
+    setHistoryLoading(true);
+
+    try {
+      const res = await getShiftHistory(params);
+      const body = res.data;
+
+      setShiftHistory(body.data ?? []);
+      setHistoryMeta(body.meta ?? null);
+
+      return { success: true, data: body.data, meta: body.meta };
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || "Failed to load shift history";
+      setShiftHistory([]);
+      setHistoryMeta(null);
+      return { success: false, message };
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
   return {
     currentShift,
     loading,
     error,
+    shiftHistory,
+    historyLoading,
+    historyMeta,
     fetchCurrentShift,
     handleOpenShift,
     handleCloseShift,
+    fetchShiftHistory,
   };
 }

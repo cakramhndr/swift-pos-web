@@ -2,20 +2,41 @@ import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import useShifts from "@/hooks/useShifts";
 import ShiftStatusCard from "@/components/shifts/ShiftStatusCard";
+import ShiftHistoryTable from "@/components/shifts/ShiftHistoryTable";
 import OpenShiftModal from "@/components/shifts/OpenShiftModal";
 import CloseShiftModal from "@/components/shifts/CloseShiftModal";
-import { Clock, CircleDollarSign } from "lucide-react";
+import { Clock, CircleDollarSign, History } from "lucide-react";
 
 export default function CashRegister() {
-  const { currentShift, loading, fetchCurrentShift, handleOpenShift } =
-    useShifts();
+  const {
+    currentShift,
+    loading,
+    shiftHistory,
+    historyLoading,
+    historyMeta,
+    fetchCurrentShift,
+    handleOpenShift,
+    fetchShiftHistory,
+  } = useShifts();
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("active");
+
+  const tabs = [
+    { id: "active", label: "Shift Aktif", icon: CircleDollarSign },
+    { id: "history", label: "Riwayat Shift", icon: History },
+  ];
 
   useEffect(() => {
     fetchCurrentShift();
   }, [fetchCurrentShift]);
+
+  useEffect(() => {
+    if (activeTab === "history") {
+      fetchShiftHistory({ page: 1 });
+    }
+  }, [activeTab, fetchShiftHistory]);
 
   const onSubmitOpenShift = useCallback(
     async (openingCash) => {
@@ -39,6 +60,20 @@ export default function CashRegister() {
     setShowCloseModal(false);
     await fetchCurrentShift();
   }, [fetchCurrentShift]);
+
+  const handleHistoryFilter = useCallback(
+    async (filters) => {
+      await fetchShiftHistory({ ...filters, page: 1 });
+    },
+    [fetchShiftHistory],
+  );
+
+  const handleHistoryPageChange = useCallback(
+    async (page) => {
+      await fetchShiftHistory({ page });
+    },
+    [fetchShiftHistory],
+  );
 
   return (
     <div className="space-y-6">
@@ -67,81 +102,117 @@ export default function CashRegister() {
         </div>
       </div>
 
-      {/* ─── Loading State ─────────────────────────────────────────────── */}
-      {loading && !currentShift && (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin h-8 w-8 border-4 border-accent border-t-transparent rounded-full" />
-        </div>
-      )}
+      {/* ─── Tabs ─────────────────────────────────────────────────────── */}
+      <div className="flex gap-1 rounded-2xl bg-gray-100 dark:bg-gray-800/60 p-1 w-fit">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
+                activeTab === tab.id
+                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
 
-      {/* ─── Active Shift State ────────────────────────────────────────── */}
-      {!loading && currentShift && (
-        <div className="space-y-6">
-          <ShiftStatusCard shift={currentShift} />
+      {/* ─── Tab Content ──────────────────────────────────────────────── */}
+      {activeTab === "active" && (
+        <>
+          {/* ─── Loading State ───────────────────────────────────────────── */}
+          {loading && !currentShift && (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin h-8 w-8 border-4 border-accent border-t-transparent rounded-full" />
+            </div>
+          )}
 
-          <div className="rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 border border-accent/30">
-                  <Clock className="h-5 w-5 text-accent" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+          {/* ─── Active Shift State ──────────────────────────────────────── */}
+          {!loading && currentShift && (
+            <div className="space-y-6">
+              <ShiftStatusCard shift={currentShift} />
+
+              <div className="rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 border border-accent/30">
+                      <Clock className="h-5 w-5 text-accent" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        Tutup Shift
+                      </p>
+                      <p className="text-xs text-gray-400 dark:text-gray-400">
+                        Tutup shift dan hitung selisih kas
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowCloseModal(true)}
+                    className="rounded-2xl px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                    style={{
+                      background:
+                        "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                    }}
+                  >
                     Tutup Shift
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-400">
-                    Tutup shift dan hitung selisih kas
-                  </p>
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={() => setShowCloseModal(true)}
-                className="rounded-2xl px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+            </div>
+          )}
+
+          {/* ─── No Active Shift State ───────────────────────────────────── */}
+          {!loading && !currentShift && (
+            <div className="rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
+              <div
+                className="h-1 bg-gradient-to-r"
                 style={{
                   background:
-                    "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                    "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
                 }}
-              >
-                Tutup Shift
-              </button>
+              />
+              <div className="p-12 flex flex-col items-center justify-center text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50 mb-4">
+                  <CircleDollarSign className="h-8 w-8 text-gray-400 dark:text-gray-400" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  Belum ada shift aktif
+                </h2>
+                <p className="text-sm text-gray-400 dark:text-gray-400 mb-6 max-w-md">
+                  Buka shift untuk mulai mencatat transaksi kasir. Pastikan kas
+                  awal sudah sesuai.
+                </p>
+                <button
+                  onClick={() => setShowOpenModal(true)}
+                  className="rounded-2xl px-8 py-3 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                  style={{
+                    background:
+                      "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                  }}
+                >
+                  Buka Shift
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
 
-      {/* ─── No Active Shift State ─────────────────────────────────────── */}
-      {!loading && !currentShift && (
-        <div className="rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
-          <div
-            className="h-1 bg-gradient-to-r"
-            style={{
-              background:
-                "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
-            }}
-          />
-          <div className="p-12 flex flex-col items-center justify-center text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50 mb-4">
-              <CircleDollarSign className="h-8 w-8 text-gray-400 dark:text-gray-400" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Belum ada shift aktif
-            </h2>
-            <p className="text-sm text-gray-400 dark:text-gray-400 mb-6 max-w-md">
-              Buka shift untuk mulai mencatat transaksi kasir. Pastikan kas awal
-              sudah sesuai.
-            </p>
-            <button
-              onClick={() => setShowOpenModal(true)}
-              className="rounded-2xl px-8 py-3 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
-              style={{
-                background:
-                  "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
-              }}
-            >
-              Buka Shift
-            </button>
-          </div>
-        </div>
+      {activeTab === "history" && (
+        <ShiftHistoryTable
+          shifts={shiftHistory}
+          loading={historyLoading}
+          meta={historyMeta}
+          onFilter={handleHistoryFilter}
+          onPageChange={handleHistoryPageChange}
+        />
       )}
 
       {/* ─── Open Shift Modal ──────────────────────────────────────────── */}
