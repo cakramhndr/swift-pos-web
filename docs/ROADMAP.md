@@ -120,22 +120,27 @@ Status: PRODUCTION_READY
 - [x] Purchase History
 - [x] Sales History
 
-# Phase 9 — Cash Register / Shift Management (continued in current sprint)
+# Phase 9 — Cash Register / Shift Management
 
-Backend: BACKEND_COMPLETE
-Frontend: IN_PROGRESS
+Status: PRODUCTION_READY
 
 - [x] `cash_register_shifts` table with shift_number, opening/closing cash, status
 - [x] Shift number generation (SFT-YYYYMMDD-NNNN, concurrency-safe)
 - [x] Open Shift API (`POST /api/shifts/open`)
-- [x] Current Shift API (`GET /api/shifts/current`)
+- [x] Current Shift API (`GET /api/shifts/current`) — enriched with cash_total, transaction_count, closing_cash_expected
 - [x] Close Shift API (`POST /api/shifts/close`)
 - [x] Shift History API (`GET /api/shifts/history`)
 - [x] Expected cash calculation: opening_cash + SUM(cash transactions)
 - [x] Audit trail: SHIFT_OPENED, SHIFT_CLOSED, SHIFT_DIFFERENCE
 - [x] `transactions.shift_id` column added (nullable, Phase 1 — auto-populated by TransactionController@store when an open shift exists)
-- [ ] Frontend Cash Register page with shift management UI (open/close modals, shift history table)
-- [ ] POS checkout UI: display active shift to cashier, block/warn when no shift is open
+- [x] `manage shifts` permission with RBAC (Owner, Admin, Kasir)
+- [x] `view products` permission for Kasir POS access
+- [x] Frontend Cash Register page with Open Shift modal
+- [x] Frontend Close Shift modal with expected cash preview, actual cash input, difference preview, notes
+- [x] Frontend Close Shift confirmation dialog
+- [x] Frontend ESC key support for modal dismissal
+- [x] POS checkout UI: shift indicator and warning banner in Transactions page
+- [ ] Shift History table (Sprint 11.4)
 - [ ] Mandatory shift validation (Phase 2 — require open shift before allowing POS transactions)
 
 ---
@@ -184,7 +189,7 @@ Status: PLANNED
 
 ## High Priority
 
-- [ ] Cash Register Frontend UI
+- [ ] Sprint 11.4 — Shift History (list, detail, date filters)
 - [ ] Sprint 12.8 — AI Assistant RBAC Protection
 - [ ] Print PO using generated PDF (replace window.print)
 - [ ] Export Activity Logs

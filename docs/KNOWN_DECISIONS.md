@@ -121,3 +121,33 @@ Architectural decisions confirmed in code. Status values: Verified / Unverified 
 **Status:** Deferred
 
 **Rationale:** Requires a predictive model and risks producing inaccurate estimates for new products or irregular sales patterns. Will be reconsidered when sales velocity data is more mature.
+
+---
+
+#### Shift Cash Calculation — Customer Returns Not Deducted
+
+**Current implementation:** `ShiftService::closeShift()` and `ShiftService::getShiftCashSummary()` calculate `closing_cash_expected` as `opening_cash + SUM(completed cash transactions)`. Customer returns (SalesReturn records) are NOT deducted from the expected cash total.
+
+**Status:** Accepted Limitation (confirmed in `app/Services/ShiftService.php` lines 119-129)
+
+**Rationale:** The Sales Return module (Sprint 10) tracks stock-only returns (InventoryLog type: `customer_return`) without cash refund transactions. Since returns do not create negative transaction records, they do not reduce the cash total. Full return/cash integration is deferred to Sprint 11.5.
+
+---
+
+#### Shift Closure UX — Confirmation Required
+
+**Current implementation:** Close Shift requires a two-step confirmation: (1) fill form with actual cash and notes, (2) confirm in a dialog showing expected cash, actual cash, and difference. Executed via `POST /api/shifts/close`.
+
+**Status:** Verified (confirmed in `src/components/shifts/CloseShiftModal.jsx`)
+
+**Rationale:** Shift closure is a final, irreversible operation (status changes to CLOSED). The confirmation dialog prevents accidental closures.
+
+---
+
+#### ESC Key Support — Modal Dismissal
+
+**Current implementation:** `CloseShiftModal` uses a `useEffect` with `keydown` event listener. ESC first closes the confirmation dialog (returns to form), then on a second press closes the main modal. Disabled during API submission.
+
+**Status:** Verified (confirmed in `src/components/shifts/CloseShiftModal.jsx`)
+
+**Rationale:** Standard UX pattern for modal dismissal. Prevents accidental data loss during active API calls.

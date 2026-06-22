@@ -44,8 +44,7 @@ Status: PRODUCTION_READY
 
 ## Sprint 11 — Cash Register / Shift Management
 
-Backend: BACKEND_COMPLETE
-Frontend: IN_PROGRESS
+Status: PRODUCTION_READY
 
 - `cash_register_shifts` table (migration confirmed)
 - Shift number format: SFT-YYYYMMDD-NNNN (concurrency-safe, daily reset via pessimistic locking)
@@ -59,6 +58,103 @@ Frontend: IN_PROGRESS
 - Customer Returns excluded from cash calculation (stock-only)
 - Mandatory shift validation deferred to Phase 2
 - Frontend UI not yet implemented (no Cash Register page, no shift modals)
+
+## Sprint 11.1 — Cash Register Frontend Audit
+
+Status: COMPLETED
+
+- Full codebase audit of Cash Register functionality
+- Backend implementation verified: models, services, controllers, migrations, routes
+- Transaction integration verified: shift_id auto-assignment, non-blocking behavior confirmed
+- Frontend gap analysis: 0% complete, no existing UI components
+- Route security audit: auth:sanctum only, no permission middleware
+- MVP completion plan documented
+- Sprint dependency analysis: no hard blockers on AI or Dashboard sprints
+
+## Sprint 11.2 — Cash Register Frontend (Open Shift + Authorization)
+
+Status: PRODUCTION_READY
+
+### Backend Authorization
+
+- `manage shifts` permission added to RolePermissionSeeder (idempotent)
+- Assigned to Owner, Admin, Kasir roles
+- Gudang and Accounting excluded
+- All 4 shift routes protected with `->middleware('can:manage shifts')`
+
+### Frontend
+
+- `src/api/shifts.js` — API module with openShift, getCurrentShift, closeShift, getShiftHistory
+- `src/hooks/useShifts.js` — Shift state management hook
+- `src/pages/CashRegister.jsx` — Cash Register page with active/inactive shift states
+- `src/components/shifts/OpenShiftModal.jsx` — Open shift modal with opening cash input
+- `src/components/shifts/ShiftStatusCard.jsx` — Read-only shift status display
+- Route added: `/cash-register`
+- Sidebar navigation with permission gating (manage shifts)
+- Transactions.jsx integration: warning banner, shift indicator (additive only, no refactor)
+
+### Bug Fixes
+
+- Authentication: sidebar user display was hardcoded — fixed to use AuthContext
+- Logout: button had no onClick handler — fixed
+- Kasir Products 403: added `view products` permission, updated ProductPolicy
+- Login error toast: Toaster moved to root level (was inside protected layout)
+
+## Sprint 11.2.1 — Shift Summary API Enhancement
+
+Status: PRODUCTION_READY
+
+- Extracted `ShiftService::getShiftCashSummary(CashRegisterShift $shift): array` as single source of truth
+- Formula: `opening_cash + SUM(completed cash transactions)` — identical to closeShift()
+- Refactored `closeShift()` to delegate to `getShiftCashSummary()`
+- Enriched `GET /api/shifts/current` response with:
+  - `cash_total` — sum of completed cash transactions
+  - `transaction_count` — count of completed cash transactions
+  - `closing_cash_expected` — opening_cash + cash_total
+- No new routes, endpoints, permissions, or database changes
+- Zero-transaction shift returns `cash_total: 0, transaction_count: 0, closing_cash_expected: opening_cash`
+
+## Sprint 11.3 — Close Shift UI
+
+Status: PRODUCTION_READY
+
+- `src/components/shifts/CloseShiftModal.jsx` — Close shift modal with:
+  - Read-only summary: Kas Awal, Total Transaksi Cash, Total Cash Masuk, Kas Diharapkan
+  - Kas Aktual input (required, numeric, min:0)
+  - Selisih preview (display only, realtime, green/red color rules)
+  - Catatan field (optional, max 1000 chars)
+- CashRegister.jsx: "Tutup Shift" button enabled, integrated with CloseShiftModal
+- After close: toast → fetchCurrentShift() → currentShift = null → empty state renders
+- No backend changes, no new routes, no new permissions
+
+## Sprint 11.3.1 — Close Shift Refresh Hotfix
+
+Status: PRODUCTION_READY
+
+- Root cause: `onSubmitCloseShift` was calling `handleCloseShift()` a second time after CloseShiftModal already closed the shift
+- Fix: `onSubmitCloseShift` now only shows toast + calls `fetchCurrentShift()` — no duplicate API call
+- Cash Register immediately returns to "Belum ada shift aktif" state after successful close
+- No page reload required
+
+## Sprint 11.3.2 — Close Shift Confirmation Dialog
+
+Status: PRODUCTION_READY
+
+- Added confirmation step before executing close shift
+- Confirmation dialog displays: Kas Diharapkan, Kas Aktual, Selisih
+- "Batal" returns to form, "Ya, Tutup Shift" executes single POST /api/shifts/close
+- Follows existing project confirmation dialog pattern (Products delete confirm)
+- No duplicate API calls, existing validation and error handling preserved
+
+## Sprint 11.3.3 — ESC Key Support
+
+Status: PRODUCTION_READY
+
+- ESC closes confirmation dialog (returns to form)
+- ESC closes parent modal when confirmation is not open
+- ESC disabled during submission (loading state)
+- Event listener properly cleaned up on unmount
+- No memory leaks, no duplicate listeners
 
 ## Sprint 12 — AI Assistant Foundation
 
