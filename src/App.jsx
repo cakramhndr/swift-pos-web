@@ -26,6 +26,7 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import ActivityLogs from "./pages/ActivityLogs";
 import AiAssistant from "./pages/AiAssistant";
+import CashRegister from "./pages/CashRegister";
 
 import { Toaster } from "sonner";
 
@@ -34,60 +35,72 @@ export default function App() {
   useAppearance();
 
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
+    <>
+      <Toaster richColors position="top-center" />
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
 
-      {/* Protected routes (sidebar layout) */}
-      <Route
-        path="/*"
-        element={
-          <ProtectedRoute>
-            <div className="flex min-h-screen w-full bg-[#f7f8fa] dark:bg-gray-900">
-              <AppSidebar />
-              <main className="flex-1 ml-[260px] p-7 lg:p-10 max-w-[1600px]">
-                <Routes>
-                  <Route index element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/products" element={<Products />} />
-                  {/* Specific product routes BEFORE /products/:id */}
-                  <Route path="/products/:id/edit" element={<ProductEdit />} />
-                  <Route path="/products/:id" element={<ProductDetail />} />
-                  <Route path="/transactions" element={<Transactions />} />
-                  <Route path="/customers" element={<Customers />} />
-                  <Route path="/inventory" element={<Inventory />} />
-                  <Route path="/inventory-logs" element={<InventoryLogs />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="/suppliers" element={<Suppliers />} />
-                  <Route path="/purchase-orders" element={<PurchaseOrders />} />
-                  {/* Specific purchase-order routes BEFORE /purchase-orders/:id */}
-                  <Route
-                    path="/purchase-orders/:id/edit"
-                    element={<PurchaseOrderEdit />}
-                  />
-                  <Route
-                    path="/purchase-orders/:id"
-                    element={<PurchaseOrderDetail />}
-                  />
-                  <Route path="/categories" element={<Categories />} />
-                  <Route path="/suppliers/:id" element={<SupplierDetail />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/stock-opnames" element={<StockOpnames />} />
-                  <Route
-                    path="/stock-opnames/:id"
-                    element={<StockOpnameDetail />}
-                  />
-                  <Route path="/activity-logs" element={<ActivityLogs />} />
-                  <Route path="/ai-assistant" element={<AiAssistant />} />
-                  <Route path="/settings" element={<Settings />} />
-                </Routes>
-                <Toaster richColors position="top-center" />
-              </main>
-            </div>
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+        {/* Protected routes (sidebar layout) */}
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <div className="flex min-h-screen w-full bg-[#f7f8fa] dark:bg-gray-900">
+                <AppSidebar />
+                <main className="flex-1 ml-[260px] p-7 lg:p-10 max-w-[1600px]">
+                  <Routes>
+                    <Route
+                      index
+                      element={<Navigate to="/dashboard" replace />}
+                    />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/products" element={<Products />} />
+                    {/* Specific product routes BEFORE /products/:id */}
+                    <Route
+                      path="/products/:id/edit"
+                      element={<ProductEdit />}
+                    />
+                    <Route path="/products/:id" element={<ProductDetail />} />
+                    <Route path="/transactions" element={<Transactions />} />
+                    <Route path="/customers" element={<Customers />} />
+                    <Route path="/inventory" element={<Inventory />} />
+                    <Route path="/inventory-logs" element={<InventoryLogs />} />
+                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/suppliers" element={<Suppliers />} />
+                    <Route
+                      path="/purchase-orders"
+                      element={<PurchaseOrders />}
+                    />
+                    {/* Specific purchase-order routes BEFORE /purchase-orders/:id */}
+                    <Route
+                      path="/purchase-orders/:id/edit"
+                      element={<PurchaseOrderEdit />}
+                    />
+                    <Route
+                      path="/purchase-orders/:id"
+                      element={<PurchaseOrderDetail />}
+                    />
+                    <Route path="/categories" element={<Categories />} />
+                    <Route path="/suppliers/:id" element={<SupplierDetail />} />
+                    <Route path="/analytics" element={<Analytics />} />
+                    <Route path="/stock-opnames" element={<StockOpnames />} />
+                    <Route
+                      path="/stock-opnames/:id"
+                      element={<StockOpnameDetail />}
+                    />
+                    <Route path="/activity-logs" element={<ActivityLogs />} />
+                    <Route path="/ai-assistant" element={<AiAssistant />} />
+                    <Route path="/cash-register" element={<CashRegister />} />
+                    <Route path="/settings" element={<Settings />} />
+                  </Routes>
+                </main>
+              </div>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </>
   );
 }

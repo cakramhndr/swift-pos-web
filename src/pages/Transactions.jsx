@@ -28,8 +28,13 @@ import {
   RotateCcw,
   ChevronDown,
   ChevronRight,
+  CircleDollarSign,
+  AlertTriangle,
 } from "lucide-react";
 import { exportTransactionsPDF } from "@/lib/exportUtils";
+import { getCurrentShift } from "@/api/shifts";
+import OpenShiftModal from "@/components/shifts/OpenShiftModal";
+import useShifts from "@/hooks/useShifts";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────
 function getEffectiveStock(product) {
@@ -94,6 +99,38 @@ export default function Transactions() {
   });
   const [selectedCustomerType, setSelectedCustomerType] = useState(null);
   const [creatingCustomer, setCreatingCustomer] = useState(false);
+
+  // ─── Shift State ──────────────────────────────────────────────────────────
+  const [activeShift, setActiveShift] = useState(null);
+  const [shiftLoaded, setShiftLoaded] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
+  const [showOpenShiftModal, setShowOpenShiftModal] = useState(false);
+  const { handleOpenShift: openShiftAction } = useShifts();
+
+  // ─── Dedicated useEffect for shift loading ─────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    const loadShift = async () => {
+      try {
+        const res = await getCurrentShift();
+        if (cancelled) return;
+        const body = res.data?.data ?? res.data;
+        if (body && body.id) {
+          setActiveShift(body);
+        } else {
+          setActiveShift(null);
+        }
+      } catch {
+        if (!cancelled) setActiveShift(null);
+      } finally {
+        if (!cancelled) setShiftLoaded(true);
+      }
+    };
+    loadShift();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // ─── Sales Return State ────────────────────────────────────────────────
   const [showCreateReturn, setShowCreateReturn] = useState(false);
@@ -629,6 +666,19 @@ export default function Transactions() {
     return item.name;
   };
 
+  // ─── Shift handlers ────────────────────────────────────────────────────
+  const handleOpenShiftFromBanner = useShifts().handleOpenShift;
+  const handleOpenShiftSubmit = async (openingCash) => {
+    const result = await handleOpenShiftFromBanner(openingCash);
+    if (result.success) {
+      setActiveShift(result.data);
+      setShowBanner(false);
+      setShowOpenShiftModal(false);
+      toast.success("Shift berhasil dibuka");
+    }
+    return result;
+  };
+
   return (
     <>
       {/* ─── Hidden Barcode Scanner Input ───────────────────────────── */}
@@ -643,6 +693,31 @@ export default function Transactions() {
       />
 
       <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm dark:bg-gray-800 dark:shadow-none">
+        {/* ─── Shift Warning Banner ─────────────────────────────────────── */}
+        {shiftLoaded && !activeShift && showBanner && (
+          <div className="flex items-center gap-3 rounded-2xl border border-amber-200/60 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-900/20 px-5 py-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-800/40">
+              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            </div>
+            <p className="flex-1 text-sm font-medium text-amber-800 dark:text-amber-200">
+              Tidak ada shift aktif. Disarankan membuka shift sebelum melakukan
+              transaksi.
+            </p>
+            <button
+              onClick={() => setShowOpenShiftModal(true)}
+              className="rounded-xl bg-accent px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:shadow-md"
+            >
+              Buka Shift
+            </button>
+            <button
+              onClick={() => setShowBanner(false)}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-800/40 transition-all"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* ══════════════ Page Header ═══════════════════════════════════════ */}
         <div className="flex items-center justify-between">
           <div>
@@ -668,6 +743,31 @@ export default function Transactions() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* ─── Shift Indicator ──────────────────────────────────────── */}
+            {shiftLoaded && (
+              <div
+                className={`hidden sm:flex items-center gap-2 rounded-2xl border px-4 py-2.5 ${
+                  activeShift
+                    ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200/50 dark:border-emerald-800/30"
+                    : "bg-amber-50 dark:bg-amber-900/20 border-amber-200/50 dark:border-amber-800/30"
+                }`}
+              >
+                <div
+                  className={`h-2 w-2 rounded-full ${activeShift ? "bg-emerald-400" : "bg-red-400"}`}
+                />
+                <span
+                  className={`text-sm font-medium ${
+                    activeShift
+                      ? "text-emerald-700 dark:text-emerald-300"
+                      : "text-amber-700 dark:text-amber-300"
+                  }`}
+                >
+                  {activeShift
+                    ? activeShift.shift_number
+                    : "Tidak Ada Shift Aktif"}
+                </span>
+              </div>
+            )}
             <button
               onClick={() => exportTransactionsPDF(transactions)}
               className="relative z-10 flex items-center gap-2 rounded-2xl border border-accent px-4 py-2.5 text-sm font-semibold text-accent dark:text-accent transition-all duration-200 hover:bg-accent-light dark:hover:bg-accent/30 hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.25)] dark:hover:shadow-[0_0_20px_-2px_rgba(168,85,247,0.15)] hover:-translate-y-0.5 dark:hover:bg-accent/30 text-sm"
@@ -2323,6 +2423,15 @@ export default function Transactions() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* ══════════════ Open Shift Modal ════════════════════════════════ */}
+        {showOpenShiftModal && (
+          <OpenShiftModal
+            onClose={() => setShowOpenShiftModal(false)}
+            onSubmit={handleOpenShiftSubmit}
+            loading={false}
+          />
         )}
       </div>
     </>

@@ -20,16 +20,24 @@ import {
   ChevronDown,
   Store,
   LogOut,
+  CircleDollarSign,
 } from "lucide-react";
 import useDarkMode from "@/hooks/useDarkMode";
 import { cn } from "@/lib/utils";
 import useStoreProfile from "@/hooks/useStoreProfile";
+import { useAuth } from "@/context/AuthContext";
 
 const mainNav = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/products", icon: Package, label: "Products" },
   { to: "/categories", icon: Grid3X3, label: "Categories" },
   { to: "/transactions", icon: ShoppingCart, label: "Transactions" },
+  {
+    to: "/cash-register",
+    icon: CircleDollarSign,
+    label: "Cash Register",
+    permission: "manage shifts",
+  },
   { to: "/customers", icon: Users, label: "Customers" },
   { to: "/inventory", icon: Warehouse, label: "Inventory" },
   { to: "/inventory-logs", icon: ClipboardList, label: "Inventory Logs" },
@@ -58,26 +66,28 @@ function NavGroup({ items, label }) {
         </p>
       )}
       <div className="space-y-0.5">
-        {items.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              cn(
-                "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                isActive
-                  ? "bg-gradient-to-r bg-accent text-white shadow-lg shadow-accent/20"
-                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-700 dark:hover:text-gray-200",
-              )
-            }
-          >
-            <item.icon
-              size={18}
-              className="shrink-0 transition-colors duration-200 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 aria-[current=page]:text-white"
-            />
-            <span className="truncate">{item.label}</span>
-          </NavLink>
-        ))}
+        {items.map((item) =>
+          item.hidden ? null : (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                cn(
+                  "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                  isActive
+                    ? "bg-gradient-to-r bg-accent text-white shadow-lg shadow-accent/20"
+                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-700 dark:hover:text-gray-200",
+                )
+              }
+            >
+              <item.icon
+                size={18}
+                className="shrink-0 transition-colors duration-200 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 aria-[current=page]:text-white"
+              />
+              <span className="truncate">{item.label}</span>
+            </NavLink>
+          ),
+        )}
       </div>
     </div>
   );
@@ -86,7 +96,17 @@ function NavGroup({ items, label }) {
 export default function AppSidebar() {
   const { isDark, toggleDark } = useDarkMode();
   const { storeProfile, error } = useStoreProfile();
+  const { user, logout } = useAuth();
   const [outletOpen, setOutletOpen] = useState(false);
+
+  // Build nav items with permission-based visibility
+  const userPermissions = user?.permissions || [];
+  const visibleMainNav = mainNav.map((item) => ({
+    ...item,
+    hidden: item.permission
+      ? !userPermissions.includes(item.permission)
+      : false,
+  }));
 
   const storeName = storeProfile?.name || "SwiftPOS";
   const storeLogoUrl = storeProfile?.logo_url || null;
@@ -165,7 +185,7 @@ export default function AppSidebar() {
 
         {/* Navigation Sections */}
         <div className="flex-1 space-y-5 py-2">
-          <NavGroup label="Main Menu" items={mainNav} />
+          <NavGroup label="Main Menu" items={visibleMainNav} />
           <NavGroup label="Analytics" items={analyticsNav} />
           <NavGroup label="System" items={systemNav} />
         </div>
@@ -220,19 +240,22 @@ export default function AppSidebar() {
           <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-200/40 dark:border-gray-800/40">
             <div className="relative shrink-0">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
-                A
+                {(user?.name || "U").charAt(0).toUpperCase()}
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-gray-950 bg-emerald-500" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
-                Admin
+                {user?.name || "User"}
               </p>
               <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
-                admin@swiftpos.com
+                {user?.email || ""}
               </p>
             </div>
-            <button className="shrink-0 p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/[0.06] transition-all">
+            <button
+              onClick={logout}
+              className="shrink-0 p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/[0.06] transition-all"
+            >
               <LogOut size={15} />
             </button>
           </div>
