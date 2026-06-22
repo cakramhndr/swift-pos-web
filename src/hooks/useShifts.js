@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { openShift, getCurrentShift } from "@/api/shifts";
+import { openShift, getCurrentShift, closeShift } from "@/api/shifts";
 
 /**
  * useShifts — manages shift state (current shift + open shift).
@@ -59,11 +59,32 @@ export default function useShifts() {
     }
   }, []);
 
+  const handleCloseShift = useCallback(async (data) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await closeShift(data);
+      const body = res.data?.data ?? res.data;
+
+      setCurrentShift(null);
+
+      return { success: true, data: body };
+    } catch (err) {
+      const message = err?.response?.data?.message || "Failed to close shift";
+      setError(message);
+      return { success: false, message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     currentShift,
     loading,
     error,
     fetchCurrentShift,
     handleOpenShift,
+    handleCloseShift,
   };
 }

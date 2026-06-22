@@ -3,12 +3,14 @@ import { toast } from "sonner";
 import useShifts from "@/hooks/useShifts";
 import ShiftStatusCard from "@/components/shifts/ShiftStatusCard";
 import OpenShiftModal from "@/components/shifts/OpenShiftModal";
+import CloseShiftModal from "@/components/shifts/CloseShiftModal";
 import { Clock, CircleDollarSign } from "lucide-react";
 
 export default function CashRegister() {
   const { currentShift, loading, fetchCurrentShift, handleOpenShift } =
     useShifts();
   const [showOpenModal, setShowOpenModal] = useState(false);
+  const [showCloseModal, setShowCloseModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -31,6 +33,12 @@ export default function CashRegister() {
     },
     [handleOpenShift, fetchCurrentShift],
   );
+
+  const onSubmitCloseShift = useCallback(async () => {
+    toast.success("Shift berhasil ditutup");
+    setShowCloseModal(false);
+    await fetchCurrentShift();
+  }, [fetchCurrentShift]);
 
   return (
     <div className="space-y-6">
@@ -82,14 +90,17 @@ export default function CashRegister() {
                     Tutup Shift
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-400">
-                    Tersedia di Sprint berikutnya
+                    Tutup shift dan hitung selisih kas
                   </p>
                 </div>
               </div>
               <button
-                disabled
-                title="Tersedia di Sprint berikutnya"
-                className="rounded-2xl border border-gray-300 dark:border-gray-600 px-6 py-2.5 text-sm font-semibold text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-60"
+                onClick={() => setShowCloseModal(true)}
+                className="rounded-2xl px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                style={{
+                  background:
+                    "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                }}
               >
                 Tutup Shift
               </button>
@@ -139,6 +150,15 @@ export default function CashRegister() {
           onClose={() => setShowOpenModal(false)}
           onSubmit={onSubmitOpenShift}
           loading={submitting}
+        />
+      )}
+
+      {showCloseModal && (
+        <CloseShiftModal
+          isOpen={showCloseModal}
+          onClose={() => setShowCloseModal(false)}
+          currentShift={currentShift}
+          onSuccess={onSubmitCloseShift}
         />
       )}
     </div>
