@@ -6,8 +6,13 @@ import ShiftHistoryTable from "@/components/shifts/ShiftHistoryTable";
 import OpenShiftModal from "@/components/shifts/OpenShiftModal";
 import CloseShiftModal from "@/components/shifts/CloseShiftModal";
 import { Clock, CircleDollarSign, History } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CashRegister() {
+  const { user } = useAuth();
+  const userPermissions = user?.permissions || [];
+  const hasManageShifts = userPermissions.includes("manage shifts");
+
   const {
     currentShift,
     loading,
@@ -25,7 +30,9 @@ export default function CashRegister() {
 
   const tabs = [
     { id: "active", label: "Shift Aktif", icon: CircleDollarSign },
-    { id: "history", label: "Riwayat Shift", icon: History },
+    ...(hasManageShifts
+      ? [{ id: "history", label: "Riwayat Shift", icon: History }]
+      : []),
   ];
 
   useEffect(() => {
@@ -138,33 +145,35 @@ export default function CashRegister() {
             <div className="space-y-6">
               <ShiftStatusCard shift={currentShift} />
 
-              <div className="rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 border border-accent/30">
-                      <Clock className="h-5 w-5 text-accent" />
+              {hasManageShifts && (
+                <div className="rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 border border-accent/30">
+                        <Clock className="h-5 w-5 text-accent" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Tutup Shift
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-400">
+                          Tutup shift dan hitung selisih kas
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                        Tutup Shift
-                      </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-400">
-                        Tutup shift dan hitung selisih kas
-                      </p>
-                    </div>
+                    <button
+                      onClick={() => setShowCloseModal(true)}
+                      className="rounded-2xl px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                      style={{
+                        background:
+                          "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                      }}
+                    >
+                      Tutup Shift
+                    </button>
                   </div>
-                  <button
-                    onClick={() => setShowCloseModal(true)}
-                    className="rounded-2xl px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
-                    style={{
-                      background:
-                        "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
-                    }}
-                  >
-                    Tutup Shift
-                  </button>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -189,16 +198,18 @@ export default function CashRegister() {
                   Buka shift untuk mulai mencatat transaksi kasir. Pastikan kas
                   awal sudah sesuai.
                 </p>
-                <button
-                  onClick={() => setShowOpenModal(true)}
-                  className="rounded-2xl px-8 py-3 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
-                  style={{
-                    background:
-                      "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
-                  }}
-                >
-                  Buka Shift
-                </button>
+                {hasManageShifts && (
+                  <button
+                    onClick={() => setShowOpenModal(true)}
+                    className="rounded-2xl px-8 py-3 font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                    style={{
+                      background:
+                        "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                    }}
+                  >
+                    Buka Shift
+                  </button>
+                )}
               </div>
             </div>
           )}

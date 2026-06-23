@@ -35,6 +35,7 @@ import { exportTransactionsPDF } from "@/lib/exportUtils";
 import { getCurrentShift } from "@/api/shifts";
 import OpenShiftModal from "@/components/shifts/OpenShiftModal";
 import useShifts from "@/hooks/useShifts";
+import { useAuth } from "@/context/AuthContext";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────
 function getEffectiveStock(product) {
@@ -45,6 +46,10 @@ function getEffectiveStock(product) {
 }
 
 export default function Transactions() {
+  const { user } = useAuth();
+  const userPermissions = user?.permissions || [];
+  const hasManageShifts = userPermissions.includes("manage shifts");
+
   // ─── API Hooks ──────────────────────────────────────────────────────────
   const {
     transactions,
@@ -694,7 +699,7 @@ export default function Transactions() {
 
       <div className="space-y-6 p-6 bg-white rounded-3xl shadow-sm dark:bg-gray-800 dark:shadow-none">
         {/* ─── Shift Warning Banner ─────────────────────────────────────── */}
-        {shiftLoaded && !activeShift && showBanner && (
+        {shiftLoaded && !activeShift && showBanner && hasManageShifts && (
           <div className="flex items-center gap-3 rounded-2xl border border-amber-200/60 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-900/20 px-5 py-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-800/40">
               <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -744,7 +749,7 @@ export default function Transactions() {
 
           <div className="flex items-center gap-3">
             {/* ─── Shift Indicator ──────────────────────────────────────── */}
-            {shiftLoaded && (
+            {shiftLoaded && hasManageShifts && (
               <div
                 className={`hidden sm:flex items-center gap-2 rounded-2xl border px-4 py-2.5 ${
                   activeShift

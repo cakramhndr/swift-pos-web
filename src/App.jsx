@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import AppSidebar from "./components/layout/AppSidebar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RequirePermission from "./components/RequirePermission";
 import Login from "./pages/Login";
 import Landing from "./pages/Landing";
 import useAppearance from "./hooks/useAppearance";
@@ -91,8 +92,22 @@ export default function App() {
                       element={<StockOpnameDetail />}
                     />
                     <Route path="/activity-logs" element={<ActivityLogs />} />
-                    <Route path="/ai-assistant" element={<AiAssistant />} />
-                    <Route path="/cash-register" element={<CashRegister />} />
+                    <Route
+                      path="/ai-assistant"
+                      element={
+                        <RequirePermission permission="use ai assistant">
+                          <AiAssistant />
+                        </RequirePermission>
+                      }
+                    />
+                    <Route
+                      path="/cash-register"
+                      element={
+                        <RequirePermission permission="manage shifts">
+                          <CashRegister />
+                        </RequirePermission>
+                      }
+                    />
                     <Route path="/settings" element={<Settings />} />
                   </Routes>
                 </main>

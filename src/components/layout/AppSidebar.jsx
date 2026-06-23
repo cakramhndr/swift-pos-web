@@ -52,7 +52,12 @@ const analyticsNav = [
 ];
 
 const systemNav = [
-  { to: "/ai-assistant", icon: Bot, label: "AI Assistant" },
+  {
+    to: "/ai-assistant",
+    icon: Bot,
+    label: "AI Assistant",
+    permission: "use ai assistant",
+  },
   { to: "/settings", icon: Settings, label: "Settings" },
   { to: "/activity-logs", icon: Activity, label: "Activity Logs" },
 ];
@@ -102,6 +107,12 @@ export default function AppSidebar() {
   // Build nav items with permission-based visibility
   const userPermissions = user?.permissions || [];
   const visibleMainNav = mainNav.map((item) => ({
+    ...item,
+    hidden: item.permission
+      ? !userPermissions.includes(item.permission)
+      : false,
+  }));
+  const visibleSystemNav = systemNav.map((item) => ({
     ...item,
     hidden: item.permission
       ? !userPermissions.includes(item.permission)
@@ -187,7 +198,7 @@ export default function AppSidebar() {
         <div className="flex-1 space-y-5 py-2">
           <NavGroup label="Main Menu" items={visibleMainNav} />
           <NavGroup label="Analytics" items={analyticsNav} />
-          <NavGroup label="System" items={systemNav} />
+          <NavGroup label="System" items={visibleSystemNav} />
         </div>
       </div>
 
