@@ -20,6 +20,7 @@ export default function CloseShiftModal({
 
   const openingCash = currentShift?.opening_cash || 0;
   const cashTotal = currentShift?.cash_total || 0;
+  const cashRefunds = currentShift?.cash_refunds || 0;
   const transactionCount = currentShift?.transaction_count || 0;
   const closingCashExpected = currentShift?.closing_cash_expected || 0;
 
@@ -34,7 +35,10 @@ export default function CloseShiftModal({
       value: cashTotal,
       sub: `${transactionCount} transaksi`,
     },
-    { label: "Total Cash Masuk", value: cashTotal },
+    {
+      label: "Total Refund Cash",
+      value: cashRefunds,
+    },
   ];
 
   const handleSubmitClick = (e) => {

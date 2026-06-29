@@ -1,6 +1,6 @@
 # SwiftPOS Roadmap
 
-Last Updated: 2026-06-22
+Last Updated: 2026-06-29
 
 ---
 
@@ -140,7 +140,10 @@ Status: PRODUCTION_READY
 - [x] Frontend Close Shift confirmation dialog
 - [x] Frontend ESC key support for modal dismissal
 - [x] POS checkout UI: shift indicator and warning banner in Transactions page
-- [ ] Shift History table (Sprint 11.4)
+- [x] Shift History table (Sprint 11.4 — Shift HistoryTable component)
+- [x] Route protection (RequirePermission guard)
+- [x] Hotfix 11.8.1: Prevent logout while shift is OPEN (backend guard + frontend dialog)
+- [x] Hotfix 11.8.1: Resume existing shift on re-login (already works, verified)
 - [ ] Mandatory shift validation (Phase 2 — require open shift before allowing POS transactions)
 
 ---
@@ -171,26 +174,30 @@ Status: PRODUCTION_READY
 - [x] Pattern mismatch fix: 7 new patterns to `product_insights`
 - [x] Insight Hari Ini periode fix: `today` instead of `startOfMonth()`
 
-# Sprint 12.7 — Product Insights Top 5 & Restock Priority
+# Sprint 11.4.3 — Permission Matrix Alignment
 
 Status: COMPLETED
 
-- [x] Product Insights Top 5 ranking (top_5 field in context builder)
-- [x] Product Condition Restock Priority (restock_priority array with priority 1/2)
-- [x] Collapsible Quick Actions (click heading to collapse/expand)
-- [x] Intent-specific prompt instruction for product_insights (render all 5 products)
-- [x] Manual UI verification completed
+- [x] Dashboard permission alignment (Kasir, Gudang, Accounting)
+- [x] Created `use ai assistant` permission
+- [x] Backend middleware for AI routes
+- [x] Frontend sidebar filtering
+- [x] Permission matrix documentation
 
-# Sprint 12.8 — AI Assistant RBAC Protection
+# Sprint 11.4.4 — Frontend Route Protection
 
-Status: PLANNED
+Status: COMPLETED
+
+- [x] RequirePermission component
+- [x] Cash Register route protection
+- [x] AI Assistant route protection
+- [x] Transaction shift-action protection
+- [x] Cash Register permission gating
 
 # Current Priorities
 
 ## High Priority
 
-- [ ] Sprint 11.4 — Shift History (list, detail, date filters)
-- [ ] Sprint 12.8 — AI Assistant RBAC Protection
 - [ ] Print PO using generated PDF (replace window.print)
 - [ ] Export Activity Logs
 - [ ] Export Inventory Logs

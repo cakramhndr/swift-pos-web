@@ -139,7 +139,11 @@ export default function Transactions() {
 
   // ─── Sales Return State ────────────────────────────────────────────────
   const [showCreateReturn, setShowCreateReturn] = useState(false);
-  const [returnForm, setReturnForm] = useState({ items: [], notes: "" });
+  const [returnForm, setReturnForm] = useState({
+    items: [],
+    notes: "",
+    refund_method: "Cash",
+  });
   const [showReturnHistory, setShowReturnHistory] = useState(false);
   const [transactionDetailLoading, setTransactionDetailLoading] =
     useState(false);
@@ -214,7 +218,7 @@ export default function Transactions() {
         return_qty: 0,
       }));
 
-      setReturnForm({ items: formItems, notes: "" });
+      setReturnForm({ items: formItems, notes: "", refund_method: "Cash" });
       setReturnValidationErrors({});
       setIsFullyReturned(false);
       setShowCreateReturn(true);
@@ -303,6 +307,7 @@ export default function Transactions() {
     try {
       const payload = {
         transaction_id: transactionDetailData?.id,
+        refund_method: returnForm.refund_method,
         notes: returnForm.notes,
         items: returnForm.items
           .filter((item) => item.return_qty > 0)
@@ -322,7 +327,7 @@ export default function Transactions() {
 
       toast.success("Sales return created successfully");
       setShowCreateReturn(false);
-      setReturnForm({ items: [], notes: "" });
+      setReturnForm({ items: [], notes: "", refund_method: "Cash" });
       setReturnValidationErrors({});
       setIsFullyReturned(false);
     } catch (err) {
@@ -2096,6 +2101,26 @@ export default function Transactions() {
                                   : ""}
                               </span>
                             </div>
+                            <div className="flex items-center gap-2 mb-1">
+                              {ret.refund_method && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/15 border border-blue-500/30 px-2 py-0.5 text-[11px] font-medium text-blue-300">
+                                  {ret.refund_method}
+                                </span>
+                              )}
+                              {ret.status && (
+                                <span
+                                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                                    ret.status === "completed"
+                                      ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300"
+                                      : "bg-red-500/15 border border-red-500/30 text-red-300"
+                                  }`}
+                                >
+                                  {ret.status === "completed"
+                                    ? "Completed"
+                                    : "Cancelled"}
+                                </span>
+                              )}
+                            </div>
                             {ret.items && ret.items.length > 0 && (
                               <div className="space-y-0.5 mb-1">
                                 {ret.items.map((ritem) => (
@@ -2375,6 +2400,27 @@ export default function Transactions() {
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* Metode Refund */}
+              <div className="mb-5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-2 block">
+                  Metode Refund
+                </label>
+                <select
+                  value={returnForm.refund_method}
+                  onChange={(e) =>
+                    setReturnForm((prev) => ({
+                      ...prev,
+                      refund_method: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-2xl border border-[#ececf2] dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer dark:text-white"
+                >
+                  <option value="Cash">Cash</option>
+                  <option value="Transfer">Transfer</option>
+                  <option value="QRIS">QRIS</option>
+                </select>
               </div>
 
               {/* Notes (Optional) */}

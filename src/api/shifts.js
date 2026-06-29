@@ -22,3 +22,7 @@ export function closeShift(data) {
 export function getShiftHistory(params = {}) {
   return client.get("/shifts/history", { params });
 }
+
+export function getOpenShifts() {
+  return client.get("/shifts/open");
+}

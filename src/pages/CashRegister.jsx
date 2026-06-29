@@ -1,12 +1,47 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import useShifts from "@/hooks/useShifts";
 import ShiftStatusCard from "@/components/shifts/ShiftStatusCard";
 import ShiftHistoryTable from "@/components/shifts/ShiftHistoryTable";
+import ShiftDetailModal from "@/components/shifts/ShiftDetailModal";
 import OpenShiftModal from "@/components/shifts/OpenShiftModal";
 import CloseShiftModal from "@/components/shifts/CloseShiftModal";
-import { Clock, CircleDollarSign, History } from "lucide-react";
+import { Clock, CircleDollarSign, History, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+
+function formatDuration(durationMinutes) {
+  if (durationMinutes == null || durationMinutes < 0) return "-";
+  const hours = Math.floor(durationMinutes / 60);
+  const minutes = durationMinutes % 60;
+  if (hours === 0) return `${minutes} menit`;
+  if (minutes === 0) return `${hours} jam`;
+  return `${hours} jam ${minutes} menit`;
+}
+
+function formatDateTime(dateStr) {
+  if (!dateStr) return "-";
+  return new Date(dateStr).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatCurrency(value) {
+  return Number(value || 0).toLocaleString("id-ID");
+}
+
+function getDurationBadgeClass(durationMinutes) {
+  if (durationMinutes == null) return "";
+  const hours = durationMinutes / 60;
+  if (hours <= 8)
+    return "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40";
+  if (hours <= 12)
+    return "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40";
+  return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200/60 dark:border-red-800/40";
+}
 
 export default function CashRegister() {
   const { user } = useAuth();
@@ -19,25 +54,41 @@ export default function CashRegister() {
     shiftHistory,
     historyLoading,
     historyMeta,
+    openShifts,
+    openShiftsLoading,
     fetchCurrentShift,
     handleOpenShift,
     fetchShiftHistory,
+    fetchOpenShifts,
   } = useShifts();
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
+  const [selectedShift, setSelectedShift] = useState(null);
 
   const tabs = [
     { id: "active", label: "Shift Aktif", icon: CircleDollarSign },
     ...(hasManageShifts
-      ? [{ id: "history", label: "Riwayat Shift", icon: History }]
+      ? [
+          { id: "history", label: "Riwayat Shift", icon: History },
+          { id: "open", label: "Open Shift", icon: ShieldCheck },
+        ]
       : []),
   ];
 
+  // Sort open shifts: longest duration first
+  const sortedOpenShifts = useMemo(() => {
+    return [...(openShifts || [])].sort(
+      (a, b) => (b.duration_minutes || 0) - (a.duration_minutes || 0),
+    );
+  }, [openShifts]);
+
+  // Fetch current shift + open shifts on mount
   useEffect(() => {
     fetchCurrentShift();
-  }, [fetchCurrentShift]);
+    fetchOpenShifts();
+  }, [fetchCurrentShift, fetchOpenShifts]);
 
   useEffect(() => {
     if (activeTab === "history") {
@@ -55,18 +106,20 @@ export default function CashRegister() {
         toast.success("Shift berhasil dibuka");
         setShowOpenModal(false);
         await fetchCurrentShift();
+        await fetchOpenShifts();
       }
 
       return result;
     },
-    [handleOpenShift, fetchCurrentShift],
+    [handleOpenShift, fetchCurrentShift, fetchOpenShifts],
   );
 
   const onSubmitCloseShift = useCallback(async () => {
     toast.success("Shift berhasil ditutup");
     setShowCloseModal(false);
     await fetchCurrentShift();
-  }, [fetchCurrentShift]);
+    await fetchOpenShifts();
+  }, [fetchCurrentShift, fetchOpenShifts]);
 
   const handleHistoryFilter = useCallback(
     async (filters) => {
@@ -223,6 +276,110 @@ export default function CashRegister() {
           meta={historyMeta}
           onFilter={handleHistoryFilter}
           onPageChange={handleHistoryPageChange}
+        />
+      )}
+
+      {activeTab === "open" && (
+        <div className="rounded-3xl border border-[#ececf2] dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
+          <div
+            className="h-1 bg-gradient-to-r"
+            style={{
+              background:
+                "linear-gradient(to right, var(--color-accent), var(--color-accent-light), var(--color-accent-hover))",
+            }}
+          />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <ShieldCheck className="h-5 w-5 text-accent" />
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                Cash Register Masih Aktif ({openShifts.length})
+              </h2>
+            </div>
+
+            {openShiftsLoading && (
+              <div className="flex items-center justify-center py-6">
+                <div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" />
+              </div>
+            )}
+
+            {!openShiftsLoading && sortedOpenShifts.length === 0 && (
+              <div className="flex items-center gap-2 py-4 text-gray-500 dark:text-gray-400">
+                <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                <p className="text-sm">
+                  Tidak ada Cash Register yang masih aktif.
+                </p>
+              </div>
+            )}
+
+            {!openShiftsLoading && sortedOpenShifts.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {sortedOpenShifts.map((shift) => (
+                  <div
+                    key={shift.id}
+                    className="rounded-2xl border border-[#ececf2] dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 p-4 space-y-3"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                          {shift.user?.name || "—"}
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5 font-mono">
+                          {shift.shift_number}
+                        </p>
+                      </div>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getDurationBadgeClass(shift.duration_minutes)}`}
+                      >
+                        {formatDuration(shift.duration_minutes)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40`}
+                      >
+                        OPEN
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                      <p>
+                        <span className="font-medium">Toko:</span>{" "}
+                        {shift.store?.name || "—"}
+                      </p>
+                      <p>
+                        <span className="font-medium">Dibuka:</span>{" "}
+                        {formatDateTime(shift.opened_at)}
+                      </p>
+                      <p>
+                        <span className="font-medium">Kas Awal:</span> Rp{" "}
+                        {formatCurrency(shift.opening_cash)}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => setSelectedShift(shift)}
+                      className="w-full rounded-xl py-2 text-xs font-semibold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                      style={{
+                        background:
+                          "linear-gradient(to right, var(--color-accent), var(--color-accent-hover))",
+                      }}
+                    >
+                      Lihat Detail
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Shift Detail Modal ───────────────────────────────────────── */}
+      {selectedShift && (
+        <ShiftDetailModal
+          shift={selectedShift}
+          onClose={() => setSelectedShift(null)}
         />
       )}
 

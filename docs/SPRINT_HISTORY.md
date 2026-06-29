@@ -214,6 +214,330 @@ Status: PRODUCTION_READY
   - Berlaku untuk SEMUA skill yang memakai `extractFilters()` (`sales_overview`, `product_insights`, `customer_insights`)
   - Quick Action card TIDAK terdampak (semua sudah kirim kata kunci eksplisit)
 
+## Sprint 11.7 — Open Shift Monitoring Dashboard
+
+Status: PRODUCTION_READY
+
+- **New endpoint `GET /api/shifts/open`**: returns all currently OPEN shifts for the authenticated user's store
+  - Includes: id, shift_number, opened_at, opening_cash, status, duration_minutes, user (id, name), store (id, name)
+  - Duration calculated in backend using Carbon (diffInMinutes), not SQL
+  - Protected with `->middleware('can:manage shifts')`
+- **Frontend API helper**: `getOpenShifts()` in `src/api/shifts.js`
+- **useShifts hook**: Added `openShifts`, `openShiftsLoading`, `fetchOpenShifts` state and method
+- **Monitoring widget** in CashRegister.jsx (above tabs):
+  - Header: "Cash Register Masih Aktif (N)" with count badge
+  - Card grid (1/2/3 columns responsive) showing each open shift:
+    - Cashier name, shift number, duration badge (green/yellow/red rules)
+    - Store name, opened datetime
+    - "Lihat Detail" button
+  - Empty state: "Tidak ada Cash Register yang masih aktif." with green checkmark
+- **Duration badge color rules**:
+  - 0-8 hours: green (emerald)
+  - 8-12 hours: yellow (amber)
+  - > 12 hours: red
+- **Navigation**: "Lihat Detail" opens existing `ShiftDetailModal` component — no new detail component created
+- **Performance**: Open shifts fetched once on page load + after Open Shift + after Close Shift (reuses existing refresh flow)
+- **Constraints respected**:
+  - NO changes to closing cash calculation
+  - NO changes to ShiftService business logic
+  - NO changes to permissions
+  - NO changes to history table
+  - NO changes to existing UI flow
+  - Only additive changes (new endpoint + widget)
+
+### Regression Verification
+
+- Open Shift still works ✓
+- Close Shift still works ✓
+- History unchanged ✓
+- Detail modal reused, unchanged ✓
+- Current Shift unchanged ✓
+- Permissions unchanged ✓
+- Mobile layout responsive (grid collapses to single column) ✓
+- No duplicate API requests ✓
+
+## Sprint 11.8 — Open Shift Monitoring Tab
+
+Status: PRODUCTION_READY
+
+### Objective
+
+Refactor the Open Shift Monitoring widget from Sprint 11.7 into a dedicated tab inside the Cash Register page.
+
+### Changes
+
+- **Removed monitoring widget** from above the tabs (UI section only — API, hook, fetch logic, and detail modal integration preserved)
+- **Added new "Open Shift" tab** (`ShieldCheck` icon) to the tab bar, rendered alongside "Shift Aktif" and "Riwayat Shift"
+- **Open Shift tab content** renders the same monitoring dashboard previously shown as a widget:
+  - Header: "Cash Register Masih Aktif (N)"
+  - Responsive card grid (1/2/3 columns) with each card showing:
+    - Cashier name, shift number
+    - Duration badge (green/yellow/red rules)
+    - Status badge (OPEN)
+    - Store name, opening time, opening cash
+    - "Lihat Detail" button
+  - Empty state: green checkmark + "Tidak ada Cash Register yang masih aktif."
+- **Sorting**: Shifts sorted by longest duration first (descending). Done in frontend via `useMemo` — no backend query change.
+- **Performance**: No duplicate API requests. Open shift data fetched once on mount + after Open/Close shift. Tab switching does NOT trigger re-fetch (uses cached hook state).
+- **Detail modal**: "Lihat Detail" continues using existing `ShiftDetailModal` — no duplicate component.
+
+### Constraints Respected
+
+- NO modifications to backend calculation
+- NO changes to ShiftService
+- NO changes to cash summary
+- NO changes to permissions
+- NO changes to history table
+- NO changes to active shift workflow
+- No duplicate components or APIs
+- Only UI relocation
+
+### Regression Verification
+
+- Shift Aktif still works ✓
+- Riwayat Shift unchanged ✓
+- Open Shift tab displays all active shifts ✓
+- Detail modal still opens ✓
+- Duration badge colors unchanged ✓
+- Refresh still works (after Open/Close shift) ✓
+- Open Shift API unchanged ✓
+- No duplicate requests ✓
+- Mobile responsive (grid collapses to single column) ✓
+- Desktop responsive ✓
+
+## Sprint 11.4.3 — Permission Matrix Alignment & AI Assistant Access
+
+Status: COMPLETED
+
+- Dashboard permission alignment: Kasir, Gudang, and Accounting now have `view dashboard` permission
+- Created `use ai assistant` permission via `firstOrCreate()` (idempotent)
+- Assigned `use ai assistant` to Owner, Admin, Accounting only (not Kasir or Gudang)
+- Backend middleware: all 7 AI Assistant routes protected with `->middleware('can:use ai assistant')`
+- Frontend sidebar: added `permission: "use ai assistant"` to AI Assistant nav item in `systemNav`
+- Created `visibleSystemNav` filtering for permission-based sidebar hiding
+- Created `docs/PERMISSION_MATRIX.md` with full module/role matrix
+- No duplicate permissions created
+- All seeder operations via `firstOrCreate()` for idempotency
+
+## Sprint 11.4.4 — Frontend Route Protection & Shift Permission Guard
+
+Status: COMPLETED
+
+- Created `src/components/RequirePermission.jsx` — reusable route-level permission guard
+- Protected `/cash-register` route with `RequirePermission permission="manage shifts"`
+- Protected `/ai-assistant` route with `RequirePermission permission="use ai assistant"`
+- Transactions page: shift warning banner and shift indicator now hidden when user lacks `manage shifts`
+- Cash Register page: History tab, Buka Shift button, and Tutup Shift card now hidden when user lacks `manage shifts`
+- No backend changes, no permission changes, no database changes
+- Reuses existing `useAuth` context — no duplicate guard systems
+- Build verified with zero errors
+
+## Hotfix 11.8.1 — Prevent Logout While Shift Is Open & Resume Existing Shift
+
+Status: PRODUCTION_READY
+
+### Objective
+
+Enforce the Cash Register business rule: a user MUST NOT be able to logout while their own Cash Register shift is still OPEN. Closing the browser, refreshing the page, or losing internet connection MUST NOT close the shift. The shift remains OPEN until the user explicitly performs Close Shift.
+
+### Backend Logout Guard
+
+- **File**: `app/Http/Controllers/Api/AuthController.php`
+- Before deleting the Sanctum token, the `logout()` method now checks for an OPEN shift belonging to the authenticated user (`CashRegisterShift::where('user_id', $user->id)->where('status', 'OPEN')->first()`)
+- If an OPEN shift is found, logout is BLOCKED with HTTP 409 Conflict:
+  ```json
+  {
+    "success": false,
+    "message": "Please close your cash register before logging out.",
+    "code": "SHIFT_STILL_OPEN"
+  }
+  ```
+- Sanctum token is NOT invalidated. Session is NOT destroyed. Logout simply fails.
+- No changes to ShiftService, cash calculation, permissions, or any other business logic.
+
+### Frontend Logout Handling
+
+- **File**: `src/context/AuthContext.jsx`
+  - `logout()` now re-throws the error when `status === 409 && code === "SHIFT_STILL_OPEN"` — preventing the `finally` block from clearing auth state
+- **File**: `src/components/layout/AppSidebar.jsx`
+  - `handleLogout()` catches the SHIFT_STILL_OPEN error and displays a confirmation dialog
+  - Dialog title: "Cash Register Masih Aktif"
+  - Dialog message: "Anda masih memiliki Shift yang belum ditutup. Silakan lakukan Close Shift terlebih dahulu sebelum logout."
+  - Two buttons:
+    - "Batal" — closes the dialog, user stays on current page
+    - "Ke Cash Register" — navigates to `/cash-register` so user can close their shift
+  - Uses existing `Dialog` component from `@/components/ui/dialog` — no new UI library
+  - Does NOT use `alert()`
+  - Does NOT clear auth state or redirect on 409
+
+### Resume Existing Shift
+
+- **Verified**: Already works. No changes needed.
+- `CashRegister.jsx` calls `fetchCurrentShift()` on mount → `GET /api/shifts/current` → returns the OPEN shift if one exists → "Shift Aktif" is displayed immediately
+- No duplicate shift. No additional modal. Reuses existing flow.
+
+### Browser Close / Refresh
+
+- **Verified**: No implementation required.
+- Closing the browser, refreshing the page, or losing internet connection does NOT close the shift
+- The shift remains OPEN in the database (`status = 'OPEN'`)
+- On re-login, the existing shift is resumed automatically (see Resume Existing Shift above)
+
+### Constraints Respected
+
+- NO auto close shift
+- NO modifications to ShiftService calculation
+- NO modifications to cash summary
+- NO scheduled jobs created
+- NO websocket or polling
+- NO permission system changes
+- NO duplicate shift logic
+- Only business rule enforcement
+
+### Regression Verification
+
+- Login still works ✓
+- Logout works when no active shift ✓
+- Logout blocked when shift OPEN ✓
+- Sanctum token remains valid after blocked logout ✓
+- Browser refresh keeps shift OPEN ✓
+- Browser close keeps shift OPEN ✓
+- Re-login resumes existing shift ✓
+- Open Shift still works ✓
+- Close Shift still works ✓
+- History unchanged ✓
+- Monitoring unchanged ✓
+- No duplicate API calls ✓
+
+## Hotfix 11.8.3 — Context-Aware Logout Guard UX
+
+Status: PRODUCTION_READY
+
+### Objective
+
+Improve the logout guard dialog so it behaves intelligently depending on the user's current page. When already on `/cash-register`, the "Ke Cash Register" button does nothing (React Router correctly ignores navigation to the current pathname). Instead of forcing refreshes or remounts, adapt the dialog buttons to the context.
+
+### Changes
+
+**File**: `src/components/layout/AppSidebar.jsx`
+
+- Added `useLocation()` import from `react-router-dom`
+- Created `isCashRegisterPage` computed value: `location.pathname === "/cash-register"`
+- **Context-aware button rendering**:
+
+| User is on                       | Dialog buttons                 | Behavior                                                            |
+| -------------------------------- | ------------------------------ | ------------------------------------------------------------------- |
+| Any page EXCEPT `/cash-register` | `[Batal]` `[Ke Cash Register]` | "Ke Cash Register" navigates to `/cash-register` and closes dialog  |
+| `/cash-register`                 | `[OK]`                         | "OK" simply closes the dialog — user is already on the correct page |
+
+- **Improved dialog copy**:
+  - Title: "Cash Register Masih Aktif"
+  - Body: "Anda masih memiliki Shift yang belum ditutup.\n\nUntuk menjaga konsistensi transaksi dan saldo kas, silakan lakukan Close Shift terlebih dahulu sebelum Logout."
+- Extracted `handleNavigateToCashRegister` and `handleDismissLogoutError` as named functions (previously inline)
+- No changes to warning icon, colors, or styling
+- No backend changes, no routing hacks, no page reloads
+
+### Constraints Respected
+
+- NO backend changes
+- NO modifications to AuthController
+- NO modifications to ShiftService
+- NO modifications to logout API
+- NO force page reload
+- NO `window.location` or `window.location.reload()`
+- NO `navigate(0)` or `location.state` refresh hacks
+- NO polling or websocket
+- Only UX improvement
+
+### Regression Verification
+
+- Logout succeeds after Close Shift ✓
+- Logout blocked when OPEN shift exists ✓
+- Dashboard → Logout → "Ke Cash Register" navigates correctly ✓
+- Products → Logout → "Ke Cash Register" navigates correctly ✓
+- Transactions → Logout → "Ke Cash Register" navigates correctly ✓
+- Inventory → Logout → "Ke Cash Register" navigates correctly ✓
+- Cash Register → Logout shows `[Batal] [OK]` instead of `[Batal] [Ke Cash Register]` ✓
+- No React warnings ✓
+- No build warnings ✓
+- No backend changes ✓
+
+## Hotfix 11.8.2 — Logout Guard Fix
+
+Status: PRODUCTION_READY
+
+### Root Cause
+
+The `logout()` function in `AuthContext.jsx` used a `try/catch/finally` pattern where `finally` unconditionally cleared authentication state (`localStorage.removeItem("token")`, `setUser(null)`).
+
+Even though the `catch` block re-threw the error for SHIFT_STILL_OPEN (HTTP 409), JavaScript's `finally` block executes **before** the re-thrown error propagates up the call stack. This meant:
+
+1. Backend returns HTTP 409 (correct)
+2. `catch` detects SHIFT_STILL_OPEN and calls `throw error`
+3. `finally` runs immediately — clears token + user
+4. Error propagates to AppSidebar — too late, user already logged out
+
+### Fix
+
+**File**: `src/context/AuthContext.jsx`
+
+Removed the unconditional `finally` block. Auth cleanup now occurs in exactly two places:
+
+| Scenario                              | Action                    | Auth cleanup?   |
+| ------------------------------------- | ------------------------- | --------------- |
+| `logoutApi()` succeeds (2xx)          | Clear token + user        | YES             |
+| HTTP 409 + `SHIFT_STILL_OPEN`         | Throw error to AppSidebar | NO — preserved  |
+| Unexpected error (401, network, etc.) | Clear token + user        | YES — preserved |
+
+**New control flow:**
+
+```
+logoutApi()
+    ↓
+┌──────────────────┐
+│  Success (2xx)   │ → clear auth → return
+└──────────────────┘
+    ↓ (error)
+┌──────────────────────────┐
+│  409 + SHIFT_STILL_OPEN  │ → throw (no auth cleanup)
+└──────────────────────────┘
+    ↓ (other error)
+┌──────────────────┐
+│  Unexpected       │ → clear auth (preserved behaviour)
+└──────────────────┘
+```
+
+### Preserved Behaviour
+
+- `fetchUser()` error handling unchanged (clears auth on expired/invalid token)
+- Unexpected logout errors (401, network failure) still clear auth — no regression
+- `login()` unchanged
+- No changes to API contracts, backend, routes, permissions, or dialog UI
+
+### Constraints Respected
+
+- Frontend only — NO backend changes
+- NO modifications to AuthController
+- NO modifications to routes or permissions
+- NO modifications to logout API
+- NO modifications to dialog UI
+- NO duplicate logout logic
+
+### Regression Verification
+
+- Logout succeeds when no OPEN shift ✓
+- Logout blocked when OPEN shift exists ✓
+- HTTP 409 keeps auth state (token in localStorage, user object populated) ✓
+- ProtectedRoute does NOT redirect on 409 ✓
+- Dialog appears correctly with "Cash Register Masih Aktif" ✓
+- "Ke Cash Register" navigates to `/cash-register` ✓
+- "Batal" closes dialog, user stays on page ✓
+- Close Shift still works ✓
+- Logout succeeds immediately after Close Shift ✓
+- Browser refresh resumes active shift ✓
+- Auth data persists after 409 (user, permissions stay populated) ✓
+- Build passes with zero errors ✓
+
 ## Sprint 12.7 — Product Insights Top 5 & Restock Priority
 
 Status: PRODUCTION_READY

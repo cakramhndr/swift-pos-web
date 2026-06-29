@@ -29,13 +29,13 @@ For quick context, read AI_CONTEXT.md first.
 
 ### Current Sprint
 
-**Sprint 12.7 — Product Insights Top 5 & Restock Priority**
-Status: PRODUCTION_READY
+**Sprint 11.4.4 — Frontend Route Protection & Shift Permission Guard**
+Status: COMPLETED
 
 ### Latest Completed Sprint
 
-**Sprint 12.7 — Product Insights Top 5 & Restock Priority**
-Status: PRODUCTION_READY
+**Sprint 11.4.4 — Frontend Route Protection & Shift Permission Guard**
+Status: COMPLETED
 
 ---
 
@@ -156,24 +156,24 @@ Example: Existing stock 7 @ 320,000 + Received 3 @ 500,000 should produce averag
 
 ### Cash Register Frontend
 
-Status: IN_PROGRESS — Backend is complete, including automatic shift_id assignment on POS transactions (TransactionController@store). Frontend UI (Cash Register page, shift open/close modals) has not been implemented yet.
+Status: PRODUCTION_READY — Full Cash Register UI implemented (Sprint 11.2-11.3): Open Shift modal, Close Shift modal, Shift Status Card, Shift History table, shift banner/indicator in Transactions page. Route protected by `manage shifts` permission.
 
 ---
 
 ## Roadmap Summary
 
-| Phase    | Focus                                                    | Status                                  |
-| -------- | -------------------------------------------------------- | --------------------------------------- |
-| Phase 1  | Foundation (Auth, Store, Dashboard)                      | PRODUCTION_READY                        |
-| Phase 2  | Master Data (Products, Categories, Customers, Suppliers) | PRODUCTION_READY                        |
-| Phase 3  | POS (Cart, Checkout, Invoices)                           | PRODUCTION_READY                        |
-| Phase 4  | Inventory (Logs, Stock Opname, Barcodes)                 | PRODUCTION_READY                        |
-| Phase 5  | Procurement (POs, Receiving)                             | PRODUCTION_READY                        |
-| Phase 6  | Costing (Average Cost, Valuation)                        | PRODUCTION_READY                        |
-| Phase 7  | Reports (Revenue, Profit, Analytics)                     | PRODUCTION_READY                        |
-| Phase 8  | Audit Trail                                              | PRODUCTION_READY                        |
-| Phase 9  | Cash Register / Shift Management                         | BACKEND_COMPLETE, Frontend: IN_PROGRESS |
-| Phase 10 | AI Assistant Foundation                                  | PRODUCTION_READY                        |
+| Phase    | Focus                                                    | Status           |
+| -------- | -------------------------------------------------------- | ---------------- |
+| Phase 1  | Foundation (Auth, Store, Dashboard)                      | PRODUCTION_READY |
+| Phase 2  | Master Data (Products, Categories, Customers, Suppliers) | PRODUCTION_READY |
+| Phase 3  | POS (Cart, Checkout, Invoices)                           | PRODUCTION_READY |
+| Phase 4  | Inventory (Logs, Stock Opname, Barcodes)                 | PRODUCTION_READY |
+| Phase 5  | Procurement (POs, Receiving)                             | PRODUCTION_READY |
+| Phase 6  | Costing (Average Cost, Valuation)                        | PRODUCTION_READY |
+| Phase 7  | Reports (Revenue, Profit, Analytics)                     | PRODUCTION_READY |
+| Phase 8  | Audit Trail                                              | PRODUCTION_READY |
+| Phase 9  | Cash Register / Shift Management                         | PRODUCTION_READY |
+| Phase 10 | AI Assistant Foundation                                  | PRODUCTION_READY |
 
 See ROADMAP.md for full detail.
 
@@ -182,6 +182,8 @@ See ROADMAP.md for full detail.
 ## Next Sprint
 
 Sprint 12.8 — AI Assistant RBAC Protection (tentative)
+
+> Note: Sprint 11.4.3 (RBAC Alignment) and Sprint 11.4.4 (Route Protection) have been completed, implementing the RBAC protections that would have been part of Sprint 12.8. The AI Assistant now has both backend middleware (`can:use ai assistant`) and frontend route protection (`RequirePermission`). Remaining work may include UI-level permission management screens.
 
 ---
 

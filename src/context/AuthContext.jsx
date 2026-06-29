@@ -63,12 +63,29 @@ export function AuthProvider({ children }) {
     return res.data;
   };
 
+  // Hotfix 11.8.2: Only clear auth on successful logout.
+  // Do NOT clear auth when logout is blocked by SHIFT_STILL_OPEN (409).
+  // Preserve existing behaviour for unexpected errors (clear auth).
   const logout = async () => {
     try {
       await logoutApi();
+
+      // Success — only now clear auth
+      localStorage.removeItem("token");
+      setUser(null);
     } catch (error) {
+      const code = error?.response?.data?.code;
+      const status = error?.response?.status;
+
+      // Hotfix 11.8.1/11.8.2: Block logout if shift is still open
+      // Do NOT clear auth state — just throw back to AppSidebar
+      if (status === 409 && code === "SHIFT_STILL_OPEN") {
+        throw error;
+      }
+
+      // Unexpected errors (expired token, network, etc.)
+      // Preserve existing behaviour: clear auth
       console.error(error);
-    } finally {
       localStorage.removeItem("token");
       setUser(null);
     }

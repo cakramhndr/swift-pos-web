@@ -4,6 +4,7 @@ import {
   getCurrentShift,
   closeShift,
   getShiftHistory,
+  getOpenShifts,
 } from "@/api/shifts";
 
 /**
@@ -25,6 +26,9 @@ export default function useShifts() {
   const [shiftHistory, setShiftHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyMeta, setHistoryMeta] = useState(null);
+
+  const [openShifts, setOpenShifts] = useState([]);
+  const [openShiftsLoading, setOpenShiftsLoading] = useState(false);
 
   const fetchCurrentShift = useCallback(async () => {
     setLoading(true);
@@ -110,6 +114,30 @@ export default function useShifts() {
     }
   }, []);
 
+  /**
+   * Fetch all currently OPEN shifts across the store.
+   * Used by the monitoring widget in CashRegister.
+   */
+  const fetchOpenShifts = useCallback(async () => {
+    setOpenShiftsLoading(true);
+
+    try {
+      const res = await getOpenShifts();
+      const body = res.data;
+
+      setOpenShifts(body.data ?? []);
+
+      return { success: true, data: body.data };
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || "Failed to load open shifts";
+      setOpenShifts([]);
+      return { success: false, message };
+    } finally {
+      setOpenShiftsLoading(false);
+    }
+  }, []);
+
   return {
     currentShift,
     loading,
@@ -117,9 +145,12 @@ export default function useShifts() {
     shiftHistory,
     historyLoading,
     historyMeta,
+    openShifts,
+    openShiftsLoading,
     fetchCurrentShift,
     handleOpenShift,
     handleCloseShift,
     fetchShiftHistory,
+    fetchOpenShifts,
   };
 }
